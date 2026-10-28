@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Administration | {{ site_content.brand_name }}</title>
+    <style>
+        :root { color-scheme: dark; --bg: #101719; --panel: #192326; --line: #354447; --text: #edf1eb; --muted: #aab9b7; --accent: #a9d8c9; --danger: #f0aaa3; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", sans-serif; }
+        a { color: var(--accent); }
+        button, input, textarea { font: inherit; }
+        .shell { width: min(1080px, calc(100% - 32px)); margin: 32px auto 64px; }
+        .topbar, .section-head, .item-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .topbar { padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { margin-bottom: 4px; font-size: 25px; }
+        h2 { margin-bottom: 4px; font-size: 19px; }
+        h3 { margin-bottom: 0; font-size: 15px; }
+        .muted, small { color: var(--muted); }
+        .stack { display: grid; gap: 18px; margin-top: 20px; }
+        .panel, .entry { padding: 20px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); }
+        .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+        label { display: grid; gap: 7px; color: #d9e3df; font-size: 13px; }
+        label.full { grid-column: 1 / -1; }
+        input, textarea { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 5px; background: #101719; color: var(--text); }
+        textarea { min-height: 88px; resize: vertical; }
+        input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 15px; }
+        button { padding: 9px 14px; border: 1px solid transparent; border-radius: 5px; background: var(--accent); color: #10201c; font-weight: 700; cursor: pointer; }
+        button:hover { filter: brightness(1.08); }
+        button.danger { border-color: #704a49; background: #372323; color: #ffd4d0; }
+        .messages, .student-list { display: grid; gap: 10px; margin-top: 16px; }
+        .entry p { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+        .meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+        .student-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; }
+        .student-entry form, .logout-form { margin: 0; }
+        .student-entry button { padding: 6px 10px; font-size: 12px; }
+        .flash { padding: 12px 14px; border: 1px solid #54766b; border-radius: 5px; background: #1a302a; color: #c8f0df; }
+        .auth { width: min(460px, calc(100% - 32px)); margin: 12vh auto; }
+        .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 5px; color: var(--muted); text-align: center; }
+        @media (max-width: 640px) {
+            .shell { margin-top: 18px; }
+            .panel, .entry { padding: 15px; }
+            .fields { grid-template-columns: 1fr; }
+            label.full { grid-column: auto; }
+            .topbar, .section-head, .item-head { align-items: flex-start; }
+            .topbar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+{% if mode == 'setup' %}
+    <main class="auth panel">
+        <h1>Set Up Administration</h1>
+        <p class="muted">Create a password with at least 12 characters.</p>
+        {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
+        <form method="post" action="{{ url_for('admin_setup') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="stack">
+                <label>Password<input type="password" name="password" minlength="12" autocomplete="new-password" required></label>
+                <label>Confirm password<input type="password" name="confirmation" minlength="12" autocomplete="new-password" required></label>
+                <button type="submit">Create Admin Account</button>
+            </div>
+        </form>
+    </main>
+{% elif mode == 'login' %}
+    <main class="auth panel">
+        <h1>Admin Login</h1>
+        <p class="muted">Enter your admin password to continue.</p>
+        {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
+        <form method="post" action="{{ url_for('admin_login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="stack">
+                <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+                <button type="submit">Log In</button>
+            </div>
+        </form>
+    </main>
+{% else %}
+    <main class="shell">
+        <header class="topbar">
+            <div><h1>Admin Dashboard</h1><p class="muted">Manage {{ site_content.brand_name }} content, feedback, and names.</p></div>
+            <div class="actions">
+                <a href="{{ url_for('home') }}">View Site</a>
+                <form class="logout-form" method="post" action="{{ url_for('admin_logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Log Out</button>
+                </form>
+            </div>
+        </header>
+
+        <div class="stack">
+            {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
+
+            <section class="panel" aria-labelledby="settings-title">
+                <div class="section-head"><div><h2 id="settings-title">NizarTra Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
+                <form method="post" action="{{ url_for('admin_settings_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="fields">
+                        <label>Source Language<input name="default_source_language" maxlength="2" value="{{ app_config.default_source_language }}"></label>
+                        <label>Target Language<input name="default_target_language" maxlength="2" value="{{ app_config.default_target_language }}"></label>
+                        <label>Translation Mode<select name="translation_mode">
+                            <option value="dual" {% if app_config.translation_mode == 'dual' %}selected{% endif %}>dual</option>
+                            <option value="fast" {% if app_config.translation_mode == 'fast' %}selected{% endif %}>fast</option>
+                            <option value="segment" {% if app_config.translation_mode == 'segment' %}selected{% endif %}>segment</option>
+                        </select></label>
+                        <label>Max Segment Length<input type="number" name="max_segment_length" min="120" max="900" value="{{ app_config.max_segment_length }}"></label>
+                        <label>API Timeout (sec)<input type="number" name="api_timeout_seconds" min="3" max="20" value="{{ app_config.api_timeout_seconds }}"></label>
+                        <label style="display:flex; align-items:center; gap:10px; margin-top:8px;">Auto Detect Language<input type="checkbox" name="auto_detect_language" {% if app_config.auto_detect_language %}checked{% endif %}></label>
+                        <label style="display:flex; align-items:center; gap:10px; margin-top:8px;">Enable KNX<input type="checkbox" name="enable_knx" {% if app_config.enable_knx %}checked{% endif %}></label>
+                    </div>
+                    <div class="actions"><button type="submit">Save Translation Settings</button></div>
+                </form>
+            </section>
+
+            <section class="panel" aria-labelledby="knx-title">
+                <div class="section-head"><div><h2 id="knx-title">KNX Channels</h2><small>Map the KNX group addresses used by the control dashboard.</small></div></div>
+                <form method="post" action="{{ url_for('admin_knx_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="fields" style="grid-template-columns: repeat(5, minmax(0,1fr));">
+                        {% for channel in app_config.knx_channels %}
+                            <label>Name<input name="channel_name" value="{{ channel.name }}"></label>
+                            <label>Group Address<input name="group_address" value="{{ channel.group_address }}"></label>
+                            <label>Room<input name="room" value="{{ channel.room }}"></label>
+                            <label>Type<input name="type" value="{{ channel.type }}"></label>
+                            <label>Status<input name="status" value="{{ channel.status }}"></label>
+                        {% else %}
+                            <label>Name<input name="channel_name" value="Living Room Lights"></label>
+                            <label>Group Address<input name="group_address" value="1/0/1"></label>
+                            <label>Room<input name="room" value="Living Room"></label>
+                            <label>Type<input name="type" value="Lighting"></label>
+                            <label>Status<input name="status" value="Off"></label>
+                        {% endfor %}
+                    </div>
+                    <div class="actions"><button type="submit">Save KNX Channels</button></div>
+                </form>
+            </section>
+
+            <section class="panel" aria-labelledby="content-title">
+                <div class="section-head"><div><h2 id="content-title">Site Content</h2><small>Edit the text, then save your changes.</small></div></div>
+                <form method="post" action="{{ url_for('admin_save') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <div class="fields">
+                        <label>Site Name<input name="brand_name" maxlength="80" value="{{ site_content.brand_name }}"></label>
+                        <label>Tagline<input name="brand_tagline" maxlength="180" value="{{ site_content.brand_tagline }}"></label>
+                        <label>Home Page Heading<input name="home_heading" maxlength="120" value="{{ site_content.home_heading }}"></label>
+                        <label>Home Page Badge<input name="home_badge" maxlength="160" value="{{ site_content.home_badge }}"></label>
+                        <label class="full">Home Page Introduction<textarea name="home_intro" maxlength="1000">{{ site_content.home_intro }}</textarea></label>
+                        <label>About Section Eyebrow<input name="about_eyebrow" maxlength="100" value="{{ site_content.about_eyebrow }}"></label>
+                        <label>About Introduction<textarea name="about_lead" maxlength="1200">{{ site_content.about_lead }}</textarea></label>
+                        <label>Story Heading<input name="about_story_title" maxlength="100" value="{{ site_content.about_story_title }}"></label>
+                        <label>Story Text<textarea name="about_story" maxlength="2000">{{ site_content.about_story }}</textarea></label>
+                        <label>Mission Heading<input name="mission_title" maxlength="100" value="{{ site_content.mission_title }}"></label>
+                        <label>Mission Text<textarea name="mission_text" maxlength="700">{{ site_content.mission_text }}</textarea></label>
+                        <label>Vision Heading<input name="vision_title" maxlength="100" value="{{ site_content.vision_title }}"></label>
+                        <label>Vision Text<textarea name="vision_text" maxlength="700">{{ site_content.vision_text }}</textarea></label>
+                        <label>Values Heading<input name="values_title" maxlength="100" value="{{ site_content.values_title }}"></label>
+                        <label>Values Text<textarea name="values_text" maxlength="700">{{ site_content.values_text }}</textarea></label>
+                        <label>Founder Name<input name="founder_name" maxlength="100" value="{{ site_content.founder_name }}"></label>
+                        <label>Contact Email<input type="email" name="contact_email" maxlength="254" value="{{ site_content.contact_email }}"></label>
+                        <label class="full">Founder Bio<textarea name="founder_bio" maxlength="1000">{{ site_content.founder_bio }}</textarea></label>
+                        <label>Contact Hours<input name="contact_hours" maxlength="300" value="{{ site_content.contact_hours }}"></label>
+                        <label>Contact Note<textarea name="contact_note" maxlength="600">{{ site_content.contact_note }}</textarea></label>
+                    </div>
+                    <div class="actions"><button type="submit">Save Site Content</button></div>
+                </form>
+            </section>
+
+            <section class="panel" id="students" aria-labelledby="students-title">
+                <div class="section-head"><div><h2 id="students-title">Names</h2><small>Add a name or remove one from the list.</small></div></div>
+                <form class="actions" method="post" action="{{ url_for('admin_add_student') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <label style="flex:1 1 240px">New Name<input name="name" maxlength="100" required></label>
+                    <button type="submit">Add Name</button>
+                </form>
+                <div class="student-list">
+                    {% for student in site_content.students %}
+                        <div class="student-entry">
+                            <span>{{ student }}</span>
+                            <form method="post" action="{{ url_for('admin_delete_student', student_index=loop.index0) }}" onsubmit="return confirm('Delete this name?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button class="danger" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    {% else %}<p class="empty">There are no names in the list.</p>{% endfor %}
+                </div>
+            </section>
+
+            <section class="panel" aria-labelledby="images-title">
+                <h2 id="images-title">Images</h2>
+                <div class="fields">
+                    {% for slot, title in [('avatar', 'Profile Photo'), ('background', 'Background Image')] %}
+                        <form method="post" action="{{ url_for('admin_upload') }}" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="slot" value="{{ slot }}">
+                            <label>{{ title }}<input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required></label>
+                            <div class="actions"><button type="submit">Replace Image</button></div>
+                        </form>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="panel" id="feedback" aria-labelledby="feedback-title">
+                <div class="section-head"><div><h2 id="feedback-title">Visitor Feedback</h2><small>{{ feedback_messages|length }} most recent submissions</small></div></div>
+                <div class="messages">
+                    {% for opinion in feedback_messages %}
+                        <article class="entry">
+                            <div class="item-head">
+                                <div class="meta">
+                                    <strong>{{ opinion.name or 'Anonymous' }}</strong>
+                                    <time>{{ opinion._display_date }}</time>
+                                </div>
+                                <form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this feedback?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button class="danger" type="submit">Delete Feedback</button>
+                                </form>
+                            </div>
+                            <p>{{ opinion.message }}</p>
+                        </article>
+                    {% else %}<p class="empty">No feedback has been submitted yet.</p>{% endfor %}
+                </div>
+            </section>
+
+            <section class="panel" aria-labelledby="contact-title">
+                <h2 id="contact-title">Contact Messages</h2>
+                <div class="messages">
+                    {% for item in contact_messages %}
+                        <article class="entry">
+                            <div class="meta"><strong>{{ item.name or 'Anonymous' }}</strong><span>{{ item.email }}</span><time>{{ item._display_date }}</time></div>
+                            {% if item.topic %}<h3 style="margin-top:12px">{{ item.topic }}</h3>{% endif %}
+                            <p>{{ item.message }}</p>
+                        </article>
+                    {% else %}<p class="empty">There are no contact messages.</p>{% endfor %}
+                </div>
+            </section>
+        </div>
+    </main>
+{% endif %}
+</body>
+</html>

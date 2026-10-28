@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Nizartra</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: transparent; color: #f8f6ef; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .about-page { width: min(1040px, calc(100% - 32px)); margin: 38px auto 64px; }
+        .about-intro { max-width: 780px; margin-bottom: 28px; }
+        .about-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 12px; color: #ffc2b8; font-size: 13px; font-weight: 700; }
+        .about-eyebrow::before { width: 24px; height: 2px; background: #ffc2b8; content: ''; }
+        .about-intro h1 { margin: 0; color: #fff8ea; font-size: 38px; }
+        .about-lead { max-width: 700px; margin: 14px 0 0; color: #e1e8e8; font-size: 18px; line-height: 1.9; }
+        .about-story { margin: 22px 0; padding: 24px clamp(18px, 4vw, 34px); border: 1px solid rgba(210, 225, 229, .3); border-radius: 10px; background: rgba(12, 20, 25, .86); backdrop-filter: blur(9px); }
+        .about-story h2 { margin: 0 0 10px; color: #bfe6ee; font-size: 22px; }
+        .about-story p { max-width: 850px; margin: 0; color: #ecf0ed; line-height: 1.9; }
+        .about-principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 22px 0; }
+        .principle { min-width: 0; min-height: 190px; padding: 20px; border-radius: 9px; color: #182126; }
+        .principle:nth-child(1) { background: #bfe6ee; }
+        .principle:nth-child(2) { background: #ffc2b8; }
+        .principle:nth-child(3) { background: #f2df9b; }
+        .principle-number { display: block; margin-bottom: 18px; font-size: 12px; font-weight: 800; opacity: .68; }
+        .principle h2 { margin: 0 0 8px; font-size: 20px; }
+        .principle p { margin: 0; line-height: 1.8; }
+        .about-founder { display: flex; align-items: center; gap: 18px; margin-top: 24px; padding: 18px 22px; border-inline-start: 4px solid #ffc2b8; background: rgba(12, 20, 25, .84); }
+        .about-founder img { flex: 0 0 72px; width: 72px; height: 72px; border: 2px solid #ffc2b8; border-radius: 50%; object-fit: cover; object-position: center 34%; }
+        .about-founder h2 { margin: 0 0 5px; color: #ffc2b8; font-size: 18px; }
+        .about-founder p { margin: 0; color: #d2dcdd; line-height: 1.7; }
+        @media (max-width: 700px) {
+            .about-page { margin-top: 26px; }
+            .about-intro h1 { font-size: 32px; }
+            .about-lead { font-size: 16px; }
+            .about-principles { grid-template-columns: 1fr; }
+            .principle { min-height: 0; }
+        }
+    </style>
+</head>
+<body>
+    {% include '_navbar.html' %}
+    <main class="about-page">
+        <header class="about-intro">
+            <p class="about-eyebrow">Nizartra · About</p>
+            <h1>About Us</h1>
+            <p class="about-lead">We are a digital space that makes translation and learning clearer and easier. This is sample text; replace it with your own introduction and message.</p>
+        </header>
+
+        <section class="about-story" aria-labelledby="storyTitle">
+            <h2 id="storyTitle">Our Story</h2>
+            <p>Nizartra began as an idea to bring translation tools together and give students a practical space to experiment and learn. We continue to shape it around users' needs and make every step clearer.</p>
+        </section>
+
+        <section class="about-principles" aria-label="Our mission, vision, and values">
+            <article class="principle">
+                <span class="principle-number">01 / Mission</span>
+                <h2>Translation Made Clear</h2>
+                <p>Provide simple tools that help people understand texts and express ideas clearly.</p>
+            </article>
+            <article class="principle">
+                <span class="principle-number">02 / Vision</span>
+                <h2>Knowledge Without Barriers</h2>
+                <p>Make knowledge accessible and turn language differences into a starting point for connection, not an obstacle.</p>
+            </article>
+            <article class="principle">
+                <span class="principle-number">03 / Values</span>
+                <h2>Clarity and Collaboration</h2>
+                <p>We believe in continuous learning, respecting others' efforts, and improving through every piece of feedback.</p>
+            </article>
+        </section>
+
+        <section class="about-founder" aria-label="Site founder">
+            <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of نزار أحمد شرقي">
+            <div>
+                <h2>Founder: نزار أحمد شرقي</h2>
+                <p>Add a short introduction, your field of study, and the idea behind Nizartra.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

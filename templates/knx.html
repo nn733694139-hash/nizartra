@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNX Control | NizarTra</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: transparent;
+            color: #effaf8;
+            padding: 0 20px 30px;
+        }
+        .knx-shell {
+            width: min(1100px, calc(100% - 24px));
+            margin: 32px auto 0;
+            display: grid;
+            gap: 22px;
+        }
+        .hero, .panel {
+            border: 1px solid rgba(210, 225, 229, 0.2);
+            border-radius: 12px;
+            background: rgba(10, 17, 22, 0.82);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+        }
+        .hero {
+            padding: 24px 26px;
+            display: grid;
+            gap: 18px;
+        }
+        .eyebrow {
+            display: inline-flex;
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: #bfe6ee;
+            background: rgba(159, 216, 229, 0.1);
+            border: 1px solid rgba(159, 216, 229, 0.25);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(28px, 5vw, 46px);
+            color: #f7f5ef;
+        }
+        .hero p {
+            margin: 0;
+            color: #c7d2d1;
+            line-height: 1.7;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+        }
+        .stat-card {
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(210, 225, 229, 0.18);
+            background: rgba(18, 28, 30, 0.8);
+        }
+        .stat-card small {
+            display: block;
+            color: #bac8c5;
+            margin-bottom: 8px;
+        }
+        .stat-card strong {
+            font-size: 22px;
+            color: #b8d6df;
+        }
+        .panel {
+            padding: 22px 24px;
+        }
+        .panel h2 {
+            margin: 0 0 18px;
+            color: #f7f5ef;
+            font-size: 24px;
+        }
+        .channel-list {
+            display: grid;
+            gap: 12px;
+        }
+        .channel-item {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(210, 225, 229, 0.18);
+            background: rgba(16, 24, 27, 0.85);
+        }
+        .channel-item strong {
+            color: #dfeae9;
+        }
+        .channel-item span {
+            color: #bfd2d5;
+            font-size: 14px;
+        }
+        .status-pill {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 999px;
+            padding: 8px 10px;
+            border: 1px solid rgba(210, 225, 229, 0.18);
+            background: rgba(130, 201, 180, 0.1);
+            color: #8DE2C4;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .channel-item .group-address {
+            color: #f0aaa3;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+        .controls .mini {
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(210, 225, 229, 0.18);
+            background: rgba(18, 28, 30, 0.8);
+        }
+        .controls .mini small {
+            display: block;
+            margin-bottom: 5px;
+            color: #bac8c5;
+        }
+        .controls .mini strong {
+            color: #b8d6df;
+            font-size: 18px;
+        }
+        @media (max-width: 760px) {
+            .channel-item {
+                grid-template-columns: 1fr 1fr;
+            }
+            .channel-item .group-address, .channel-item .status-pill {
+                justify-self: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include '_navbar.html' %}
+    <main class="knx-shell">
+        <section class="hero">
+            <span class="eyebrow">KNX Automation</span>
+            <h1>NizarTra Control Layer</h1>
+            <p>
+                Monitor smart room controls, parse KNX group addresses, and keep every automation channel aligned with the translation workflow.
+            </p>
+            <div class="stats">
+                <div class="stat-card">
+                    <small>Total Channels</small>
+                    <strong>{{ channels|length }}</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Automation State</small>
+                    <strong>{{ 'Active' if config.enable_knx else 'Disabled' }}</strong>
+                </div>
+                <div class="stat-card">
+                    <small>Default Pair</small>
+                    <strong>{{ config.default_source_language|upper }} → {{ config.default_target_language|upper }}</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Connected KNX Channels</h2>
+            <div class="channel-list">
+                {% for channel in channels %}
+                    <div class="channel-item">
+                        <div>
+                            <strong>{{ channel.name }}</strong><br>
+                            <span>{{ channel.room }}</span>
+                        </div>
+                        <span class="group-address">{{ channel.group_address }}</span>
+                        <span>{{ channel.type }}</span>
+                        <span>{{ channel.status }}</span>
+                        <span class="status-pill">Live</span>
+                    </div>
+                {% else %}
+                    <div class="channel-item">
+                        <div><strong>No KNX channels configured yet</strong></div>
+                        <span>0/0/0</span>
+                        <span>Automation</span>
+                        <span>Off</span>
+                        <span class="status-pill">Idle</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Automation Overview</h2>
+            <div class="controls">
+                <div class="mini">
+                    <small>System Mode</small>
+                    <strong>{{ config.translation_mode|title }}</strong>
+                </div>
+                <div class="mini">
+                    <small>Auto Detect</small>
+                    <strong>{{ 'Enabled' if config.auto_detect_language else 'Disabled' }}</strong>
+                </div>
+                <div class="mini">
+                    <small>Segment Length</small>
+                    <strong>{{ config.max_segment_length }}</strong>
+                </div>
+                <div class="mini">
+                    <small>API Timeout</small>
+                    <strong>{{ config.api_timeout_seconds }}s</strong>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

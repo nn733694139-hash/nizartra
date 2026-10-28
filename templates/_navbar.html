@@ -1,0 +1,29 @@
+<header class="site-nav">
+    <a class="site-brand" href="/" aria-label="Nizartra - Home">
+        <img class="brand-avatar" src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of Nizar Ahmed Sharqi">
+        <span class="brand-copy">
+            <strong>Nizartra</strong>
+            <small>Translation tools by Nizartra</small>
+        </span>
+    </a>
+    <button class="nav-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-navigation">☰</button>
+    <nav class="site-nav-links" id="main-navigation">
+        <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+        <a href="/contextual" {% if request.path == '/contextual' %}aria-current="page"{% endif %}>Stylistic Translation</a>
+        <a href="/standard" {% if request.path == '/standard' %}aria-current="page"{% endif %}>Direct Translation</a>
+        <a href="/phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
+        <a href="/knx" {% if request.path == '/knx' %}aria-current="page"{% endif %}>KNX</a>
+        <a href="/about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
+        <a href="/contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
+        <a href="/thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Acknowledgements</a>
+    </nav>
+</header>
+<script>
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.site-nav-links');
+    navToggle?.addEventListener('click', () => {
+        const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', String(!expanded));
+        navLinks.classList.toggle('is-open', !expanded);
+    });
+</script>
