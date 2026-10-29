@@ -1,10 +1,8 @@
-import eventlet
-eventlet.monkey_patch()
-
+import asyncio
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from functools import wraps
 import hashlib
+from io import BytesIO
 import json
 import os
 import re
@@ -12,21 +10,13 @@ import secrets
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort
-from flask_socketio import SocketIO
-from google import genai
-from google.genai import types
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort, send_file
 import eng_to_ipa
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
-GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')
-gemini_clients = {}
-gemini_key_cursor = 0
-
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins='*')
 _admin_env_auth = None
 _admin_env_credentials = None
 
@@ -201,49 +191,6 @@ SITE_CONTENT_DEFAULTS = {
     ]
 }
 
-SITE_CONTENT_LEGACY_VALUES = {
-    'brand_name': {'Nizartra', 'NizarTra', 'Black Spot'},
-    'brand_tagline': {
-        'Translation tools by Nizartra | Add your tagline here',
-        'Fast translation and smart KNX automation by NizarTra',
-    },
-    'home_heading': {'Translation Platform', 'NIZAR-TRA Translation Platform'},
-    'home_badge': {'Lead Developer and Researcher: نزار أحمد شرقي'},
-    'home_intro': {
-        'Editable introduction: add your message or information as the site creator.',
-        'NizarTra delivers fast, accurate translation workflows and a modern control layer for smart automation and KNX-aware operations.',
-    },
-    'about_eyebrow': {'Nizartra · About', 'NizarTra · About'},
-    'about_lead': {
-        'We are a digital space that makes translation and learning clearer and easier. This is sample text; replace it with your own introduction and message.',
-        'NizarTra combines high-precision translation workflows, clean UX, and smart automation intelligence into one lightweight platform built for speed and clarity.',
-    },
-    'about_story': {
-        "Nizartra began as an idea to bring translation tools together and give students a practical space to experiment and learn. We continue to shape it around users' needs and make every step clearer.",
-        'NizarTra was designed to turn language barriers into a more efficient, connected experience. It blends reliable translation tools with modern automation controls and a clear operational dashboard.',
-    },
-    'founder_bio': {
-        'Add a short bio, your field of study, and the idea behind Nizartra.',
-        'Add a short introduction, your field of study, and the idea behind Nizartra.',
-    },
-    'contact_note': {'Help us improve Nizartra by sharing an idea or comment.'},
-}
-
-NIZARTRA_CONFIG_DEFAULTS = {
-    'default_source_language': 'en',
-    'default_target_language': 'ar',
-    'translation_mode': 'dual',
-    'auto_detect_language': True,
-    'enable_knx': True,
-    'max_segment_length': 450,
-    'api_timeout_seconds': 8,
-    'knx_channels': [
-        {'name': 'Living Room Lights', 'group_address': '1/0/1', 'room': 'Living Room', 'type': 'Lighting', 'status': 'Off'},
-        {'name': 'HVAC Control', 'group_address': '1/0/2', 'room': 'Office', 'type': 'Climate', 'status': 'Auto'},
-        {'name': 'Gate Access', 'group_address': '1/0/3', 'room': 'Entrance', 'type': 'Security', 'status': 'Closed'}
-    ]
-}
-
 def site_content_path():
     return Path(app.instance_path) / 'site_content.json'
 
@@ -267,55 +214,8 @@ def load_site_content():
         elif isinstance(default, bool) and isinstance(saved.get(key), bool):
             content[key] = saved[key]
         elif isinstance(default, str) and isinstance(saved.get(key), str):
-            value = saved[key]
-            if value.strip() not in SITE_CONTENT_LEGACY_VALUES.get(key, set()):
-                content[key] = value[:2000]
+            content[key] = saved[key][:2000]
     return content
-
-
-def nizartra_config_path():
-    return Path(app.instance_path) / 'nizartra_config.json'
-
-
-def load_app_config():
-    config = dict(NIZARTRA_CONFIG_DEFAULTS)
-    try:
-        saved = json.loads(nizartra_config_path().read_text(encoding='utf-8'))
-    except (OSError, ValueError):
-        return config
-    if not isinstance(saved, dict):
-        return config
-    for key, default in NIZARTRA_CONFIG_DEFAULTS.items():
-        if key == 'knx_channels':
-            channels = saved.get(key)
-            if isinstance(channels, list):
-                cleaned_channels = []
-                for channel in channels[:20]:
-                    if not isinstance(channel, dict):
-                        continue
-                    cleaned_channels.append({
-                        'name': str(channel.get('name', 'Unnamed Channel'))[:80],
-                        'group_address': str(channel.get('group_address', '0/0/0'))[:40],
-                        'room': str(channel.get('room', 'Unknown'))[:60],
-                        'type': str(channel.get('type', 'Automation'))[:40],
-                        'status': str(channel.get('status', 'Off'))[:20],
-                    })
-                config[key] = cleaned_channels
-        elif isinstance(default, bool) and isinstance(saved.get(key), bool):
-            config[key] = saved[key]
-        elif isinstance(default, int) and isinstance(saved.get(key), int):
-            config[key] = saved[key]
-        elif isinstance(default, str) and isinstance(saved.get(key), str):
-            config[key] = saved[key][:2000]
-    return config
-
-
-def save_app_config(config):
-    path = nizartra_config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp_path = path.with_suffix('.tmp')
-    temp_path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding='utf-8')
-    temp_path.replace(path)
 
 
 def save_site_content(content):
@@ -367,7 +267,7 @@ def admin_required(view):
 
 @app.context_processor
 def inject_site_content():
-    return {'site_content': load_site_content(), 'site_config': load_app_config()}
+    return {'site_content': load_site_content()}
 
 def load_message_file(filename, limit=40):
     path = Path(app.instance_path) / filename
@@ -395,60 +295,6 @@ def load_message_file(filename, limit=40):
     return messages
 
 
-def detect_language(text):
-    text = (text or '').strip()
-    if not text:
-        return 'en'
-    arabic_count = sum(1 for char in text if '\u0600' <= char <= '\u06FF')
-    alpha_count = sum(1 for char in text if char.isalpha())
-    if alpha_count and arabic_count / alpha_count > 0.2:
-        return 'ar'
-    return 'en'
-
-
-def segment_text(text, max_length):
-    normalized = re.sub(r'\s+', ' ', (text or '').strip())
-    if not normalized:
-        return []
-    if len(normalized) <= max_length:
-        return [normalized]
-
-    sentences = re.split(r'(?<=[.!?])\s+|\n+', normalized)
-    segments = []
-    current = ''
-    for sentence in sentences:
-        if not sentence.strip():
-            continue
-        sentence = sentence.strip()
-        if len(sentence) <= max_length:
-            if len(current) + len(sentence) + 1 <= max_length:
-                current = (current + ' ' + sentence).strip() if current else sentence
-            else:
-                if current:
-                    segments.append(current)
-                current = sentence
-        else:
-            words = sentence.split()
-            chunk = ''
-            for word in words:
-                candidate = f'{chunk} {word}'.strip()
-                if len(candidate) <= max_length:
-                    chunk = candidate
-                else:
-                    if chunk:
-                        segments.append(chunk)
-                    chunk = word
-            if chunk:
-                if current:
-                    segments.append(current)
-                    current = ''
-                segments.append(chunk)
-    if current:
-        segments.append(current)
-    if not segments:
-        return [normalized[:max_length]]
-    return segments
-
 @app.route('/admin', methods=['GET'])
 def admin_page():
     auth = load_admin_auth()
@@ -463,8 +309,7 @@ def admin_page():
     return render_template(
         'admin.html', mode=mode, csrf_token=csrf_token(),
         contact_messages=load_message_file('contact_messages.jsonl'),
-        feedback_messages=load_message_file('feedback_submissions.jsonl'),
-        app_config=load_app_config()
+        feedback_messages=load_message_file('feedback_submissions.jsonl')
     )
 
 @app.route('/admin/setup', methods=['POST'])
@@ -525,24 +370,6 @@ def admin_logout():
         abort(400)
     session.clear()
     return redirect(url_for('admin_page'))
-
-@app.route('/admin/settings/save', methods=['POST'])
-@admin_required
-def admin_settings_save():
-    if not valid_csrf(request.form):
-        abort(400)
-    config = load_app_config()
-    config['default_source_language'] = request.form.get('default_source_language', 'en').strip().lower()[:2]
-    config['default_target_language'] = request.form.get('default_target_language', 'ar').strip().lower()[:2]
-    config['translation_mode'] = request.form.get('translation_mode', 'dual').strip()[:20]
-    config['auto_detect_language'] = request.form.get('auto_detect_language') == 'on'
-    config['enable_knx'] = request.form.get('enable_knx') == 'on'
-    config['max_segment_length'] = max(120, min(900, int(request.form.get('max_segment_length', config['max_segment_length']))))
-    config['api_timeout_seconds'] = max(3, min(20, int(request.form.get('api_timeout_seconds', config['api_timeout_seconds']))))
-    save_app_config(config)
-    flash('Translation settings saved.')
-    return redirect(url_for('admin_page'))
-
 
 @app.route('/admin/save', methods=['POST'])
 @admin_required
@@ -773,8 +600,6 @@ HTML_INDEX = """
         </a>
         <nav class="nav-menu">
             <a href="/" class="active">Home</a>
-            <a href="/contextual">Stylistic Translation</a>
-            <a href="/standard">Direct Translation</a>
             <a href="/phonetics">IPA Phonetics</a>
             <a href="/thanks">Acknowledgements</a>
         </nav>
@@ -782,7 +607,7 @@ HTML_INDEX = """
 
     <div class="container">
         <div class="welcome-panel">
-            <h2 style="margin: 0; font-size: 22px;">Advanced Translation and Research Platform</h2>
+            <h2 style="margin: 0; font-size: 22px;">English Phonetics Studio</h2>
             <span class="dev-badge">Lead Developer and Researcher: نزار أحمد شرقي</span>
 
             <div class="search-box-inline">
@@ -793,18 +618,6 @@ HTML_INDEX = """
         </div>
 
         <div class="services-grid">
-            <a href="/contextual" class="service-card">
-                <div class="icon">📝</div>
-                <h3>Stylistic Translation</h3>
-                <p>Choose the text context (academic, literary, technical, or legal) and tone.</p>
-            </a>
-
-            <a href="/standard" class="service-card">
-                <div class="icon">🔄</div>
-                <h3>Direct Paragraph Translation</h3>
-                <p>Quickly translate long texts and paragraphs without stylistic processing.</p>
-            </a>
-
             <a href="/phonetics" class="service-card">
                 <div class="icon">🎙️</div>
                 <h3>IPA Phonetics</h3>
@@ -814,7 +627,7 @@ HTML_INDEX = """
             <a href="/thanks" class="service-card gold-card" style="grid-column: 1 / -1;">
                 <div class="icon">👑</div>
                 <h3>Academic Acknowledgements</h3>
-                <p>Acknowledgements for the course supervisor, instructors, and 11 colleagues from the 2026 translation class.</p>
+                <p>Acknowledgements for the course supervisor, instructors, and colleagues from the phonetics course.</p>
             </a>
         </div>
     </div>
@@ -840,14 +653,6 @@ HTML_INDEX = """
 </html>
 """
 
-@app.route('/contextual')
-def contextual_page():
-    return render_template('contextual.html')
-
-@app.route('/standard')
-def standard_page():
-    return render_template('standard.html')
-
 @app.route('/phonetics')
 def phonetics_page():
     return render_template('phonetics.html')
@@ -868,153 +673,39 @@ def contact_page():
 def home():
     return render_template('index.html')
 
-class TranslationServiceError(Exception):
-    def __init__(self, message, status_code=502):
-        super().__init__(message)
-        self.status_code = status_code
+
+BRITISH_IPA_WORDS = {
+    'about': 'əˈbaʊt', 'bird': 'bɜːd', 'car': 'kɑː', 'far': 'fɑː',
+    'go': 'ɡəʊ', 'hard': 'hɑːd', 'hot': 'hɒt', 'lot': 'lɒt',
+    'near': 'nɪə', 'no': 'nəʊ', 'not': 'nɒt', 'road': 'rəʊd',
+    'square': 'skweə', 'thought': 'θɔːt', 'water': 'wɔːtə',
+}
+AMERICAN_IPA_WORDS = {
+    'bird': 'bɝd', 'car': 'kɑr', 'father': 'ˈfɑðɚ', 'far': 'fɑr',
+    'go': 'ɡoʊ', 'hard': 'hɑrd', 'hot': 'hɑt', 'lot': 'lɑt',
+    'road': 'roʊd', 'thought': 'θɔt', 'water': 'ˈwɔɾɚ',
+}
 
 
-def get_retry_after_seconds(error):
-    response = getattr(error, 'response', None)
-    headers = getattr(response, 'headers', {}) or {}
-    retry_after = headers.get('retry-after') or headers.get('Retry-After')
-    if not retry_after:
-        return 1.0
+def transcribe_ipa(text, accent):
+    if accent not in {'en-GB', 'en-US'}:
+        raise ValueError('Choose British or American English.')
 
-    try:
-        return max(0.0, float(retry_after))
-    except (TypeError, ValueError):
-        try:
-            retry_at = parsedate_to_datetime(retry_after)
-            if retry_at.tzinfo is None:
-                retry_at = retry_at.replace(tzinfo=timezone.utc)
-            return max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
-        except (TypeError, ValueError, OverflowError):
-            return 1.0
+    transcription = []
+    for token in re.findall(r"[A-Za-z]+(?:['’][A-Za-z]+)?|[^A-Za-z]+", text):
+        if not token[0].isalpha():
+            transcription.append(token)
+            continue
+        word = token.lower().replace('’', "'")
+        ipa = eng_to_ipa.convert(token)
+        if accent == 'en-GB':
+            ipa = BRITISH_IPA_WORDS.get(word, ipa)
+            ipa = re.sub(r'(?<=[ɑɔəɜɛɪʊu])r$', '', ipa)
+        else:
+            ipa = AMERICAN_IPA_WORDS.get(word, ipa)
+        transcription.append(ipa)
+    return ''.join(transcription)
 
-
-def get_gemini_keys():
-    configured_keys = [
-        os.environ.get(f'GEMINI_API_KEY_{index}', '').strip()
-        for index in range(1, 10)
-    ]
-    legacy_key = os.environ.get('GEMINI_API_KEY', '').strip()
-    if legacy_key:
-        configured_keys.append(legacy_key)
-    return list(dict.fromkeys(key for key in configured_keys if key))
-
-
-def get_gemini_client(api_key):
-    if api_key not in gemini_clients:
-        try:
-            gemini_clients[api_key] = genai.Client(api_key=api_key)
-        except Exception as error:
-            app.logger.exception('Failed to initialize a Gemini client.')
-            raise TranslationServiceError(
-                'Gemini could not be initialized. Check the server configuration.',
-                503,
-            ) from error
-    return gemini_clients[api_key]
-
-
-def fetch_translation(text, src, tgt):
-    supported_languages = {'en', 'ar'}
-    if src.lower() not in supported_languages or tgt.lower() not in supported_languages:
-        raise TranslationServiceError('The selected language pair is not supported.', 400)
-    if src.lower() == tgt.lower():
-        return text
-
-    language_names = {'en': 'English', 'ar': 'Arabic'}
-    source_language = language_names[src.lower()]
-    target_language = language_names[tgt.lower()]
-    system_instruction = (
-        'You are a professional contextual translator. Translate the user text '
-        f'from {source_language} into {target_language}. Preserve its meaning, '
-        'tone, formatting, names, and numbers. Do not summarize, explain, or '
-        'add commentary. Return only the translation.'
-    )
-
-    api_keys = get_gemini_keys()
-    if not api_keys:
-        raise TranslationServiceError(
-            'Translation is not configured. Set GEMINI_API_KEY_1 through GEMINI_API_KEY_9.',
-            503,
-        )
-
-    global gemini_key_cursor
-    start_index = gemini_key_cursor % len(api_keys)
-    gemini_key_cursor = (gemini_key_cursor + 1) % len(api_keys)
-    ordered_keys = api_keys[start_index:] + api_keys[:start_index]
-    last_error = None
-    all_rate_limited = True
-
-    for api_key in ordered_keys:
-        try:
-            client = get_gemini_client(api_key)
-            response = None
-            for attempt in range(2):
-                try:
-                    with app.app_context():
-                        response = client.models.generate_content(
-                            model=GEMINI_MODEL,
-                            contents=text,
-                            config=types.GenerateContentConfig(
-                                system_instruction=system_instruction,
-                            ),
-                        )
-                    break
-                except Exception as error:
-                    status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
-                    error_text = str(error).lower()
-                    is_rate_limited = (
-                        status_code == 429
-                        or '429' in error_text
-                        or 'resource_exhausted' in error_text
-                    )
-                    all_rate_limited = all_rate_limited and is_rate_limited
-                    last_error = error
-                    retry_after = get_retry_after_seconds(error)
-                    if not is_rate_limited or attempt > 0 or retry_after > 5:
-                        break
-                    eventlet.sleep(retry_after)
-            if response is not None:
-                translated_text = (response.text or '').strip()
-                if translated_text:
-                    return translated_text
-                raise TranslationServiceError('Gemini returned an empty translation. Please try again.', 503)
-        except TranslationServiceError as error:
-            last_error = error
-            all_rate_limited = False
-            app.logger.warning('Gemini client initialization failed; trying the next configured key.')
-        except Exception as error:
-            last_error = error
-            status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
-            error_text = str(error).lower()
-            is_rate_limited = (
-                status_code == 429
-                or '429' in error_text
-                or 'resource_exhausted' in error_text
-            )
-            all_rate_limited = all_rate_limited and is_rate_limited
-            app.logger.warning('Gemini key attempt failed; trying the next configured key.')
-
-    app.logger.warning('All configured Gemini keys failed for model=%s.', GEMINI_MODEL)
-    if all_rate_limited:
-        raise TranslationServiceError(
-            'All configured Gemini keys are temporarily rate-limiting requests. Please try again shortly.',
-            503,
-        ) from last_error
-    raise TranslationServiceError(
-        'Gemini translation is temporarily unavailable. Please try again shortly.',
-        502,
-    ) from last_error
-
-def translate_long_text(text, src, tgt, config=None):
-    config = config or load_app_config()
-    max_length = int(config.get('max_segment_length', 450))
-    segments = segment_text(text, max_length)
-    translated_segments = [fetch_translation(segment, src, tgt) for segment in segments]
-    return ' '.join(part for part in translated_segments if part)
 
 @app.route('/submit_feedback', methods=['POST'])
 def submit_feedback():
@@ -1060,86 +751,76 @@ def submit_contact():
         contact_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
     return jsonify({'result': 'Your message has been submitted. Thank you for contacting us.'})
 
-@app.route('/translate_fast', methods=['POST'])
-def translate_fast():
-    try:
-        data = request.get_json(silent=True)
-        if not isinstance(data, dict):
-            return jsonify({'error': 'Request body must be a JSON object.'}), 400
-
-        text = str(data.get('text') or '').strip()
-        config = load_app_config()
-        requested_src = str(data.get('src') or config.get('default_source_language') or 'en').strip().lower()
-        requested_tgt = str(data.get('tgt') or config.get('default_target_language') or 'ar').strip().lower()
-
-        if config.get('auto_detect_language') and requested_src in {'auto', ''}:
-            requested_src = detect_language(text)
-
-        if not text:
-            return jsonify({'result': 'Enter text to translate.'})
-
-        result = translate_long_text(text, requested_src, requested_tgt, config=config)
-    except TranslationServiceError as error:
-        return jsonify({'error': str(error)}), error.status_code
-    except Exception:
-        app.logger.exception('Unexpected error while translating text.')
-        return jsonify({'error': 'An unexpected error occurred while translating.'}), 500
-    return jsonify({'result': result})
-
-
 @app.errorhandler(HTTPException)
-def handle_translation_http_error(error):
-    if request.path == '/translate_fast':
-        return jsonify({'error': error.description}), error.code
+def handle_http_error(error):
     return error.get_response()
 
 @app.route('/phonetics_process', methods=['POST'])
 def phonetics_process():
-    data = request.get_json(silent=True) or {}
-    text = data.get('text', '').strip()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object.'}), 400
+    text = str(data.get('text', '')).strip()
     if not text:
         return jsonify({'result': 'Enter some text first.'})
+    if len(text) > 4000:
+        return jsonify({'error': 'Text must be 4,000 characters or fewer.'}), 400
+    accent = str(data.get('accent', 'en-GB'))
+    if accent not in {'en-GB', 'en-US'}:
+        return jsonify({'error': 'Choose British or American English.'}), 400
 
-    ipa_result = f'/{eng_to_ipa.convert(text)}/'
+    ipa_result = f'/{transcribe_ipa(text, accent)}/'
     return jsonify({'result': ipa_result, 'ipa': ipa_result})
 
 
-@app.route('/knx')
-def knx_dashboard():
-    config = load_app_config()
-    return render_template('knx.html', channels=config.get('knx_channels', []), config=config)
+@app.route('/speech_download', methods=['POST'])
+def speech_download():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Request body must be a JSON object.'}), 400
 
+    text = str(data.get('text', '')).strip()
+    accent = str(data.get('accent', 'en-GB'))
+    voices = {'en-GB': 'en-GB-SoniaNeural', 'en-US': 'en-US-AriaNeural'}
+    if not text:
+        return jsonify({'error': 'Enter text before downloading audio.'}), 400
+    if len(text) > 4000:
+        return jsonify({'error': 'Text must be 4,000 characters or fewer.'}), 400
+    if accent not in voices:
+        return jsonify({'error': 'Choose British or American English.'}), 400
+    volume = data.get('volume', 100)
+    if not isinstance(volume, int) or not 0 <= volume <= 100:
+        return jsonify({'error': 'Volume must be between 0 and 100.'}), 400
 
-@app.route('/admin/knx/save', methods=['POST'])
-@admin_required
-def admin_knx_save():
-    if not valid_csrf(request.form):
-        abort(400)
-    config = load_app_config()
-    channel_names = request.form.getlist('channel_name')
-    group_addresses = request.form.getlist('group_address')
-    rooms = request.form.getlist('room')
-    types = request.form.getlist('type')
-    statuses = request.form.getlist('status')
-    channels = []
+    audio = BytesIO()
 
-    for name, ga, room, channel_type, status in zip(channel_names, group_addresses, rooms, types, statuses):
-        name = name.strip()[:80]
-        if not name and not ga.strip():
-            continue
-        channels.append({
-            'name': name or 'Unnamed Channel',
-            'group_address': ga.strip() or '0/0/0',
-            'room': room.strip() or 'Unknown',
-            'type': channel_type.strip() or 'Automation',
-            'status': status.strip() or 'Off',
-        })
+    async def synthesize():
+        import edge_tts
 
-    if channels:
-        config['knx_channels'] = channels
-    save_app_config(config)
-    flash('KNX channels updated.')
-    return redirect(url_for('admin_page'))
+        communicator = edge_tts.Communicate(
+            text,
+            voices[accent],
+            volume=f'{volume - 100:+d}%',
+        )
+        async for chunk in communicator.stream():
+            if chunk.get('type') == 'audio':
+                audio.write(chunk['data'])
+
+    try:
+        asyncio.run(asyncio.wait_for(synthesize(), timeout=45))
+    except Exception:
+        app.logger.exception('Speech audio generation failed for accent %s.', accent)
+        return jsonify({'error': 'Audio could not be generated. Try again shortly.'}), 502
+
+    if not audio.getbuffer().nbytes:
+        return jsonify({'error': 'The speech service returned no audio.'}), 502
+    audio.seek(0)
+    return send_file(
+        audio,
+        mimetype='audio/mpeg',
+        as_attachment=True,
+        download_name=f'pronunciation-{accent}.mp3',
+    )
 
 
 if __name__ == '__main__':

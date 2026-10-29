@@ -106,49 +106,6 @@
             {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
 
             <section class="panel" aria-labelledby="settings-title">
-                <div class="section-head"><div><h2 id="settings-title">nizarphonetics Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
-                <form method="post" action="{{ url_for('admin_settings_save') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <div class="fields">
-                        <label>Source Language<input name="default_source_language" maxlength="2" value="{{ app_config.default_source_language }}"></label>
-                        <label>Target Language<input name="default_target_language" maxlength="2" value="{{ app_config.default_target_language }}"></label>
-                        <label>Translation Mode<select name="translation_mode">
-                            <option value="dual" {% if app_config.translation_mode == 'dual' %}selected{% endif %}>dual</option>
-                            <option value="fast" {% if app_config.translation_mode == 'fast' %}selected{% endif %}>fast</option>
-                            <option value="segment" {% if app_config.translation_mode == 'segment' %}selected{% endif %}>segment</option>
-                        </select></label>
-                        <label>Max Segment Length<input type="number" name="max_segment_length" min="120" max="900" value="{{ app_config.max_segment_length }}"></label>
-                        <label>API Timeout (sec)<input type="number" name="api_timeout_seconds" min="3" max="20" value="{{ app_config.api_timeout_seconds }}"></label>
-                        <label style="display:flex; align-items:center; gap:10px; margin-top:8px;">Auto Detect Language<input type="checkbox" name="auto_detect_language" {% if app_config.auto_detect_language %}checked{% endif %}></label>
-                        <label style="display:flex; align-items:center; gap:10px; margin-top:8px;">Enable KNX<input type="checkbox" name="enable_knx" {% if app_config.enable_knx %}checked{% endif %}></label>
-                    </div>
-                    <div class="actions"><button type="submit">Save Translation Settings</button></div>
-                </form>
-            </section>
-
-            <section class="panel" aria-labelledby="knx-title">
-                <div class="section-head"><div><h2 id="knx-title">KNX Channels</h2><small>Map the KNX group addresses used by the control dashboard.</small></div></div>
-                <form method="post" action="{{ url_for('admin_knx_save') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <div class="fields" style="grid-template-columns: repeat(5, minmax(0,1fr));">
-                        {% for channel in app_config.knx_channels %}
-                            <label>Name<input name="channel_name" value="{{ channel.name }}"></label>
-                            <label>Group Address<input name="group_address" value="{{ channel.group_address }}"></label>
-                            <label>Room<input name="room" value="{{ channel.room }}"></label>
-                            <label>Type<input name="type" value="{{ channel.type }}"></label>
-                            <label>Status<input name="status" value="{{ channel.status }}"></label>
-                        {% else %}
-                            <label>Name<input name="channel_name" value="Living Room Lights"></label>
-                            <label>Group Address<input name="group_address" value="1/0/1"></label>
-                            <label>Room<input name="room" value="Living Room"></label>
-                            <label>Type<input name="type" value="Lighting"></label>
-                            <label>Status<input name="status" value="Off"></label>
-                        {% endfor %}
-                    </div>
-                    <div class="actions"><button type="submit">Save KNX Channels</button></div>
-                </form>
-            </section>
-
             <section class="panel" aria-labelledby="content-title">
                 <div class="section-head"><div><h2 id="content-title">Site Content</h2><small>Edit the text, then save your changes.</small></div></div>
                 <form method="post" action="{{ url_for('admin_save') }}">

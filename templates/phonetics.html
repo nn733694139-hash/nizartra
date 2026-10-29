@@ -13,97 +13,79 @@
     <header class="phonetics-heading">
         <p class="eyebrow">SPEECH LAB / 01</p>
         <h1>English, sound by sound.</h1>
-        <p>Generate an IPA guide, then listen in your chosen English accent.</p>
+        <p>Explore phonemes, compare accents, and listen to each sound in context.</p>
     </header>
     <section class="phonetics-tool" aria-labelledby="phoneticsTitle">
         <div class="phonetics-tool-head">
             <div><span class="tool-index">01</span><h2 id="phoneticsTitle">IPA transcription</h2></div>
-            <label class="accent-picker">Accent
-                <select id="accentSelect" aria-label="Choose pronunciation accent">
-                    <option value="en-GB">British English</option>
-                    <option value="en-US">American English</option>
-                </select>
-            </label>
+            <div class="accent-tabs" role="group" aria-label="Choose pronunciation accent">
+                <button type="button" class="accent-tab is-active" data-accent="en-GB" aria-pressed="true">British</button>
+                <button type="button" class="accent-tab" data-accent="en-US" aria-pressed="false">American</button>
+            </div>
         </div>
         <label class="phonetics-label" for="txt">English text</label>
         <textarea id="txt" rows="5" placeholder="Type or paste English text..."></textarea>
+        <div class="ipa-output-head"><span>PHONETIC TRANSCRIPTION</span><button type="button" class="icon-action" id="copyIpa" title="Copy IPA" aria-label="Copy IPA transcription" disabled>⧉</button></div>
         <div class="output-box" id="result" aria-live="polite">Your phonetic transcription will appear here.</div>
         <div class="phonetics-actions">
             <button type="button" class="listen-button" id="listenButton" disabled><span aria-hidden="true">▶</span> Listen</button>
+            <button type="button" class="download-button" id="downloadButton" disabled><span aria-hidden="true">↓</span> Download MP3</button>
+            <label class="volume-control" for="volumeSlider"><span>Volume</span><input id="volumeSlider" type="range" min="0" max="100" value="85"><output id="volumeValue" for="volumeSlider">85%</output></label>
             <span class="speech-note" id="speechNote" role="status" aria-live="polite"></span>
         </div>
-        <p class="phonetics-caption">IPA conversion is provided by the installed transcription library. Accent selection controls browser speech playback.</p>
+        <p class="phonetics-caption">The accent setting changes transcription and speech. Audio downloads are generated as MP3.</p>
+    </section>
+
+    <section class="sound-library" aria-labelledby="soundLibraryTitle">
+        <header class="library-heading">
+            <div><p class="eyebrow">SPEECH LAB / 02</p><h2 id="soundLibraryTitle">Vowel sound map</h2><p id="accentDescription">British English · Standard Southern British reference</p></div>
+            <div class="sound-legend" id="soundLegend" aria-label="Sound categories">
+                <span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span>
+            </div>
+        </header>
+        <div class="sound-modes" role="group" aria-label="Sound type">
+            <button type="button" class="sound-mode is-active" data-sound-mode="vowels" aria-pressed="true">Vowels</button>
+            <button type="button" class="sound-mode" data-sound-mode="consonants" aria-pressed="false">Consonants</button>
+        </div>
+        <div class="sound-filters" id="soundFilters" role="group" aria-label="Filter sounds">
+            <button type="button" class="sound-filter is-active" data-filter="all" aria-pressed="true">All vowels</button>
+            <button type="button" class="sound-filter" data-filter="short" aria-pressed="false">Short</button>
+            <button type="button" class="sound-filter" data-filter="long" aria-pressed="false">Long</button>
+            <button type="button" class="sound-filter" data-filter="diphthong" aria-pressed="false">Diphthongs</button>
+        </div>
+        <div class="sound-study-layout">
+            <div class="sound-grid" id="soundGrid" aria-live="polite"></div>
+            <aside class="articulation-panel" aria-labelledby="articulationTitle">
+                <div class="articulation-heading"><span class="tool-index">MOUTH POSITION</span><h3 id="articulationTitle">Select a sound</h3></div>
+                <p class="articulation-status" id="articulationStatus" aria-live="polite">Select a vowel or consonant.</p>
+                <p id="articulationNote">Choose a sound card to see where the tongue moves inside the mouth.</p>
+                <p class="accent-note" id="accentNote"></p>
+                <div class="mouth-diagrams" id="mouthDiagrams">
+                    <figure class="mouth-diagram"><svg viewBox="0 0 320 180" role="img" aria-label="Side view of the mouth and tongue">
+                        <path class="mouth-cavity" d="M42 129 C50 103 66 75 96 57 C132 35 186 34 228 48 L270 67 L284 76 L273 84 C256 80 242 80 228 84 C194 93 173 116 144 129 C108 146 71 145 42 129Z"/>
+                        <path class="palate-line" d="M72 91 C105 54 153 43 198 47 C230 50 253 62 274 76"/>
+                        <path class="tongue-shape" id="tongueStart" d="M48 128 C73 115 96 96 126 92 C160 87 190 99 222 112 C243 120 259 123 278 124 L278 139 C230 145 173 145 121 143 C84 142 61 138 48 128Z"/>
+                        <path class="teeth-line" d="M269 77 L281 82 M270 82 L281 87"/>
+                        <path class="jaw-line" d="M44 130 C62 155 108 161 153 154"/>
+                        <text x="88" y="27">PALATE</text><text x="116" y="174">TONGUE</text><text x="263" y="105">LIPS</text>
+                    </svg><figcaption id="startCaption">Tongue position</figcaption></figure>
+                    <figure class="mouth-diagram" id="endDiagram" hidden><svg viewBox="0 0 320 180" role="img" aria-label="End position of the tongue during a diphthong">
+                        <path class="mouth-cavity" d="M42 129 C50 103 66 75 96 57 C132 35 186 34 228 48 L270 67 L284 76 L273 84 C256 80 242 80 228 84 C194 93 173 116 144 129 C108 146 71 145 42 129Z"/>
+                        <path class="palate-line" d="M72 91 C105 54 153 43 198 47 C230 50 253 62 274 76"/>
+                        <path class="tongue-shape" id="tongueEnd" d="M48 128 C73 115 96 96 126 92 C160 87 190 99 222 112 C243 120 259 123 278 124 L278 139 C230 145 173 145 121 143 C84 142 61 138 48 128Z"/>
+                        <path class="teeth-line" d="M269 77 L281 82 M270 82 L281 87"/>
+                        <path class="jaw-line" d="M44 130 C62 155 108 161 153 154"/>
+                        <text x="88" y="27">PALATE</text><text x="116" y="174">TONGUE</text><text x="263" y="105">LIPS</text>
+                    </svg><figcaption>Glide to</figcaption></figure>
+                </div>
+                <p class="diagram-key"><span></span> Tongue body · side view</p>
+                <p class="diagram-disclaimer">Simplified teaching diagram; positions vary slightly between speakers.</p>
+            </aside>
+        </div>
     </section>
 </main>
-</div>
 
-<script>
-    const input = document.getElementById('txt');
-    const result = document.getElementById('result');
-    const accentSelect = document.getElementById('accentSelect');
-    const listenButton = document.getElementById('listenButton');
-    const speechNote = document.getElementById('speechNote');
-    let ipaText = '';
-    let timer;
-    let controller;
-
-    accentSelect.value = localStorage.getItem('nizarphonetics-accent') || 'en-GB';
-    accentSelect.addEventListener('change', () => {
-        localStorage.setItem('nizarphonetics-accent', accentSelect.value);
-    });
-
-    listenButton.addEventListener('click', () => {
-        if (!input.value.trim() || !('speechSynthesis' in window)) {
-            speechNote.textContent = 'Speech playback is not available in this browser.';
-            return;
-        }
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(input.value.trim());
-        utterance.lang = accentSelect.value;
-        const voices = window.speechSynthesis.getVoices();
-        const selectedVoice = voices.find(voice => voice.lang.toLowerCase() === accentSelect.value.toLowerCase());
-        if (selectedVoice) utterance.voice = selectedVoice;
-        speechNote.textContent = `Playing ${accentSelect.value === 'en-GB' ? 'British' : 'American'} English.`;
-        utterance.onend = () => { speechNote.textContent = ''; };
-        window.speechSynthesis.speak(utterance);
-    });
-
-    async function processPhonetics() {
-        const text = input.value.trim();
-        if (!text) { result.textContent = 'Your phonetic transcription will appear here.'; ipaText = ''; listenButton.disabled = true; return; }
-        if (controller) controller.abort();
-        controller = new AbortController();
-        const currentController = controller;
-        result.textContent = 'Preparing phonetic transcription...';
-        try {
-            const response = await fetch('/phonetics_process', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text}),
-                signal: currentController.signal
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Unable to prepare phonetic transcription.');
-            if (controller === currentController) {
-                ipaText = data.ipa;
-                result.textContent = ipaText;
-                listenButton.disabled = false;
-            }
-        } catch (error) {
-            if (error.name !== 'AbortError' && controller === currentController) {
-                result.textContent = error.message;
-                ipaText = '';
-                listenButton.disabled = true;
-            }
-        }
-    }
-
-    input.addEventListener('input', () => {
-        clearTimeout(timer);
-        if (controller) controller.abort();
-        timer = setTimeout(processPhonetics, 350);
-    });
-</script>
+<script src="{{ url_for('static', filename='phonetics.js') }}" defer></script>
 
 </body>
 </html>

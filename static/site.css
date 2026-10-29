@@ -7,6 +7,9 @@
     --site-muted: #a7a7a7;
     --site-accent: #d5ff3f;
     --site-cyan: #7ef6e8;
+    --sound-short: #7ef6e8;
+    --sound-long: #d5ff3f;
+    --sound-diphthong: #ff8a70;
 }
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--site-black); }
@@ -49,7 +52,7 @@ a { color: var(--site-text); }
     background: rgba(8, 8, 8, .96);
 }
 .site-brand { display: flex; align-items: center; gap: 12px; color: var(--site-text); text-decoration: none; }
-.brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--site-accent); border-radius: 50%; color: var(--site-accent); font-size: 15px; font-weight: 800; }
+.brand-avatar { display: block; width: 44px; height: 44px; flex: 0 0 44px; border: 2px solid var(--site-accent); border-radius: 50%; object-fit: cover; object-position: center 30%; }
 .brand-copy { display: grid; gap: 3px; }
 .brand-copy strong { font-size: 15px; }
 .brand-copy small { color: var(--site-muted); font-size: 11px; }
@@ -73,8 +76,8 @@ a { color: var(--site-text); }
 .accent-picker select { min-width: 172px; padding: 10px 30px 10px 10px; border: 1px solid #494949; border-radius: 2px; background: #0e0e0e; color: white; font: inherit; }
 .founder-portrait { position: relative; width: 100%; height: 370px; margin: 0; overflow: hidden; background: #171717; }
 .founder-portrait::after { position: absolute; inset: 45% 0 0; background: linear-gradient(transparent, rgba(0,0,0,.92)); content: ""; }
-.founder-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 32%; filter: grayscale(1) contrast(1.05); transition: filter .35s ease, transform .6s ease; }
-.founder-portrait:hover img { filter: grayscale(.25) contrast(1.04); transform: scale(1.025); }
+.founder-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 32%; transition: transform .6s ease; }
+.founder-portrait:hover img { transform: scale(1.025); }
 .founder-portrait figcaption { position: absolute; z-index: 1; right: 20px; bottom: 18px; left: 20px; display: grid; gap: 5px; }
 .founder-portrait figcaption strong { color: white; font-size: 20px; }
 @keyframes name-glow { from { text-shadow: 0 0 7px rgba(213,255,63,.24); } to { text-shadow: 0 0 24px rgba(213,255,63,.76); } }
@@ -120,6 +123,7 @@ footer { margin-top: auto; padding: 18px 16px; border-top: 1px solid var(--site-
 .about-founder h2 { font-size: 16px; }
 .about-founder p { margin: 0; }
 .phonetics-page { width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 88px; }
+.phonetics-page, .phonetics-tool, .sound-library, .sound-study-layout, .sound-grid { min-width: 0; }
 .phonetics-heading { max-width: 700px; margin-bottom: 32px; }
 .phonetics-heading .eyebrow { color: var(--site-accent); }
 .phonetics-heading h1 { margin: 0; font-size: 46px; line-height: 1.1; }
@@ -139,6 +143,76 @@ footer { margin-top: auto; padding: 18px 16px; border-top: 1px solid var(--site-
 .listen-button:disabled { opacity: .4; cursor: not-allowed; }
 .speech-note, .phonetics-caption { color: #929292; font-size: 12px; }
 .phonetics-caption { margin: 16px 0 0; line-height: 1.6; }
+.accent-tabs { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid #393939; background: #080808; }
+.accent-tab { min-width: 104px; min-height: 37px; border: 0; background: transparent; color: #aaa; font: inherit; font-size: 12px; cursor: pointer; }
+.accent-tab.is-active { background: var(--site-accent); color: #080808; font-weight: 800; }
+.ipa-output-head { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 -14px; color: #909090; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
+.icon-action { display: grid; width: 34px; height: 32px; place-items: center; border: 1px solid #454545; background: #111; color: var(--site-accent); font-size: 17px; cursor: pointer; }
+.icon-action:disabled { opacity: .4; cursor: not-allowed; }
+.phonetics-actions { flex-wrap: wrap; }
+.download-button { min-height: 42px; padding: 0 14px; border: 1px solid var(--site-accent); background: var(--site-accent); color: #080808; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.download-button:disabled { opacity: .4; cursor: not-allowed; }
+.volume-control { display: inline-flex; align-items: center; gap: 9px; color: #bbb; font-size: 11px; }
+.volume-control input { width: 100px; accent-color: var(--site-accent); }
+.volume-control output { width: 34px; color: #fff; font-variant-numeric: tabular-nums; }
+.sound-library { margin-top: 58px; }
+.library-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--site-line); }
+.library-heading .eyebrow { margin-bottom: 9px; color: var(--site-accent); }
+.library-heading h2 { margin: 0; font-size: 30px; }
+.library-heading p:last-child { margin: 8px 0 0; color: #969696; font-size: 12px; }
+.sound-legend { display: flex; flex-wrap: wrap; gap: 12px; color: #bbb; font-size: 10px; }
+.sound-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sound-legend span::before { width: 8px; height: 8px; background: currentColor; content: ""; }
+.legend-short { color: var(--sound-short); }
+.legend-long { color: var(--sound-long); }
+.legend-diphthong { color: var(--sound-diphthong); }
+.legend-voiceless { color: var(--sound-short); }
+.legend-voiced { color: var(--sound-diphthong); }
+.sound-modes { display: flex; width: fit-content; gap: 3px; margin-top: 16px; padding: 3px; border: 1px solid #393939; background: #080808; }
+.sound-mode { min-width: 120px; min-height: 38px; border: 0; background: transparent; color: #aaa; font: inherit; font-size: 12px; cursor: pointer; }
+.sound-mode.is-active { background: #fff; color: #080808; font-weight: 800; }
+.sound-filters { display: flex; gap: 6px; overflow-x: auto; padding: 16px 0; }
+.sound-filter { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #393939; background: #0c0c0c; color: #b7b7b7; font: inherit; font-size: 11px; cursor: pointer; }
+.sound-filter.is-active { border-color: var(--site-accent); color: var(--site-accent); }
+.sound-study-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, 310px); align-items: start; gap: 16px; }
+.sound-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 7px; }
+.sound-card { position: relative; min-width: 0; border: 1px solid #303030; background: #101010; }
+.sound-card.sound-short { --sound-color: var(--sound-short); }
+.sound-card.sound-long { --sound-color: var(--sound-long); }
+.sound-card.sound-diphthong { --sound-color: var(--sound-diphthong); }
+.sound-card.sound-consonant.sound-voiceless { --sound-color: var(--sound-short); }
+.sound-card.sound-consonant.sound-voiced { --sound-color: var(--sound-diphthong); }
+.sound-card.is-selected { border-color: var(--sound-color); box-shadow: inset 0 2px var(--sound-color); }
+.sound-select { display: grid; width: 100%; min-height: 134px; gap: 4px; justify-items: start; padding: 12px 34px 11px 12px; border: 0; background: transparent; color: #eee; text-align: left; cursor: pointer; }
+.sound-kind { color: var(--sound-color); font-size: 8px; font-weight: 800; letter-spacing: .8px; }
+.sound-ipa { color: var(--sound-color); font-family: "DM Mono", "Courier New", monospace; font-size: 26px; font-weight: 500; }
+.sound-lexical { color: #9c9c9c; font-size: 9px; font-weight: 700; }
+.sound-example { font-size: 13px; font-weight: 700; }
+.sound-example-ipa { color: #aaa; font-family: "DM Mono", "Courier New", monospace; font-size: 10px; }
+.sample-play { position: absolute; top: 8px; right: 7px; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid #393939; background: #080808; color: var(--sound-color); font-size: 10px; cursor: pointer; }
+.sample-play:hover { border-color: var(--sound-color); }
+.articulation-panel { position: sticky; top: 16px; padding: 16px; border: 1px solid #333; background: #101010; }
+.articulation-heading { display: grid; gap: 8px; }
+.articulation-heading h3 { margin: 0; color: var(--site-accent); font-family: "DM Mono", "Courier New", monospace; font-size: 19px; }
+.articulation-status { padding: 8px 9px; border-left: 2px solid #777; background: #171717; color: #bbb !important; font-size: 9px !important; font-weight: 800; letter-spacing: .3px; }
+.articulation-status.is-voiced { border-color: var(--sound-diphthong); color: var(--sound-diphthong) !important; }
+.articulation-status.is-voiceless { border-color: var(--sound-short); color: var(--sound-short) !important; }
+.articulation-panel > p { color: #aaa; font-size: 11px; line-height: 1.6; }
+.articulation-panel > p:first-of-type { min-height: 36px; margin: 12px 0; }
+.accent-note { min-height: 52px; padding-top: 10px; border-top: 1px solid #292929; }
+.mouth-diagrams { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; }
+.mouth-diagram { min-width: 0; margin: 0; padding: 5px; background: #090909; }
+.mouth-diagram[hidden] { display: none; }
+.mouth-diagram svg { display: block; width: 100%; height: auto; }
+.mouth-diagram figcaption { padding: 4px 6px 6px; color: #bbb; font-size: 9px; }
+.mouth-cavity { fill: #171d20; stroke: #8c999a; stroke-width: 2; }
+.palate-line, .jaw-line { fill: none; stroke: #718083; stroke-width: 2; }
+.tongue-shape { fill: rgba(255,138,112,.78); stroke: #ffc0ad; stroke-width: 2; transition: d .25s ease; }
+.teeth-line { fill: none; stroke: #f0eee3; stroke-width: 3; stroke-linecap: round; }
+.mouth-diagram text { fill: #9ba5a4; font-family: sans-serif; font-size: 9px; letter-spacing: .7px; }
+.diagram-key { display: flex; align-items: center; gap: 7px; margin: 12px 0 0; color: #b0b0b0 !important; font-size: 10px !important; }
+.diagram-key span { width: 9px; height: 9px; border-radius: 50%; background: #ff8a70; }
+.diagram-disclaimer { margin: 4px 0 0; color: #777 !important; font-size: 9px !important; }
 .contact-detail { border-color: #303030; }
 .thanks-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 32px; padding: 44px 0 72px; align-items: start; }
 .thanks-main h1 { margin: 0 0 14px; font-size: clamp(32px, 5vw, 48px); }
@@ -162,6 +236,9 @@ footer { margin-top: auto; padding: 18px 16px; border-top: 1px solid var(--site-
     .contact-layout, .thanks-layout { grid-template-columns: 1fr; }
     .thanks-sidebar { padding: 20px 0 0; border-top: 1px solid var(--site-line); border-left: 0; }
     .about-principles { grid-template-columns: 1fr; }
+    .library-heading { align-items: flex-start; flex-direction: column; }
+    .sound-study-layout { grid-template-columns: 1fr; }
+    .articulation-panel { position: static; }
 }
 @media (max-width: 520px) {
     .site-nav-links { flex-direction: column; align-items: stretch; }
@@ -171,6 +248,19 @@ footer { margin-top: auto; padding: 18px 16px; border-top: 1px solid var(--site-
     .phonetics-heading h1 { font-size: 36px; }
     .phonetics-tool { padding: 17px; }
     .phonetics-tool-head { align-items: flex-start; flex-direction: column; }
+    .accent-tabs { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .accent-tab { min-width: 0; width: 100%; }
+    .sound-modes { width: 100%; }
+    .sound-mode { flex: 1; min-width: 0; }
+    .sound-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .articulation-panel { min-width: 0; }
+    .mouth-diagrams { grid-template-columns: minmax(0, 1fr); }
+    .sound-legend { gap: 8px; }
+    .volume-control { flex: 1 1 100%; }
+    .volume-control { min-width: 0; gap: 6px; }
+    .volume-control input { min-width: 0; flex: 1; }
+    .sound-select { padding-right: 30px; padding-left: 9px; }
+    .sound-ipa { font-size: 23px; }
     .service-card { min-height: 112px; }
 }
 @media (prefers-reduced-motion: reduce) {
