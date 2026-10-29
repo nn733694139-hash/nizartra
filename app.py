@@ -2,6 +2,7 @@ import eventlet
 eventlet.monkey_patch()
 
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from functools import wraps
 import hashlib
 import json
@@ -792,6 +793,25 @@ class TranslationServiceError(Exception):
         self.status_code = status_code
 
 
+def get_retry_after_seconds(error):
+    response = getattr(error, 'response', None)
+    headers = getattr(response, 'headers', {}) or {}
+    retry_after = headers.get('retry-after') or headers.get('Retry-After')
+    if not retry_after:
+        return 1.0
+
+    try:
+        return max(0.0, float(retry_after))
+    except (TypeError, ValueError):
+        try:
+            retry_at = parsedate_to_datetime(retry_after)
+            if retry_at.tzinfo is None:
+                retry_at = retry_at.replace(tzinfo=timezone.utc)
+            return max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
+        except (TypeError, ValueError, OverflowError):
+            return 1.0
+
+
 def get_gemini_client():
     global gemini_client, gemini_client_key
 
@@ -835,14 +855,35 @@ def fetch_translation(text, src, tgt):
 
     try:
         client = get_gemini_client()
-        with app.app_context():
-            response = client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=text,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_instruction,
-                ),
-            )
+        response = None
+        for attempt in range(2):
+            try:
+                with app.app_context():
+                    response = client.models.generate_content(
+                        model=GEMINI_MODEL,
+                        contents=text,
+                        config=types.GenerateContentConfig(
+                            system_instruction=system_instruction,
+                        ),
+                    )
+                break
+            except Exception as error:
+                status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
+                error_text = str(error).lower()
+                is_rate_limited = (
+                    status_code == 429
+                    or '429' in error_text
+                    or 'resource_exhausted' in error_text
+                )
+                retry_after = get_retry_after_seconds(error)
+                if not is_rate_limited or attempt > 0 or retry_after > 5:
+                    raise
+                app.logger.warning(
+                    'Gemini rate limited the request; retrying once after %.2f seconds.',
+                    retry_after,
+                )
+                eventlet.sleep(retry_after)
+
         translated_text = (response.text or '').strip()
         if not translated_text:
             raise TranslationServiceError('Gemini returned an empty translation. Please try again.', 503)
