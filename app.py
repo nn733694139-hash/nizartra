@@ -10,13 +10,19 @@ import re
 import secrets
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort
 from flask_socketio import SocketIO
-from deep_translator import GoogleTranslator
-import requests
+from google import genai
+from google.genai import types
 import eng_to_ipa
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
+
+load_dotenv()
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
+gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins='*')
@@ -791,39 +797,43 @@ def fetch_translation(text, src, tgt):
         raise TranslationServiceError('The selected language pair is not supported.', 400)
     if src.lower() == tgt.lower():
         return text
+    if gemini_client is None:
+        raise TranslationServiceError('Translation is not configured. Set GEMINI_API_KEY and restart the service.', 503)
+
+    language_names = {'en': 'English', 'ar': 'Arabic'}
+    source_language = language_names[src.lower()]
+    target_language = language_names[tgt.lower()]
+    system_instruction = (
+        'You are a professional contextual translator. Translate the user text '
+        f'from {source_language} into {target_language}. Preserve its meaning, '
+        'tone, formatting, names, and numbers. Do not summarize, explain, or '
+        'add commentary. Return only the translation.'
+    )
 
     try:
-        translated_text = GoogleTranslator(source=src.lower(), target=tgt.lower()).translate(text)
-        if translated_text:
-            return translated_text
-        app.logger.warning('GoogleTranslator returned an empty translation; trying MyMemory.')
+        with app.app_context():
+            response = gemini_client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=text,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.2,
+                ),
+            )
+        translated_text = (response.text or '').strip()
+        if not translated_text:
+            raise TranslationServiceError('Gemini returned an empty translation. Please try again.', 503)
+        return translated_text
+    except TranslationServiceError:
+        raise
     except Exception as error:
-        app.logger.warning('GoogleTranslator failed; trying MyMemory: %s', error)
-
-    try:
-        response = requests.get(
-            'https://api.mymemory.translated.net/get',
-            params={'q': text, 'langpair': f'{src}|{tgt}'},
-            timeout=(3, 8)
-        )
-    except requests.Timeout as error:
-        raise TranslationServiceError('Translation providers timed out. Please try again shortly.', 503) from error
-    except requests.RequestException as error:
-        raise TranslationServiceError('Translation is temporarily unavailable. Please try again shortly.', 503) from error
-
-    if not response.ok:
-        if response.status_code == 429:
-            raise TranslationServiceError('Translation providers are temporarily rate-limiting requests. Please try again shortly.', 503)
-        raise TranslationServiceError('Translation is temporarily unavailable. Please try again shortly.', 503)
-
-    try:
-        response_data = response.json().get('responseData') or {}
-    except (AttributeError, ValueError) as error:
-        raise TranslationServiceError('Translation providers returned an invalid response.', 503) from error
-    translated_text = response_data.get('translatedText')
-    if not translated_text:
-        raise TranslationServiceError('Translation providers returned no text. Please try again shortly.', 503)
-    return translated_text
+        status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
+        error_text = str(error).lower()
+        if status_code == 429 or '429' in error_text or 'resource_exhausted' in error_text:
+            app.logger.warning('Gemini rate limit reached for a translation request.')
+            raise TranslationServiceError('Gemini is temporarily rate-limiting requests. Please try again shortly.', 503) from error
+        app.logger.exception('Gemini translation request failed.')
+        raise TranslationServiceError('Gemini translation is temporarily unavailable. Please try again shortly.', 502) from error
 
 def translate_long_text(text, src, tgt, config=None):
     config = config or load_app_config()

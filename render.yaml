@@ -12,5 +12,7 @@ services:
         value: "0"
       - key: FLASK_SECRET_KEY
         generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
       - key: PYTHON_VERSION
         value: "3.12.7"
