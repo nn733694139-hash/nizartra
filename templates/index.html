@@ -3,168 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nizartra | Advanced Translation Platform</title>
+    <title>{{ site_content.brand_name }} | Translation Studio</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background-color: transparent;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .header-nav {
-            background-color: #0d1322;
-            border-bottom: 1px solid #1f2937;
-            padding: 12px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .brand-container {
-            display: flex; align-items: center; gap: 12px; text-decoration: none;
-        }
-        /* Circular avatar in the navigation bar */
-        .navbar-avatar {
-            width: 72px; height: 72px; border-radius: 50%;
-            border: 2px solid #38bdf8; object-fit: cover;
-        }
-        .brand-title { font-size: 16px; font-weight: bold; color: #38bdf8; }
-        .nav-menu { display: flex; gap: 15px; list-style: none; margin: 0; padding: 0; }
-        .nav-menu a { color: #9ca3af; text-decoration: none; font-size: 14px; padding: 6px 12px; border-radius: 6px; }
-        .nav-menu a:hover, .nav-menu a.active { color: #38bdf8; background-color: rgba(56, 189, 248, 0.15); }
-        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; width: 100%; }
-        .welcome-panel {
-            background: rgba(12, 20, 25, 0.82); border: 1px solid rgba(210, 225, 229, 0.24); border-radius: 16px;
-            padding: 25px; margin-bottom: 25px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .dev-badge {
-            display: inline-block; background-color: rgba(240, 170, 163, 0.16);
-            color: #ffd0c8; font-size: 13px; padding: 5px 15px; border-radius: 15px;
-            font-weight: bold; margin-top: 8px; border: 1px solid rgba(240, 170, 163, 0.4);
-        }
-        .search-box-inline {
-            width: 100%; max-width: 550px; display: flex; gap: 8px; margin: 18px auto 0 auto;
-        }
-        .search-box-inline input {
-            flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid #374151;
-            background-color: #050811; color: #ffffff; font-size: 13px;
-        }
-        .search-box-inline button {
-            padding: 10px 20px; background-color: #38bdf8; color: #050811;
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;
-        }
-        #aboutRes { margin-top: 12px; font-size: 14px; color: #fbbf24; font-weight: bold; }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 18px; }
-        .service-card {
-            position: relative;
-            background: linear-gradient(rgba(12, 20, 25, .86), rgba(12, 20, 25, .86)) padding-box,
-                        linear-gradient(125deg, #b8d6df, #f0aaa3, #d7c9b5, #b8d6df) border-box;
-            background-size: 100% 100%, 260% 260%;
-            border: 1px solid transparent; border-radius: 10px;
-            padding: 22px; text-decoration: none; color: #ffffff; display: flex;
-            flex-direction: column; align-items: center; text-align: center;
-            animation: service-border-flow 8s ease-in-out infinite;
-        }
-        .service-card:nth-child(2) { animation-delay: -2s; }
-        .service-card:nth-child(3) { animation-delay: -4s; }
-        .service-card:nth-child(4) { animation-delay: -6s; }
-        .service-card:hover { transform: translateY(-4px); }
-        @keyframes service-border-flow {
-            0%, 100% { background-position: 0 0, 0% 50%; }
-            50% { background-position: 0 0, 100% 50%; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .service-card { animation: none; }
-        }
-        .service-card .icon { font-size: 34px; margin-bottom: 10px; }
-        .service-card h3 { margin: 0 0 6px 0; color: #b8d6df; font-size: 17px; }
-        .service-card p { margin: 0; font-size: 12px; color: #9ca3af; line-height: 1.5; }
-        .service-card.gold-card h3 { color: #f0aaa3; }
-        @media (max-width: 700px) {
-            .header-nav { flex-direction: column; gap: 10px; padding: 12px; }
-            .nav-menu { flex-wrap: wrap; justify-content: center; gap: 4px; }
-            .nav-menu a { padding: 6px 8px; }
-            .container { margin: 20px auto; }
-        }
-        footer {
-            margin-top: auto; text-align: center; padding: 15px;
-            background-color: rgba(10, 17, 22, 0.82); border-top: 1px solid rgba(210, 225, 229, 0.22); font-size: 12px; color: #c3d0d3;
-        }
-    </style>
 </head>
-<body>
-
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
     {% include '_navbar.html' %}
 
-    <div class="container">
-        <div class="welcome-panel">
-            <h2 style="margin: 0; font-size: 22px;">Translation Platform</h2>
-            <span class="dev-badge">Lead Developer: Nizar Sharqi</span>
-            <p style="color:#9ca3af; margin:12px 0 0;">Created by a team of translation students.</p>
-        </div>
+    <main class="home-shell">
+        <section class="home-intro">
+            <p class="eyebrow">Black Spot / Student Translation</p>
+            <h1>{{ site_content.home_heading }}</h1>
+            <p>{{ site_content.home_intro }}</p>
+        </section>
 
-        <div class="services-grid">
+        <nav class="tool-grid" aria-label="Translation tools">
             <a href="/contextual" class="service-card">
-                <div class="icon">📝</div>
-                <h3>Stylistic Translation</h3>
-                <p>Choose Your ST & TT Style</p>
+                <span class="icon" aria-hidden="true">Aa</span>
+                <h2>Stylistic Translation</h2>
+                <p>Translate with attention to context, tone, and style.</p>
             </a>
-
             <a href="/standard" class="service-card">
-                <div class="icon">🔄</div>
-                <h3>Literary Translation</h3>
-                <p>Translate between source and target languages.</p>
+                <span class="icon" aria-hidden="true">↔</span>
+                <h2>Direct Translation</h2>
+                <p>Translate paragraphs between English and Arabic.</p>
             </a>
-
             <a href="/phonetics" class="service-card">
-                <div class="icon">🎙️</div>
-                <h3> IPA Phonetics</h3>
-                <p>Generating Transcription</p>
+                <span class="icon" aria-hidden="true">IPA</span>
+                <h2>Phonetics</h2>
+                <p>Explore pronunciation with IPA transcription.</p>
             </a>
-
-            <a href="/thanks" class="service-card gold-card">
-                <div class="icon">🎓</div>
-                <h3>Thanks and Appreciation</h3>
-                <p>Recognizing our colleagues and professors.</p>
+            <a href="/thanks" class="service-card">
+                <span class="icon" aria-hidden="true">+</span>
+                <h2>People</h2>
+                <p>Meet the teachers, colleagues, and contributors.</p>
             </a>
-
             <a href="/about" class="service-card">
-                <div class="icon">✦</div>
-                <h3>About Us</h3>
-                <p>Meet Nizar and the team.</p>
+                <span class="icon" aria-hidden="true">B</span>
+                <h2>About Black Spot</h2>
+                <p>Learn about the student translation studio.</p>
             </a>
-
-        </div>
+        </nav>
 
         <section class="shared-section" aria-labelledby="feedbackHeading">
-            <h2 id="feedbackHeading">Share your feedback</h2>
-            <form id="feedbackForm" style="display:grid; gap:12px;">
+            <h2 id="feedbackHeading">Share feedback</h2>
+            <form id="feedbackForm">
                 <label>Name (optional)
                     <input id="feedbackName" type="text" maxlength="80" placeholder="Your name">
                 </label>
                 <label>Feedback or suggestion
-                    <textarea id="feedbackMessage" maxlength="5000" required placeholder="Enter your feedback or suggestion here"></textarea>
+                    <textarea id="feedbackMessage" maxlength="5000" required placeholder="Write your feedback"></textarea>
                 </label>
                 <div><button type="submit">Submit feedback</button></div>
             </form>
             <p id="feedbackStatus" class="form-status" role="status" aria-live="polite"></p>
         </section>
-    </div>
+    </main>
 
-    <footer>
-        © 2026 All rights reserved | Developed by *نزار أحمد شرقي*
-    </footer>
+    <footer>Black Spot · Student Translation Studio</footer>
 
     <script>
         document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             const status = document.getElementById('feedbackStatus');
-            status.textContent = 'Submitting your feedback...';
+            status.textContent = 'Submitting feedback...';
             try {
                 const response = await fetch('/submit_feedback', {
                     method: 'POST',

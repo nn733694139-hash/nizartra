@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About | Nizartra</title>
+    <title>{{ site_content.brand_name }} | About</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
     <style>
         * { box-sizing: border-box; }
@@ -38,43 +38,43 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
     {% include '_navbar.html' %}
     <main class="about-page">
         <header class="about-intro">
-            <p class="about-eyebrow">Nizartra · About</p>
+            <p class="about-eyebrow">{{ site_content.about_eyebrow }}</p>
             <h1>About Us</h1>
-            <p class="about-lead">We are a digital space that makes translation and learning clearer and easier. This is sample text; replace it with your own introduction and message.</p>
+            <p class="about-lead">{{ site_content.about_lead }}</p>
         </header>
 
         <section class="about-story" aria-labelledby="storyTitle">
-            <h2 id="storyTitle">Our Story</h2>
-            <p>Nizartra began as an idea to bring translation tools together and give students a practical space to experiment and learn. We continue to shape it around users' needs and make every step clearer.</p>
+            <h2 id="storyTitle">{{ site_content.about_story_title }}</h2>
+            <p>{{ site_content.about_story }}</p>
         </section>
 
         <section class="about-principles" aria-label="Our mission, vision, and values">
             <article class="principle">
                 <span class="principle-number">01 / Mission</span>
-                <h2>Translation Made Clear</h2>
-                <p>Provide simple tools that help people understand texts and express ideas clearly.</p>
+                <h2>{{ site_content.mission_title }}</h2>
+                <p>{{ site_content.mission_text }}</p>
             </article>
             <article class="principle">
                 <span class="principle-number">02 / Vision</span>
-                <h2>Knowledge Without Barriers</h2>
-                <p>Make knowledge accessible and turn language differences into a starting point for connection, not an obstacle.</p>
+                <h2>{{ site_content.vision_title }}</h2>
+                <p>{{ site_content.vision_text }}</p>
             </article>
             <article class="principle">
                 <span class="principle-number">03 / Values</span>
-                <h2>Clarity and Collaboration</h2>
-                <p>We believe in continuous learning, respecting others' efforts, and improving through every piece of feedback.</p>
+                <h2>{{ site_content.values_title }}</h2>
+                <p>{{ site_content.values_text }}</p>
             </article>
         </section>
 
         <section class="about-founder" aria-label="Site founder">
             <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of نزار أحمد شرقي">
             <div>
-                <h2>Founder: نزار أحمد شرقي</h2>
-                <p>Add a short introduction, your field of study, and the idea behind Nizartra.</p>
+                <h2>{{ site_content.founder_name }}</h2>
+                <p>{{ site_content.founder_bio }}</p>
             </div>
         </section>
     </main>

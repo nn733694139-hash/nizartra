@@ -16,7 +16,7 @@
         @media (max-width: 520px) { body { padding: 12px; } .box { padding: 20px; } }
     </style>
 </head>
-<body>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
 {% include '_navbar.html' %}
 
 <div class="box">

@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact | Nizartra</title>
+    <title>{{ site_content.brand_name }} | Contact</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; min-height: 100vh; background: transparent; color: #f8f6ef; font-family: 'Segoe UI', Tahoma, sans-serif; }
         .contact-page { width: min(1040px, calc(100% - 32px)); margin: 36px auto 64px; }
         .contact-heading { max-width: 690px; margin-bottom: 24px; }
-        .contact-eyebrow { margin: 0 0 10px; color: #ffc2b8; font-size: 13px; font-weight: 700; }
+        .contact-eyebrow { margin: 0 0 10px; color: #aaa; font-size: 13px; font-weight: 700; }
         .contact-heading h1 { margin: 0; color: #fff8ea; font-size: 36px; }
-        .contact-heading p { margin: 12px 0 0; color: #e1e8e8; line-height: 1.9; }
+        .contact-heading p { margin: 12px 0 0; color: #bdbdbd; line-height: 1.9; }
         .contact-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(250px, .75fr); gap: 18px; align-items: start; }
         .contact-form-panel { min-width: 0; padding: clamp(18px, 3vw, 28px); border: 1px solid rgba(210, 225, 229, .3); border-radius: 10px; background: rgba(12, 20, 25, .9); backdrop-filter: blur(9px); }
-        .contact-form-panel h2 { margin: 0 0 18px; color: #bfe6ee; font-size: 21px; }
+        .contact-form-panel h2 { margin: 0 0 18px; color: #fff; font-size: 21px; }
         .contact-form { display: grid; gap: 14px; }
         .contact-field { display: grid; gap: 7px; color: #f3f2e9; font-size: 14px; }
         .contact-field input, .contact-field select, .contact-field textarea { width: 100%; min-width: 0; padding: 12px; border: 1px solid rgba(210, 225, 229, .32); border-radius: 6px; background: rgba(5, 10, 13, .78); color: #fff; font: inherit; }
         .contact-field input:focus, .contact-field select:focus, .contact-field textarea:focus { outline: 2px solid #bfe6ee; outline-offset: 1px; }
         .contact-field textarea { min-height: 140px; resize: vertical; }
-        .contact-submit { justify-self: start; padding: 11px 18px; border: 0; border-radius: 5px; background: #ffc2b8; color: #202024; font: inherit; font-weight: 700; cursor: pointer; }
-        .contact-submit:hover { background: #ffd6ce; }
+        .contact-submit { justify-self: start; padding: 11px 18px; border: 0; border-radius: 5px; background: #fff; color: #080808; font: inherit; font-weight: 700; cursor: pointer; }
+        .contact-submit:hover { background: #ccc; }
         .contact-submit:disabled { opacity: .6; cursor: wait; }
-        .contact-status { min-height: 1.5em; margin: 0; color: #f2df9b; font-size: 14px; }
+        .contact-status { min-height: 1.5em; margin: 0; color: #ddd; font-size: 14px; }
         .contact-details { display: grid; gap: 12px; }
-        .contact-detail { padding: 17px; border-radius: 8px; color: #172126; }
-        .contact-detail:nth-child(1) { background: #bfe6ee; }
-        .contact-detail:nth-child(2) { background: #ffc2b8; }
-        .contact-detail:nth-child(3) { background: #f2df9b; }
+        .contact-detail { padding: 17px; border: 1px solid #303030; border-radius: 4px; background: #111; color: #f5f5f5; }
+        .contact-detail:nth-child(1), .contact-detail:nth-child(2), .contact-detail:nth-child(3) { background: #111; }
         .contact-detail h2 { margin: 0 0 7px; font-size: 16px; }
         .contact-detail p { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
         .contact-note { margin: 14px 0 0; color: #c3d0d3; font-size: 12px; line-height: 1.7; }
@@ -41,13 +39,13 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
     {% include '_navbar.html' %}
     <main class="contact-page">
         <header class="contact-heading">
-            <p class="contact-eyebrow">Nizartra · Get in touch</p>
-            <h1>Contact Us</h1>
-            <p>We welcome your feedback and questions. Send us a message, and we will review it in our inbox.</p>
+            <p class="contact-eyebrow">{{ site_content.brand_name }} · Get in touch</p>
+            <h1>{{ site_content.contact_title }}</h1>
+            <p>{{ site_content.contact_intro }}</p>
         </header>
 
         <div class="contact-layout">
@@ -78,16 +76,16 @@
 
             <aside class="contact-details" aria-label="Contact information">
                 <section class="contact-detail">
-                    <h2>Email</h2>
-                    <p>hello@example.com (sample details; editable)</p>
+                    <h2>{{ site_content.contact_email_label }}</h2>
+                    <p>{{ site_content.contact_email }}</p>
                 </section>
                 <section class="contact-detail">
-                    <h2>Response Hours</h2>
-                    <p>Sunday to Thursday, 9:00 AM to 5:00 PM (sample text).</p>
+                    <h2>{{ site_content.contact_hours_label }}</h2>
+                    <p>{{ site_content.contact_hours }}</p>
                 </section>
                 <section class="contact-detail">
-                    <h2>Your Feedback Matters</h2>
-                    <p>Help us improve Nizartra by sharing an idea or comment.</p>
+                    <h2>{{ site_content.contact_note_title }}</h2>
+                    <p>{{ site_content.contact_note }}</p>
                 </section>
             </aside>
         </div>

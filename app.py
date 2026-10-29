@@ -27,6 +27,8 @@ gemini_client_key = None
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins='*')
+_admin_env_auth = None
+_admin_env_credentials = None
 
 def load_session_secret():
     configured_secret = os.environ.get('FLASK_SECRET_KEY')
@@ -161,15 +163,15 @@ def clear_chat_history():
 
 
 SITE_CONTENT_DEFAULTS = {
-    'brand_name': 'NizarTra',
-    'brand_tagline': 'Fast translation and smart KNX automation by NizarTra',
-    'home_heading': 'NIZAR-TRA Translation Platform',
-    'home_badge': 'Lead Developer and Researcher: نزار أحمد شرقي',
-    'home_intro': 'NizarTra delivers fast, accurate translation workflows and a modern control layer for smart automation and KNX-aware operations.',
-    'about_eyebrow': 'NizarTra · About',
-    'about_lead': 'NizarTra combines high-precision translation workflows, clean UX, and smart automation intelligence into one lightweight platform built for speed and clarity.',
+    'brand_name': 'Black Spot',
+    'brand_tagline': 'A focused translation studio for students.',
+    'home_heading': 'Translation, without noise.',
+    'home_badge': 'Arabic and English translation studio',
+    'home_intro': 'A clear workspace for translation students to compare meaning, style, and sound.',
+    'about_eyebrow': 'Black Spot · About',
+    'about_lead': 'Black Spot is a student translation studio for practicing meaning, context, style, and pronunciation between Arabic and English.',
     'about_story_title': 'Our Story',
-    'about_story': 'NizarTra was designed to turn language barriers into a more efficient, connected experience. It blends reliable translation tools with modern automation controls and a clear operational dashboard.',
+    'about_story': 'Black Spot brings practical translation tools together in one quiet workspace where students can explore language and learn through practice.',
     'mission_title': 'Translation Made Clear',
     'mission_text': 'Provide fast, accurate, and human-centered translation experiences that help people communicate without friction.',
     'vision_title': 'Knowledge Without Barriers',
@@ -177,10 +179,17 @@ SITE_CONTENT_DEFAULTS = {
     'values_title': 'Speed, Clarity, Control',
     'values_text': 'We believe in fast execution, precise output, and simple control layers that keep users confident and informed.',
     'founder_name': 'نزار أحمد شرقي',
-    'founder_bio': 'NizarTra is built around the idea of combining editorial precision, smart automation, and user-focused design into a single reliable system.',
+    'founder_bio': 'A student-led translation workspace built around clear language and thoughtful practice.',
+    'contact_title': 'Contact Black Spot',
+    'contact_intro': 'Send a question, suggestion, or note to the translation team.',
+    'contact_email_label': 'Email',
+    'contact_hours_label': 'Response Hours',
+    'contact_note_title': 'Your Feedback Matters',
     'contact_email': 'hello@example.com',
     'contact_hours': 'Sunday to Thursday, 9:00 AM to 5:00 PM.',
-    'contact_note': 'Help us improve NizarTra by sharing an idea or comment.',
+    'contact_note': 'Share an idea or comment with the Black Spot team.',
+    'background_enabled': False,
+    'faculty': ['Dr. ابراهيم جبريل', 'Dr. نعمة الحاج', 'Dr. محمد علي', 'Dr. سمير الحمادي'],
     'students': [
         'نزار أحمد شرقي', 'عبد العزيز الصغير', 'اية انور', 'ود مجاهد',
         'بنان نصر', 'ربا عياش', 'سمية هيثم', 'نسيبة قطيف', 'جنات',
@@ -188,6 +197,34 @@ SITE_CONTENT_DEFAULTS = {
         'ريم حاتم المالكي', 'أنس جمال الحارثي', 'دانا فواز البلوي',
         'سلمان محمد عبد الله'
     ]
+}
+
+SITE_CONTENT_LEGACY_VALUES = {
+    'brand_name': {'Nizartra', 'NizarTra'},
+    'brand_tagline': {
+        'Translation tools by Nizartra | Add your tagline here',
+        'Fast translation and smart KNX automation by NizarTra',
+    },
+    'home_heading': {'Translation Platform', 'NIZAR-TRA Translation Platform'},
+    'home_badge': {'Lead Developer and Researcher: نزار أحمد شرقي'},
+    'home_intro': {
+        'Editable introduction: add your message or information as the site creator.',
+        'NizarTra delivers fast, accurate translation workflows and a modern control layer for smart automation and KNX-aware operations.',
+    },
+    'about_eyebrow': {'Nizartra · About', 'NizarTra · About'},
+    'about_lead': {
+        'We are a digital space that makes translation and learning clearer and easier. This is sample text; replace it with your own introduction and message.',
+        'NizarTra combines high-precision translation workflows, clean UX, and smart automation intelligence into one lightweight platform built for speed and clarity.',
+    },
+    'about_story': {
+        "Nizartra began as an idea to bring translation tools together and give students a practical space to experiment and learn. We continue to shape it around users' needs and make every step clearer.",
+        'NizarTra was designed to turn language barriers into a more efficient, connected experience. It blends reliable translation tools with modern automation controls and a clear operational dashboard.',
+    },
+    'founder_bio': {
+        'Add a short bio, your field of study, and the idea behind Nizartra.',
+        'Add a short introduction, your field of study, and the idea behind Nizartra.',
+    },
+    'contact_note': {'Help us improve Nizartra by sharing an idea or comment.'},
 }
 
 NIZARTRA_CONFIG_DEFAULTS = {
@@ -220,12 +257,17 @@ def load_site_content():
     if not isinstance(saved, dict):
         return content
     for key, default in SITE_CONTENT_DEFAULTS.items():
-        if key == 'students':
-            students = saved.get(key)
-            if isinstance(students, list):
-                content[key] = [str(name)[:100] for name in students[:50] if str(name).strip()]
+        if key in {'students', 'faculty'}:
+            names = saved.get(key)
+            if isinstance(names, list):
+                limit = 50 if key == 'students' else 30
+                content[key] = [str(name)[:100] for name in names[:limit] if str(name).strip()]
+        elif isinstance(default, bool) and isinstance(saved.get(key), bool):
+            content[key] = saved[key]
         elif isinstance(default, str) and isinstance(saved.get(key), str):
-            content[key] = saved[key][:2000]
+            value = saved[key]
+            if value.strip() not in SITE_CONTENT_LEGACY_VALUES.get(key, set()):
+                content[key] = value[:2000]
     return content
 
 
@@ -282,6 +324,21 @@ def save_site_content(content):
     temporary_path.replace(path)
 
 def load_admin_auth():
+    global _admin_env_auth, _admin_env_credentials
+
+    env_username = os.environ.get('ADMIN_USERNAME', 'admin').strip()[:80] or 'admin'
+    env_password = os.environ.get('ADMIN_PASSWORD', '')
+    if env_password:
+        password_fingerprint = hashlib.sha256(env_password.encode('utf-8')).digest()
+        credentials = (env_username, password_fingerprint)
+        if credentials != _admin_env_credentials:
+            _admin_env_auth = {
+                'username': env_username,
+                'password_hash': generate_password_hash(env_password),
+            }
+            _admin_env_credentials = credentials
+        return _admin_env_auth
+
     try:
         data = json.loads(admin_auth_path().read_text(encoding='utf-8'))
     except (OSError, ValueError):
@@ -416,6 +473,7 @@ def admin_setup():
         return redirect(url_for('admin_page'))
     if not valid_csrf(request.form):
         abort(400)
+    username = request.form.get('username', 'admin').strip()[:80] or 'admin'
     password = request.form.get('password', '')
     confirmation = request.form.get('confirmation', '')
     if len(password) < 12:
@@ -427,7 +485,10 @@ def admin_setup():
 
     auth_path = admin_auth_path()
     auth_path.parent.mkdir(parents=True, exist_ok=True)
-    auth_path.write_text(json.dumps({'password_hash': generate_password_hash(password)}), encoding='utf-8')
+    auth_path.write_text(json.dumps({
+        'username': username,
+        'password_hash': generate_password_hash(password),
+    }), encoding='utf-8')
     auth_path.chmod(0o600)
     session.clear()
     session['is_admin'] = True
@@ -442,7 +503,12 @@ def admin_login():
         return redirect(url_for('admin_page'))
     if not valid_csrf(request.form):
         abort(400)
-    if not check_password_hash(auth['password_hash'], request.form.get('password', '')):
+    submitted_username = request.form.get('username', '').strip()
+    username_matches = secrets.compare_digest(
+        submitted_username,
+        str(auth.get('username', 'admin')),
+    )
+    if not username_matches or not check_password_hash(auth['password_hash'], request.form.get('password', '')):
         flash('The admin password is incorrect.')
         return redirect(url_for('admin_page'))
     session.clear()
@@ -488,8 +554,10 @@ def admin_save():
         'about_lead': 1200, 'about_story_title': 100, 'about_story': 2000,
         'mission_title': 100, 'mission_text': 700, 'vision_title': 100,
         'vision_text': 700, 'values_title': 100, 'values_text': 700,
-        'founder_name': 100, 'founder_bio': 1000, 'contact_email': 254,
-        'contact_hours': 300, 'contact_note': 600
+        'founder_name': 100, 'founder_bio': 1000, 'contact_title': 120,
+        'contact_intro': 1000, 'contact_email_label': 80,
+        'contact_hours_label': 80, 'contact_note_title': 100,
+        'contact_email': 254, 'contact_hours': 300, 'contact_note': 600
     }
     for field, limit in field_limits.items():
         content[field] = request.form.get(field, '').strip()[:limit]
@@ -503,6 +571,12 @@ def admin_save():
             flash('The maximum is 50 names.')
             return redirect(url_for('admin_page'))
         content['students'] = students
+    faculty = [line.strip()[:100] for line in request.form.get('faculty', '').splitlines() if line.strip()]
+    if len(faculty) > 30:
+        flash('The maximum is 30 faculty names.')
+        return redirect(url_for('admin_page'))
+    content['faculty'] = faculty
+    content['background_enabled'] = request.form.get('background_enabled') == 'on'
     save_site_content(content)
     flash('Site content saved.')
     return redirect(url_for('admin_page'))

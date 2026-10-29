@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acknowledgements | Nizartra</title>
+    <title>{{ site_content.brand_name }} | Acknowledgements</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; min-height: 100vh; background: transparent; color: #f4f3ec; font-family: 'Segoe UI', Tahoma, sans-serif; }
         .thanks-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 350px); gap: 22px; width: min(1120px, 100%); margin: 30px auto; padding: 0 20px; align-items: start; }
         .thanks-main, .thanks-sidebar { border: 1px solid rgba(210, 225, 229, .24); border-radius: 9px; background: rgba(12, 20, 25, .88); padding: clamp(18px, 3vw, 30px); backdrop-filter: blur(8px); }
-        .thanks-main h1 { margin: 0 0 12px; color: #e5bb69; font-size: clamp(25px, 4vw, 34px); }
+        .thanks-main h1 { margin: 0 0 12px; color: #fff; font-size: clamp(25px, 4vw, 34px); }
         .thanks-main p { color: #b7c3bf; line-height: 1.9; }
         .thanks-sidebar { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
-        .thanks-sidebar h2 { margin: 0 0 14px; color: #78d5c2; font-size: 20px; }
-        .thanks-sidebar h3 { margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid #304344; color: #e5bb69; font-size: 15px; }
+        .thanks-sidebar h2 { margin: 0 0 14px; color: #fff; font-size: 20px; }
+        .thanks-sidebar h3 { margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 1px solid #303030; color: #ddd; font-size: 15px; }
         .thanks-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; counter-reset: students; }
         .thanks-list li { counter-increment: students; display: flex; gap: 10px; align-items: baseline; padding: 9px 10px; border: 1px solid #293b3c; border-radius: 5px; color: #e2e8e4; font-size: 14px; }
-        .thanks-list li::before { content: counter(students, decimal-leading-zero); color: #78d5c2; font-size: 11px; }
-        .thanks-list li:first-child { border-color: #8f7746; color: #f0d393; }
+        .thanks-list li::before { content: counter(students, decimal-leading-zero); color: #999; font-size: 11px; }
+        .thanks-list li:first-child { border-color: #555; color: #fff; }
         .faculty-list { display: grid; gap: 8px; }
-        .faculty-list div { padding: 10px; border-inline-start: 2px solid #f0aaa3; background: rgba(5, 10, 13, .74); color: #e2e8e4; font-size: 14px; }
+        .faculty-list div { padding: 10px; border-inline-start: 2px solid #888; background: #111; color: #e2e2e2; font-size: 14px; }
         .edit-note { color: #9cacaa; font-size: 12px !important; }
         @media (max-width: 760px) { .thanks-layout { grid-template-columns: 1fr; margin: 20px auto; padding: 0 14px; } .thanks-sidebar { position: static; max-height: none; } }
     </style>
 </head>
-<body>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
     {% include '_navbar.html' %}
     <div class="thanks-layout">
         <main class="thanks-main">
@@ -33,32 +33,15 @@
             <p>In recognition of everyone who contributed to our learning journey, I thank my professors and colleagues for their knowledge, collaboration, and support.</p>
             <h2 style="color:#78d5c2; font-size:18px; margin-top:26px;">Professors and Supervisors</h2>
             <div class="faculty-list">
-                <div>Dr. ابراهيم جبريل (editable name)</div>
-                <div>Dr. نعمة الحاج</div>
-                <div>Dr. محمد علي</div>
-                <div>Dr. سمير الحمادي</div>
+                {% for teacher in site_content.faculty %}<div>{{ teacher }}</div>
+                {% else %}<p>No faculty names have been added yet.</p>{% endfor %}
             </div>
-            <p class="edit-note">These sample names can be edited directly in this template.</p>
         </main>
         <aside class="thanks-sidebar" aria-label="Colleagues and students">
             <h2>Colleagues and Students</h2>
             <ol class="thanks-list">
-                <li>نزار أحمد شرقي</li>
-                <li>عبد العزيز الصغير</li>
-                <li>اية انور</li>
-                <li>ود مجاهد</li>
-                <li>بنان نصر</li>
-                <li>ربا عياش</li>
-                <li>سمية هيثم</li>
-                <li>نسيبة قطيف</li>
-                <li>جنات الحطامي</li>
-                <li>سهام جبلي</li>
-                <li>حمزة سيف</li>
-                <li>عبد العزيز المصباحي</li>
-                <li> </li>
-                <li>ريم حاتم المالكي</li>
-                <li>أنس جمال الحارثي</li>
-                <li>دانا فواز البلوي</li>
+                {% for student in site_content.students %}<li>{{ student }}</li>
+                {% else %}<li>No colleagues have been added yet.</li>{% endfor %}
             </ol>
         </aside>
     </div>

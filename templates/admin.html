@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site Administration | {{ site_content.brand_name }}</title>
     <style>
-        :root { color-scheme: dark; --bg: #101719; --panel: #192326; --line: #354447; --text: #edf1eb; --muted: #aab9b7; --accent: #a9d8c9; --danger: #f0aaa3; }
+        :root { color-scheme: dark; --bg: #080808; --panel: #111111; --line: #303030; --text: #f5f5f5; --muted: #a6a6a6; --accent: #f5f5f5; --danger: #d0d0d0; }
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", sans-serif; }
         a { color: var(--accent); }
@@ -21,22 +21,22 @@
         .stack { display: grid; gap: 18px; margin-top: 20px; }
         .panel, .entry { padding: 20px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); }
         .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
-        label { display: grid; gap: 7px; color: #d9e3df; font-size: 13px; }
+        label { display: grid; gap: 7px; color: #e4e4e4; font-size: 13px; }
         label.full { grid-column: 1 / -1; }
-        input, textarea { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 5px; background: #101719; color: var(--text); }
+        input, textarea, select { width: 100%; min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 5px; background: #090909; color: var(--text); }
         textarea { min-height: 88px; resize: vertical; }
-        input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
         .actions { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 15px; }
-        button { padding: 9px 14px; border: 1px solid transparent; border-radius: 5px; background: var(--accent); color: #10201c; font-weight: 700; cursor: pointer; }
+        button { padding: 9px 14px; border: 1px solid var(--accent); border-radius: 5px; background: var(--accent); color: #080808; font-weight: 700; cursor: pointer; }
         button:hover { filter: brightness(1.08); }
-        button.danger { border-color: #704a49; background: #372323; color: #ffd4d0; }
+        button.danger { border-color: #777; background: transparent; color: var(--text); }
         .messages, .student-list { display: grid; gap: 10px; margin-top: 16px; }
         .entry p { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
         .meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
         .student-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; }
         .student-entry form, .logout-form { margin: 0; }
         .student-entry button { padding: 6px 10px; font-size: 12px; }
-        .flash { padding: 12px 14px; border: 1px solid #54766b; border-radius: 5px; background: #1a302a; color: #c8f0df; }
+        .flash { padding: 12px 14px; border: 1px solid var(--line); border-radius: 5px; background: #1a1a1a; color: var(--text); }
         .auth { width: min(460px, calc(100% - 32px)); margin: 12vh auto; }
         .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 5px; color: var(--muted); text-align: center; }
         @media (max-width: 640px) {
@@ -53,11 +53,12 @@
 {% if mode == 'setup' %}
     <main class="auth panel">
         <h1>Set Up Administration</h1>
-        <p class="muted">Create a password with at least 12 characters.</p>
+        <p class="muted">Create your administrator sign-in.</p>
         {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
         <form method="post" action="{{ url_for('admin_setup') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="stack">
+                <label>Username<input type="text" name="username" maxlength="80" value="admin" autocomplete="username" required></label>
                 <label>Password<input type="password" name="password" minlength="12" autocomplete="new-password" required></label>
                 <label>Confirm password<input type="password" name="confirmation" minlength="12" autocomplete="new-password" required></label>
                 <button type="submit">Create Admin Account</button>
@@ -67,11 +68,12 @@
 {% elif mode == 'login' %}
     <main class="auth panel">
         <h1>Admin Login</h1>
-        <p class="muted">Enter your admin password to continue.</p>
+        <p class="muted">Enter your administrator credentials to continue.</p>
         {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
         <form method="post" action="{{ url_for('admin_login') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="stack">
+                <label>Username<input type="text" name="username" maxlength="80" autocomplete="username" required></label>
                 <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
                 <button type="submit">Log In</button>
             </div>
@@ -94,7 +96,7 @@
             {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
 
             <section class="panel" aria-labelledby="settings-title">
-                <div class="section-head"><div><h2 id="settings-title">NizarTra Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
+                <div class="section-head"><div><h2 id="settings-title">Black Spot Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
                 <form method="post" action="{{ url_for('admin_settings_save') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="fields">
@@ -159,9 +161,16 @@
                         <label>Values Text<textarea name="values_text" maxlength="700">{{ site_content.values_text }}</textarea></label>
                         <label>Founder Name<input name="founder_name" maxlength="100" value="{{ site_content.founder_name }}"></label>
                         <label>Contact Email<input type="email" name="contact_email" maxlength="254" value="{{ site_content.contact_email }}"></label>
+                        <label>Contact Page Heading<input name="contact_title" maxlength="120" value="{{ site_content.contact_title }}"></label>
+                        <label>Contact Page Intro<textarea name="contact_intro" maxlength="1000">{{ site_content.contact_intro }}</textarea></label>
+                        <label>Email Label<input name="contact_email_label" maxlength="80" value="{{ site_content.contact_email_label }}"></label>
+                        <label>Hours Label<input name="contact_hours_label" maxlength="80" value="{{ site_content.contact_hours_label }}"></label>
+                        <label>Feedback Heading<input name="contact_note_title" maxlength="100" value="{{ site_content.contact_note_title }}"></label>
                         <label class="full">Founder Bio<textarea name="founder_bio" maxlength="1000">{{ site_content.founder_bio }}</textarea></label>
                         <label>Contact Hours<input name="contact_hours" maxlength="300" value="{{ site_content.contact_hours }}"></label>
                         <label>Contact Note<textarea name="contact_note" maxlength="600">{{ site_content.contact_note }}</textarea></label>
+                        <label class="full">Faculty and Teachers<textarea name="faculty" maxlength="4000" placeholder="One name per line">{{ site_content.faculty | join('\n') }}</textarea></label>
+                        <label style="display:flex; align-items:center; gap:10px;">Enable uploaded background<input type="checkbox" name="background_enabled" {% if site_content.background_enabled %}checked{% endif %}></label>
                     </div>
                     <div class="actions"><button type="submit">Save Site Content</button></div>
                 </form>
@@ -189,6 +198,7 @@
 
             <section class="panel" aria-labelledby="images-title">
                 <h2 id="images-title">Images</h2>
+                <p class="muted">The uploaded background is hidden unless enabled in Site Content.</p>
                 <div class="fields">
                     {% for slot, title in [('avatar', 'Profile Photo'), ('background', 'Background Image')] %}
                         <form method="post" action="{{ url_for('admin_upload') }}" enctype="multipart/form-data">
