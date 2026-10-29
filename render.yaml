@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: nizartra
+    name: nizarphonetics
     env: python
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
@@ -13,6 +13,24 @@ services:
       - key: FLASK_SECRET_KEY
         generateValue: true
       - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY_1
+        sync: false
+      - key: GEMINI_API_KEY_2
+        sync: false
+      - key: GEMINI_API_KEY_3
+        sync: false
+      - key: GEMINI_API_KEY_4
+        sync: false
+      - key: GEMINI_API_KEY_5
+        sync: false
+      - key: GEMINI_API_KEY_6
+        sync: false
+      - key: GEMINI_API_KEY_7
+        sync: false
+      - key: GEMINI_API_KEY_8
+        sync: false
+      - key: GEMINI_API_KEY_9
         sync: false
       - key: ADMIN_USERNAME
         value: admin

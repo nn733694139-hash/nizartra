@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site Administration | {{ site_content.brand_name }}</title>
     <style>
-        :root { color-scheme: dark; --bg: #080808; --panel: #111111; --line: #303030; --text: #f5f5f5; --muted: #a6a6a6; --accent: #f5f5f5; --danger: #d0d0d0; }
+        :root { color-scheme: dark; --bg: #080808; --panel: #111111; --line: #303030; --text: #f5f5f5; --muted: #a6a6a6; --accent: #d5ff3f; --danger: #d0d0d0; }
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", sans-serif; }
         a { color: var(--accent); }
@@ -36,6 +36,16 @@
         .student-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; }
         .student-entry form, .logout-form { margin: 0; }
         .student-entry button { padding: 6px 10px; font-size: 12px; }
+        .suggestion-table-wrap { width: 100%; overflow-x: auto; margin-top: 16px; }
+        .suggestion-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .suggestion-table th, .suggestion-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+        .suggestion-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+        .suggestion-table td { font-size: 13px; line-height: 1.65; }
+        .suggestion-table td:nth-child(2) { min-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .suggestion-table time { color: var(--muted); white-space: nowrap; }
+        .suggestion-table form { margin: 0; }
+        .suggestion-table button { padding: 7px 10px; border: 1px solid #666; background: transparent; color: #fff; font: inherit; cursor: pointer; }
+        .suggestion-table button:hover { border-color: var(--accent); color: var(--accent); }
         .flash { padding: 12px 14px; border: 1px solid var(--line); border-radius: 5px; background: #1a1a1a; color: var(--text); }
         .auth { width: min(460px, calc(100% - 32px)); margin: 12vh auto; }
         .empty { padding: 22px; border: 1px dashed var(--line); border-radius: 5px; color: var(--muted); text-align: center; }
@@ -96,7 +106,7 @@
             {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
 
             <section class="panel" aria-labelledby="settings-title">
-                <div class="section-head"><div><h2 id="settings-title">Black Spot Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
+                <div class="section-head"><div><h2 id="settings-title">nizarphonetics Control Panel</h2><small>Configure translation behavior and KNX automation.</small></div></div>
                 <form method="post" action="{{ url_for('admin_settings_save') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <div class="fields">
@@ -163,6 +173,12 @@
                         <label>Contact Email<input type="email" name="contact_email" maxlength="254" value="{{ site_content.contact_email }}"></label>
                         <label>Contact Page Heading<input name="contact_title" maxlength="120" value="{{ site_content.contact_title }}"></label>
                         <label>Contact Page Intro<textarea name="contact_intro" maxlength="1000">{{ site_content.contact_intro }}</textarea></label>
+                        <label>Contact Accent Color<input type="color" name="contact_accent" value="{{ site_content.contact_accent }}"></label>
+                        <label>Contact Decoration<select name="contact_decoration">
+                            <option value="minimal" {% if site_content.contact_decoration == 'minimal' %}selected{% endif %}>Minimal</option>
+                            <option value="grid" {% if site_content.contact_decoration == 'grid' %}selected{% endif %}>Fine grid</option>
+                            <option value="glow" {% if site_content.contact_decoration == 'glow' %}selected{% endif %}>Accent glow</option>
+                        </select></label>
                         <label>Email Label<input name="contact_email_label" maxlength="80" value="{{ site_content.contact_email_label }}"></label>
                         <label>Hours Label<input name="contact_hours_label" maxlength="80" value="{{ site_content.contact_hours_label }}"></label>
                         <label>Feedback Heading<input name="contact_note_title" maxlength="100" value="{{ site_content.contact_note_title }}"></label>
@@ -212,23 +228,24 @@
             </section>
 
             <section class="panel" id="feedback" aria-labelledby="feedback-title">
-                <div class="section-head"><div><h2 id="feedback-title">Visitor Feedback</h2><small>{{ feedback_messages|length }} most recent submissions</small></div></div>
-                <div class="messages">
+                <div class="section-head"><div><h2 id="feedback-title">Student Suggestions</h2><small>{{ feedback_messages|length }} most recent submissions</small></div></div>
+                <div class="suggestion-table-wrap">
+                    <table class="suggestion-table">
+                        <thead><tr><th>Student</th><th>Suggestion</th><th>Date and time</th><th>Action</th></tr></thead>
+                        <tbody>
                     {% for opinion in feedback_messages %}
-                        <article class="entry">
-                            <div class="item-head">
-                                <div class="meta">
-                                    <strong>{{ opinion.name or 'Anonymous' }}</strong>
-                                    <time>{{ opinion._display_date }}</time>
-                                </div>
-                                <form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this feedback?')">
+                        <tr>
+                            <td>{{ opinion.name or 'Anonymous' }}</td>
+                            <td>{{ opinion.message }}</td>
+                            <td><time>{{ opinion._display_date }}</time></td>
+                            <td><form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this suggestion?')">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                    <button class="danger" type="submit">Delete Feedback</button>
-                                </form>
-                            </div>
-                            <p>{{ opinion.message }}</p>
-                        </article>
-                    {% else %}<p class="empty">No feedback has been submitted yet.</p>{% endfor %}
+                                    <button type="submit" aria-label="Delete suggestion from {{ opinion.name or 'Anonymous' }}">Delete</button>
+                                </form></td>
+                        </tr>
+                    {% else %}<tr><td colspan="4">No suggestions have been submitted yet.</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </section>
 

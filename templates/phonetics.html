@@ -3,42 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phonetics & IPA Transcriptions</title>
+    <title>{{ site_content.brand_name }} | Phonetics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
-    <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: transparent; color: #f8fafc; padding: 0 24px 24px; display: flex; flex-direction: column; align-items: center; }
-        .box { background: rgba(12, 19, 24, .88); padding: 28px; border-radius: 12px; width: 100%; max-width: 700px; border: 1px solid rgba(210, 225, 229, .26); box-shadow: 0 15px 30px rgba(0,0,0,.32); backdrop-filter: blur(8px); }
-        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #38bdf8; text-decoration: none; font-size: 15px; font-weight: bold; margin-bottom: 20px; transition: 0.2s; }
-        .back-btn:hover { transform: translateX(5px); }
-        textarea { width: 100%; padding: 12px; margin-top: 12px; border-radius: 8px; border: 1px solid rgba(210, 225, 229, .28); background: rgba(5, 10, 13, .78); color: white; font-size: 15px; box-sizing: border-box; }
-        .output-box { margin-top: 20px; background: rgba(5, 10, 13, .82); padding: 18px; border-radius: 8px; border-left: 3px solid #f0aaa3; white-space: pre-line; line-height: 1.8; font-size: 19px; direction: ltr; text-align: left; }
-        .ipa-text { font-family: 'Courier New', Courier, monospace; color: #b8d6df; font-weight: bold; font-size: 20px; }
-        @media (max-width: 520px) { body { padding: 12px; } .box { padding: 20px; } }
-    </style>
 </head>
 <body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
 {% include '_navbar.html' %}
 
-<div class="box">
-    <!-- Back to home -->
-    <a href="/" class="back-btn">➔ Back to Home</a>
-
-    <h2>IPA Phonetic Transcription</h2>
-    <p style="color: #a3a3a3; font-size: 14px;">Enter English text to see its pronunciation in IPA symbols.</p>
-
-    <textarea id="txt" rows="5" placeholder="Enter English text here..."></textarea>
-    <div class="output-box" id="result" aria-live="polite">Type to see the phonetic transcription...</div>
+<main class="phonetics-page">
+    <header class="phonetics-heading">
+        <p class="eyebrow">SPEECH LAB / 01</p>
+        <h1>English, sound by sound.</h1>
+        <p>Generate an IPA guide, then listen in your chosen English accent.</p>
+    </header>
+    <section class="phonetics-tool" aria-labelledby="phoneticsTitle">
+        <div class="phonetics-tool-head">
+            <div><span class="tool-index">01</span><h2 id="phoneticsTitle">IPA transcription</h2></div>
+            <label class="accent-picker">Accent
+                <select id="accentSelect" aria-label="Choose pronunciation accent">
+                    <option value="en-GB">British English</option>
+                    <option value="en-US">American English</option>
+                </select>
+            </label>
+        </div>
+        <label class="phonetics-label" for="txt">English text</label>
+        <textarea id="txt" rows="5" placeholder="Type or paste English text..."></textarea>
+        <div class="output-box" id="result" aria-live="polite">Your phonetic transcription will appear here.</div>
+        <div class="phonetics-actions">
+            <button type="button" class="listen-button" id="listenButton" disabled><span aria-hidden="true">▶</span> Listen</button>
+            <span class="speech-note" id="speechNote" role="status" aria-live="polite"></span>
+        </div>
+        <p class="phonetics-caption">IPA conversion is provided by the installed transcription library. Accent selection controls browser speech playback.</p>
+    </section>
+</main>
 </div>
 
 <script>
     const input = document.getElementById('txt');
     const result = document.getElementById('result');
+    const accentSelect = document.getElementById('accentSelect');
+    const listenButton = document.getElementById('listenButton');
+    const speechNote = document.getElementById('speechNote');
+    let ipaText = '';
     let timer;
     let controller;
 
+    accentSelect.value = localStorage.getItem('nizarphonetics-accent') || 'en-GB';
+    accentSelect.addEventListener('change', () => {
+        localStorage.setItem('nizarphonetics-accent', accentSelect.value);
+    });
+
+    listenButton.addEventListener('click', () => {
+        if (!input.value.trim() || !('speechSynthesis' in window)) {
+            speechNote.textContent = 'Speech playback is not available in this browser.';
+            return;
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(input.value.trim());
+        utterance.lang = accentSelect.value;
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(voice => voice.lang.toLowerCase() === accentSelect.value.toLowerCase());
+        if (selectedVoice) utterance.voice = selectedVoice;
+        speechNote.textContent = `Playing ${accentSelect.value === 'en-GB' ? 'British' : 'American'} English.`;
+        utterance.onend = () => { speechNote.textContent = ''; };
+        window.speechSynthesis.speak(utterance);
+    });
+
     async function processPhonetics() {
         const text = input.value.trim();
-        if (!text) { result.textContent = 'Type to see the phonetic transcription...'; return; }
+        if (!text) { result.textContent = 'Your phonetic transcription will appear here.'; ipaText = ''; listenButton.disabled = true; return; }
         if (controller) controller.abort();
         controller = new AbortController();
         const currentController = controller;
@@ -52,9 +84,17 @@
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Unable to prepare phonetic transcription.');
-            if (controller === currentController) result.textContent = data.ipa;
+            if (controller === currentController) {
+                ipaText = data.ipa;
+                result.textContent = ipaText;
+                listenButton.disabled = false;
+            }
         } catch (error) {
-            if (error.name !== 'AbortError' && controller === currentController) result.textContent = error.message;
+            if (error.name !== 'AbortError' && controller === currentController) {
+                result.textContent = error.message;
+                ipaText = '';
+                listenButton.disabled = true;
+            }
         }
     }
 

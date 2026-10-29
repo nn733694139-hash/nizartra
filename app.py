@@ -22,8 +22,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')
-gemini_client = None
-gemini_client_key = None
+gemini_clients = {}
+gemini_key_cursor = 0
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins='*')
@@ -163,31 +163,33 @@ def clear_chat_history():
 
 
 SITE_CONTENT_DEFAULTS = {
-    'brand_name': 'Black Spot',
-    'brand_tagline': 'A focused translation studio for students.',
-    'home_heading': 'Translation, without noise.',
-    'home_badge': 'Arabic and English translation studio',
-    'home_intro': 'A clear workspace for translation students to compare meaning, style, and sound.',
-    'about_eyebrow': 'Black Spot · About',
-    'about_lead': 'Black Spot is a student translation studio for practicing meaning, context, style, and pronunciation between Arabic and English.',
+    'brand_name': 'nizarphonetics',
+    'brand_tagline': 'English sound, made clear.',
+    'home_heading': 'Hear English with clarity.',
+    'home_badge': 'A focused phonetics and pronunciation studio',
+    'home_intro': 'Explore English pronunciation, compare British and American speech, and build confidence one sound at a time.',
+    'about_eyebrow': 'nizarphonetics · About',
+    'about_lead': 'nizarphonetics is a student-centered space for exploring English sounds, pronunciation, and the details that make spoken language clear.',
     'about_story_title': 'Our Story',
-    'about_story': 'Black Spot brings practical translation tools together in one quiet workspace where students can explore language and learn through practice.',
-    'mission_title': 'Translation Made Clear',
-    'mission_text': 'Provide fast, accurate, and human-centered translation experiences that help people communicate without friction.',
-    'vision_title': 'Knowledge Without Barriers',
-    'vision_text': 'Make global knowledge easy to access, easy to understand, and ready to navigate through modern automation.',
-    'values_title': 'Speed, Clarity, Control',
-    'values_text': 'We believe in fast execution, precise output, and simple control layers that keep users confident and informed.',
-    'founder_name': 'نزار أحمد شرقي',
-    'founder_bio': 'A student-led translation workspace built around clear language and thoughtful practice.',
-    'contact_title': 'Contact Black Spot',
-    'contact_intro': 'Send a question, suggestion, or note to the translation team.',
+    'about_story': 'This platform brings practical phonetics tools into one calm workspace. Its sample story and mission are fully editable from the administration panel.',
+    'mission_title': 'Pronunciation Made Clear',
+    'mission_text': 'Make English sounds easier to hear, understand, and practice through clear phonetic tools.',
+    'vision_title': 'Confidence in Every Sound',
+    'vision_text': 'Help learners build a lasting connection between written English and natural spoken language.',
+    'values_title': 'Practice, Clarity, Progress',
+    'values_text': 'We value accessible practice, careful listening, and steady progress at every level.',
+    'founder_name': 'Nizar Sharqi',
+    'founder_bio': 'Founder of nizarphonetics, building thoughtful tools for English pronunciation and phonetic learning.',
+    'contact_title': 'Contact nizarphonetics',
+    'contact_intro': 'Send a question, suggestion, or note to the nizarphonetics team.',
     'contact_email_label': 'Email',
     'contact_hours_label': 'Response Hours',
     'contact_note_title': 'Your Feedback Matters',
     'contact_email': 'hello@example.com',
     'contact_hours': 'Sunday to Thursday, 9:00 AM to 5:00 PM.',
-    'contact_note': 'Share an idea or comment with the Black Spot team.',
+    'contact_note': 'Share an idea or comment with the nizarphonetics team.',
+    'contact_accent': '#d5ff3f',
+    'contact_decoration': 'minimal',
     'background_enabled': False,
     'faculty': ['Dr. ابراهيم جبريل', 'Dr. نعمة الحاج', 'Dr. محمد علي', 'Dr. سمير الحمادي'],
     'students': [
@@ -200,7 +202,7 @@ SITE_CONTENT_DEFAULTS = {
 }
 
 SITE_CONTENT_LEGACY_VALUES = {
-    'brand_name': {'Nizartra', 'NizarTra'},
+    'brand_name': {'Nizartra', 'NizarTra', 'Black Spot'},
     'brand_tagline': {
         'Translation tools by Nizartra | Add your tagline here',
         'Fast translation and smart KNX automation by NizarTra',
@@ -557,10 +559,15 @@ def admin_save():
         'founder_name': 100, 'founder_bio': 1000, 'contact_title': 120,
         'contact_intro': 1000, 'contact_email_label': 80,
         'contact_hours_label': 80, 'contact_note_title': 100,
-        'contact_email': 254, 'contact_hours': 300, 'contact_note': 600
+        'contact_email': 254, 'contact_hours': 300, 'contact_note': 600,
+        'contact_accent': 7, 'contact_decoration': 20
     }
     for field, limit in field_limits.items():
         content[field] = request.form.get(field, '').strip()[:limit]
+    if not re.fullmatch(r'#[0-9A-Fa-f]{6}', content['contact_accent']):
+        content['contact_accent'] = SITE_CONTENT_DEFAULTS['contact_accent']
+    if content['contact_decoration'] not in {'minimal', 'grid', 'glow'}:
+        content['contact_decoration'] = 'minimal'
     email = content['contact_email']
     if email and ('@' not in email or '.' not in email.rsplit('@', 1)[-1]):
         flash('Please check the contact email format.')
@@ -684,7 +691,7 @@ HTML_INDEX = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nizartra - Advanced Translation Platform</title>
+    <title>nizarphonetics - English Phonetics Studio</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -762,7 +769,7 @@ HTML_INDEX = """
         <a href="/" class="brand-container">
             <!-- Profile image in the navigation bar -->
             <img src="/static/my_photo.jpg" class="navbar-avatar" alt="Photo of نزار أحمد شرقي">
-            <span class="brand-title">Nizartra</span>
+            <span class="brand-title">nizarphonetics</span>
         </a>
         <nav class="nav-menu">
             <a href="/" class="active">Home</a>
@@ -886,28 +893,28 @@ def get_retry_after_seconds(error):
             return 1.0
 
 
-def get_gemini_client():
-    global gemini_client, gemini_client_key
+def get_gemini_keys():
+    configured_keys = [
+        os.environ.get(f'GEMINI_API_KEY_{index}', '').strip()
+        for index in range(1, 10)
+    ]
+    legacy_key = os.environ.get('GEMINI_API_KEY', '').strip()
+    if legacy_key:
+        configured_keys.append(legacy_key)
+    return list(dict.fromkeys(key for key in configured_keys if key))
 
-    api_key = os.environ.get('GEMINI_API_KEY', '').strip()
-    if not api_key:
-        app.logger.error('GEMINI_API_KEY is missing at translation request time.')
-        raise TranslationServiceError(
-            'Translation is not configured. Set GEMINI_API_KEY and restart the service.',
-            503,
-        )
 
-    if gemini_client is None or api_key != gemini_client_key:
+def get_gemini_client(api_key):
+    if api_key not in gemini_clients:
         try:
-            gemini_client = genai.Client(api_key=api_key)
-            gemini_client_key = api_key
+            gemini_clients[api_key] = genai.Client(api_key=api_key)
         except Exception as error:
-            app.logger.exception('Failed to initialize the Gemini client.')
+            app.logger.exception('Failed to initialize a Gemini client.')
             raise TranslationServiceError(
                 'Gemini could not be initialized. Check the server configuration.',
                 503,
             ) from error
-    return gemini_client
+    return gemini_clients[api_key]
 
 
 def fetch_translation(text, src, tgt):
@@ -927,54 +934,80 @@ def fetch_translation(text, src, tgt):
         'add commentary. Return only the translation.'
     )
 
-    try:
-        client = get_gemini_client()
-        response = None
-        for attempt in range(2):
-            try:
-                with app.app_context():
-                    response = client.models.generate_content(
-                        model=GEMINI_MODEL,
-                        contents=text,
-                        config=types.GenerateContentConfig(
-                            system_instruction=system_instruction,
-                        ),
-                    )
-                break
-            except Exception as error:
-                status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
-                error_text = str(error).lower()
-                is_rate_limited = (
-                    status_code == 429
-                    or '429' in error_text
-                    or 'resource_exhausted' in error_text
-                )
-                retry_after = get_retry_after_seconds(error)
-                if not is_rate_limited or attempt > 0 or retry_after > 5:
-                    raise
-                app.logger.warning(
-                    'Gemini rate limited the request; retrying once after %.2f seconds.',
-                    retry_after,
-                )
-                eventlet.sleep(retry_after)
-
-        translated_text = (response.text or '').strip()
-        if not translated_text:
-            raise TranslationServiceError('Gemini returned an empty translation. Please try again.', 503)
-        return translated_text
-    except TranslationServiceError:
-        raise
-    except Exception as error:
-        status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
-        error_text = str(error).lower()
-        app.logger.exception(
-            'Gemini generate_content failed: model=%s status_code=%s',
-            GEMINI_MODEL,
-            status_code,
+    api_keys = get_gemini_keys()
+    if not api_keys:
+        raise TranslationServiceError(
+            'Translation is not configured. Set GEMINI_API_KEY_1 through GEMINI_API_KEY_9.',
+            503,
         )
-        if status_code == 429 or '429' in error_text or 'resource_exhausted' in error_text:
-            raise TranslationServiceError('Gemini is temporarily rate-limiting requests. Please try again shortly.', 503) from error
-        raise TranslationServiceError('Gemini translation is temporarily unavailable. Please try again shortly.', 502) from error
+
+    global gemini_key_cursor
+    start_index = gemini_key_cursor % len(api_keys)
+    gemini_key_cursor = (gemini_key_cursor + 1) % len(api_keys)
+    ordered_keys = api_keys[start_index:] + api_keys[:start_index]
+    last_error = None
+    all_rate_limited = True
+
+    for api_key in ordered_keys:
+        try:
+            client = get_gemini_client(api_key)
+            response = None
+            for attempt in range(2):
+                try:
+                    with app.app_context():
+                        response = client.models.generate_content(
+                            model=GEMINI_MODEL,
+                            contents=text,
+                            config=types.GenerateContentConfig(
+                                system_instruction=system_instruction,
+                            ),
+                        )
+                    break
+                except Exception as error:
+                    status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
+                    error_text = str(error).lower()
+                    is_rate_limited = (
+                        status_code == 429
+                        or '429' in error_text
+                        or 'resource_exhausted' in error_text
+                    )
+                    all_rate_limited = all_rate_limited and is_rate_limited
+                    last_error = error
+                    retry_after = get_retry_after_seconds(error)
+                    if not is_rate_limited or attempt > 0 or retry_after > 5:
+                        break
+                    eventlet.sleep(retry_after)
+            if response is not None:
+                translated_text = (response.text or '').strip()
+                if translated_text:
+                    return translated_text
+                raise TranslationServiceError('Gemini returned an empty translation. Please try again.', 503)
+        except TranslationServiceError as error:
+            last_error = error
+            all_rate_limited = False
+            app.logger.warning('Gemini client initialization failed; trying the next configured key.')
+        except Exception as error:
+            last_error = error
+            status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
+            error_text = str(error).lower()
+            is_rate_limited = (
+                status_code == 429
+                or '429' in error_text
+                or 'resource_exhausted' in error_text
+            )
+            all_rate_limited = all_rate_limited and is_rate_limited
+            app.logger.warning('Gemini key attempt failed; trying the next configured key.')
+
+    app.logger.warning('All configured Gemini keys failed for model=%s.', GEMINI_MODEL)
+    if all_rate_limited:
+        raise TranslationServiceError(
+            'All configured Gemini keys are temporarily rate-limiting requests. Please try again shortly.',
+            503,
+        ) from last_error
+    raise TranslationServiceError(
+        'Gemini translation is temporarily unavailable. Please try again shortly.',
+        502,
+    ) from last_error
 
 def translate_long_text(text, src, tgt, config=None):
     config = config or load_app_config()
