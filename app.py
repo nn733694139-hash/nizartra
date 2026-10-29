@@ -2,7 +2,6 @@ import eventlet
 eventlet.monkey_patch()
 
 from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 import hashlib
 import json
@@ -13,6 +12,7 @@ from pathlib import Path
 
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort
 from flask_socketio import SocketIO
+from deep_translator import GoogleTranslator
 import requests
 import eng_to_ipa
 from werkzeug.exceptions import HTTPException
@@ -793,40 +793,43 @@ def fetch_translation(text, src, tgt):
         return text
 
     try:
+        translated_text = GoogleTranslator(source=src.lower(), target=tgt.lower()).translate(text)
+        if translated_text:
+            return translated_text
+        app.logger.warning('GoogleTranslator returned an empty translation; trying MyMemory.')
+    except Exception as error:
+        app.logger.warning('GoogleTranslator failed; trying MyMemory: %s', error)
+
+    try:
         response = requests.get(
             'https://api.mymemory.translated.net/get',
             params={'q': text, 'langpair': f'{src}|{tgt}'},
             timeout=(3, 8)
         )
     except requests.Timeout as error:
-        raise TranslationServiceError('The translation request timed out. Please try again.', 504) from error
+        raise TranslationServiceError('Translation providers timed out. Please try again shortly.', 503) from error
     except requests.RequestException as error:
-        raise TranslationServiceError('Could not connect to the translation service. Check your internet connection.', 502) from error
+        raise TranslationServiceError('Translation is temporarily unavailable. Please try again shortly.', 503) from error
 
     if not response.ok:
-        raise TranslationServiceError(f'Translation failed (HTTP {response.status_code}).')
+        if response.status_code == 429:
+            raise TranslationServiceError('Translation providers are temporarily rate-limiting requests. Please try again shortly.', 503)
+        raise TranslationServiceError('Translation is temporarily unavailable. Please try again shortly.', 503)
 
     try:
         response_data = response.json().get('responseData') or {}
-    except ValueError as error:
-        raise TranslationServiceError('The translation service returned an invalid response.') from error
+    except (AttributeError, ValueError) as error:
+        raise TranslationServiceError('Translation providers returned an invalid response.', 503) from error
     translated_text = response_data.get('translatedText')
     if not translated_text:
-        raise TranslationServiceError('The translation service returned no text.')
+        raise TranslationServiceError('Translation providers returned no text. Please try again shortly.', 503)
     return translated_text
 
 def translate_long_text(text, src, tgt, config=None):
     config = config or load_app_config()
     max_length = int(config.get('max_segment_length', 450))
     segments = segment_text(text, max_length)
-    if len(segments) == 1:
-        return fetch_translation(segments[0], src, tgt)
-
-    def translate_chunk(chunk):
-        return fetch_translation(chunk, src, tgt)
-
-    with ThreadPoolExecutor(max_workers=min(4, len(segments))) as executor:
-        translated_segments = list(executor.map(translate_chunk, segments))
+    translated_segments = [fetch_translation(segment, src, tgt) for segment in segments]
     return ' '.join(part for part in translated_segments if part)
 
 @app.route('/submit_feedback', methods=['POST'])
