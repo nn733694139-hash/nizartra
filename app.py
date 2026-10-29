@@ -20,9 +20,9 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
-GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
-gemini_client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')
+gemini_client = None
+gemini_client_key = None
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins='*')
@@ -791,14 +791,37 @@ class TranslationServiceError(Exception):
         super().__init__(message)
         self.status_code = status_code
 
+
+def get_gemini_client():
+    global gemini_client, gemini_client_key
+
+    api_key = os.environ.get('GEMINI_API_KEY', '').strip()
+    if not api_key:
+        app.logger.error('GEMINI_API_KEY is missing at translation request time.')
+        raise TranslationServiceError(
+            'Translation is not configured. Set GEMINI_API_KEY and restart the service.',
+            503,
+        )
+
+    if gemini_client is None or api_key != gemini_client_key:
+        try:
+            gemini_client = genai.Client(api_key=api_key)
+            gemini_client_key = api_key
+        except Exception as error:
+            app.logger.exception('Failed to initialize the Gemini client.')
+            raise TranslationServiceError(
+                'Gemini could not be initialized. Check the server configuration.',
+                503,
+            ) from error
+    return gemini_client
+
+
 def fetch_translation(text, src, tgt):
     supported_languages = {'en', 'ar'}
     if src.lower() not in supported_languages or tgt.lower() not in supported_languages:
         raise TranslationServiceError('The selected language pair is not supported.', 400)
     if src.lower() == tgt.lower():
         return text
-    if gemini_client is None:
-        raise TranslationServiceError('Translation is not configured. Set GEMINI_API_KEY and restart the service.', 503)
 
     language_names = {'en': 'English', 'ar': 'Arabic'}
     source_language = language_names[src.lower()]
@@ -811,13 +834,13 @@ def fetch_translation(text, src, tgt):
     )
 
     try:
+        client = get_gemini_client()
         with app.app_context():
-            response = gemini_client.models.generate_content(
+            response = client.models.generate_content(
                 model=GEMINI_MODEL,
                 contents=text,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
-                    temperature=0.2,
                 ),
             )
         translated_text = (response.text or '').strip()
@@ -829,10 +852,13 @@ def fetch_translation(text, src, tgt):
     except Exception as error:
         status_code = getattr(error, 'code', None) or getattr(error, 'status_code', None)
         error_text = str(error).lower()
+        app.logger.exception(
+            'Gemini generate_content failed: model=%s status_code=%s',
+            GEMINI_MODEL,
+            status_code,
+        )
         if status_code == 429 or '429' in error_text or 'resource_exhausted' in error_text:
-            app.logger.warning('Gemini rate limit reached for a translation request.')
             raise TranslationServiceError('Gemini is temporarily rate-limiting requests. Please try again shortly.', 503) from error
-        app.logger.exception('Gemini translation request failed.')
         raise TranslationServiceError('Gemini translation is temporarily unavailable. Please try again shortly.', 502) from error
 
 def translate_long_text(text, src, tgt, config=None):
