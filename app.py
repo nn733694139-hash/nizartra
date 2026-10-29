@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
@@ -12,6 +15,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from flask_socketio import SocketIO
 import requests
 import eng_to_ipa
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
@@ -871,23 +875,36 @@ def submit_contact():
 
 @app.route('/translate_fast', methods=['POST'])
 def translate_fast():
-    data = request.get_json(silent=True) or {}
-    text = (data.get('text') or '').strip()
-    config = load_app_config()
-    requested_src = (data.get('src') or config.get('default_source_language') or 'en').strip().lower()
-    requested_tgt = (data.get('tgt') or config.get('default_target_language') or 'ar').strip().lower()
-
-    if config.get('auto_detect_language') and requested_src in {'auto', ''}:
-        requested_src = detect_language(text)
-
-    if not text:
-        return jsonify({'result': 'Enter text to translate.'})
-
     try:
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Request body must be a JSON object.'}), 400
+
+        text = str(data.get('text') or '').strip()
+        config = load_app_config()
+        requested_src = str(data.get('src') or config.get('default_source_language') or 'en').strip().lower()
+        requested_tgt = str(data.get('tgt') or config.get('default_target_language') or 'ar').strip().lower()
+
+        if config.get('auto_detect_language') and requested_src in {'auto', ''}:
+            requested_src = detect_language(text)
+
+        if not text:
+            return jsonify({'result': 'Enter text to translate.'})
+
         result = translate_long_text(text, requested_src, requested_tgt, config=config)
     except TranslationServiceError as error:
         return jsonify({'error': str(error)}), error.status_code
+    except Exception:
+        app.logger.exception('Unexpected error while translating text.')
+        return jsonify({'error': 'An unexpected error occurred while translating.'}), 500
     return jsonify({'result': result})
+
+
+@app.errorhandler(HTTPException)
+def handle_translation_http_error(error):
+    if request.path == '/translate_fast':
+        return jsonify({'error': error.description}), error.code
+    return error.get_response()
 
 @app.route('/phonetics_process', methods=['POST'])
 def phonetics_process():
