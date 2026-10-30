@@ -42,39 +42,39 @@
     {% include '_navbar.html' %}
     <main class="about-page">
         <header class="about-intro">
-            <p class="about-eyebrow">{{ site_content.about_eyebrow }}</p>
-            <h1>About Us</h1>
-            <p class="about-lead">{{ site_content.about_lead }}</p>
+            <p class="about-eyebrow" {% if site_content.about_eyebrow == 'nizarphonetics · About' %}data-i18n="about.eyebrow"{% endif %}>{{ site_content.about_eyebrow }}</p>
+            <h1 data-i18n="about.title">About Us</h1>
+            <p class="about-lead" {% if site_content.about_lead == 'nizarphonetics is a student-centered space for exploring English sounds, pronunciation, and the details that make spoken language clear.' %}data-i18n="about.lead"{% endif %}>{{ site_content.about_lead }}</p>
         </header>
 
         <section class="about-story" aria-labelledby="storyTitle">
-            <h2 id="storyTitle">{{ site_content.about_story_title }}</h2>
-            <p>{{ site_content.about_story }}</p>
+            <h2 id="storyTitle" {% if site_content.about_story_title == 'Our Story' %}data-i18n="about.storyTitle"{% endif %}>{{ site_content.about_story_title }}</h2>
+            <p {% if site_content.about_story == 'This platform brings practical phonetics tools into one calm workspace. Its sample story and mission are fully editable from the administration panel.' %}data-i18n="about.story"{% endif %}>{{ site_content.about_story }}</p>
         </section>
 
-        <section class="about-principles" aria-label="Our mission, vision, and values">
+        <section class="about-principles" aria-label="Our mission, vision, and values" data-i18n-aria="about.principles">
             <article class="principle">
-                <span class="principle-number">01 / Mission</span>
-                <h2>{{ site_content.mission_title }}</h2>
-                <p>{{ site_content.mission_text }}</p>
+                <span class="principle-number" data-i18n="about.mission">01 / Mission</span>
+                <h2 {% if site_content.mission_title == 'Pronunciation Made Clear' %}data-i18n="about.missionTitle"{% endif %}>{{ site_content.mission_title }}</h2>
+                <p {% if site_content.mission_text == 'Make English sounds easier to hear, understand, and practice through clear phonetic tools.' %}data-i18n="about.missionText"{% endif %}>{{ site_content.mission_text }}</p>
             </article>
             <article class="principle">
-                <span class="principle-number">02 / Vision</span>
-                <h2>{{ site_content.vision_title }}</h2>
-                <p>{{ site_content.vision_text }}</p>
+                <span class="principle-number" data-i18n="about.vision">02 / Vision</span>
+                <h2 {% if site_content.vision_title == 'Confidence in Every Sound' %}data-i18n="about.visionTitle"{% endif %}>{{ site_content.vision_title }}</h2>
+                <p {% if site_content.vision_text == 'Help learners build a lasting connection between written English and natural spoken language.' %}data-i18n="about.visionText"{% endif %}>{{ site_content.vision_text }}</p>
             </article>
             <article class="principle">
-                <span class="principle-number">03 / Values</span>
-                <h2>{{ site_content.values_title }}</h2>
-                <p>{{ site_content.values_text }}</p>
+                <span class="principle-number" data-i18n="about.values">03 / Values</span>
+                <h2 {% if site_content.values_title == 'Practice, Clarity, Progress' %}data-i18n="about.valuesTitle"{% endif %}>{{ site_content.values_title }}</h2>
+                <p {% if site_content.values_text == 'We value accessible practice, careful listening, and steady progress at every level.' %}data-i18n="about.valuesText"{% endif %}>{{ site_content.values_text }}</p>
             </article>
         </section>
 
-        <section class="about-founder" aria-label="Site founder">
+        <section class="about-founder" aria-label="Site founder" data-i18n-aria="about.founder">
             <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of {{ site_content.founder_name }}">
             <div>
                 <h2>{{ site_content.founder_name }}</h2>
-                <p>{{ site_content.founder_bio }}</p>
+                <p {% if site_content.founder_bio == 'Founder of nizarphonetics, building thoughtful tools for English pronunciation and phonetic learning.' %}data-i18n="about.founderBio"{% endif %}>{{ site_content.founder_bio }}</p>
             </div>
         </section>
     </main>

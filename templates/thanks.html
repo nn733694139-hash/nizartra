@@ -29,16 +29,16 @@
     {% include '_navbar.html' %}
     <div class="thanks-layout">
         <main class="thanks-main">
-            <h1>Acknowledgements</h1>
-            <p>In recognition of everyone who contributed to our pronunciation learning journey, I thank my professors and colleagues for their knowledge, collaboration, and support.</p>
-            <h2 style="color:#78d5c2; font-size:18px; margin-top:26px;">Professors and Supervisors</h2>
+            <h1 data-i18n="thanks.title">Acknowledgements</h1>
+            <p data-i18n="thanks.intro">In recognition of everyone who contributed to our pronunciation learning journey, I thank my professors and colleagues for their knowledge, collaboration, and support.</p>
+            <h2 style="color:#78d5c2; font-size:18px; margin-top:26px;" data-i18n="thanks.faculty">Professors and Supervisors</h2>
             <div class="faculty-list">
                 {% for teacher in site_content.faculty %}<div>{{ teacher }}</div>
                 {% else %}<p>No faculty names have been added yet.</p>{% endfor %}
             </div>
         </main>
-        <aside class="thanks-sidebar" aria-label="Colleagues and students">
-            <h2>Colleagues and Students</h2>
+        <aside class="thanks-sidebar" aria-label="Colleagues and students" data-i18n-aria="thanks.people">
+            <h2 data-i18n="thanks.people">Colleagues and Students</h2>
             <ol class="thanks-list">
                 {% for student in site_content.students %}<li>{{ student }}</li>
                 {% else %}<li>No colleagues have been added yet.</li>{% endfor %}

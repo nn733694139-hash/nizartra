@@ -48,55 +48,55 @@
     {% include '_navbar.html' %}
     <main class="contact-page contact-decoration-{{ site_content.contact_decoration }}" style="--contact-accent: {{ site_content.contact_accent }}">
         <header class="contact-heading">
-            <p class="contact-eyebrow">{{ site_content.brand_name }} · Get in touch</p>
-            <h1>{{ site_content.contact_title }}</h1>
-            <p>{{ site_content.contact_intro }}</p>
+            <p class="contact-eyebrow">{{ site_content.brand_name }} · <span data-i18n="contact.eyebrow">Get in touch</span></p>
+            <h1 {% if site_content.contact_title == 'Contact nizarphonetics' %}data-i18n="contact.defaultTitle"{% endif %}>{{ site_content.contact_title }}</h1>
+            <p {% if site_content.contact_intro == 'Send a question, suggestion, or note to the nizarphonetics team.' %}data-i18n="contact.defaultIntro"{% endif %}>{{ site_content.contact_intro }}</p>
         </header>
 
         <div class="contact-layout">
             <section class="contact-form-panel" aria-labelledby="contactFormTitle">
-                <h2 id="contactFormTitle">Send a Message</h2>
+                <h2 id="contactFormTitle" data-i18n="contact.formTitle">Send a Message</h2>
                 <form class="contact-form" id="contactForm">
-                    <label class="contact-field">Name (optional)
-                        <input name="name" type="text" maxlength="80" placeholder="Your name">
+                    <label class="contact-field"><span data-i18n="contact.name">Name (optional)</span>
+                        <input name="name" type="text" maxlength="80" placeholder="Your name" data-i18n-placeholder="contact.yourName">
                     </label>
-                    <label class="contact-field">Email (optional)
+                    <label class="contact-field"><span data-i18n="contact.email">Email (optional)</span>
                         <input name="email" type="email" maxlength="254" placeholder="name@example.com">
                     </label>
-                    <label class="contact-field">Message topic
+                    <label class="contact-field"><span data-i18n="contact.topic">Message topic</span>
                         <select name="topic">
-                            <option value="Question">Question</option>
-                            <option value="Suggestion">Suggestion</option>
-                            <option value="Feedback">Feedback</option>
-                            <option value="Other">Other</option>
+                            <option value="Question" data-i18n="contact.question">Question</option>
+                            <option value="Suggestion" data-i18n="contact.suggestion">Suggestion</option>
+                            <option value="Feedback" data-i18n="contact.feedback">Feedback</option>
+                            <option value="Other" data-i18n="contact.other">Other</option>
                         </select>
                     </label>
-                    <label class="contact-field">Your message
-                        <textarea name="message" maxlength="5000" required placeholder="Write your message here..."></textarea>
+                    <label class="contact-field"><span data-i18n="contact.message">Your message</span>
+                        <textarea name="message" maxlength="5000" required placeholder="Write your message here..." data-i18n-placeholder="contact.placeholder"></textarea>
                     </label>
-                    <button class="contact-submit" type="submit">Send Message</button>
+                    <button class="contact-submit" type="submit" data-i18n="contact.send">Send Message</button>
                     <p id="contactStatus" class="contact-status" role="status" aria-live="polite"></p>
                 </form>
             </section>
 
-            <aside class="contact-details" aria-label="Contact information">
+            <aside class="contact-details" aria-label="Contact information" data-i18n-aria="contact.information">
                 <section class="contact-detail">
-                    <h2>{{ site_content.contact_email_label }}</h2>
+                    <h2 {% if site_content.contact_email_label == 'Email' %}data-i18n="contact.emailHeading"{% endif %}>{{ site_content.contact_email_label }}</h2>
                     <p><a href="mailto:{{ site_content.contact_email }}">{{ site_content.contact_email }}</a></p>
                 </section>
                 {% if site_content.contact_phone %}
                 <section class="contact-detail">
-                    <h2>Phone</h2>
+                    <h2 data-i18n="contact.phone">Phone</h2>
                     <p><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a></p>
                 </section>
                 {% endif %}
                 <section class="contact-detail">
-                    <h2>{{ site_content.contact_hours_label }}</h2>
-                    <p>{{ site_content.contact_hours }}</p>
+                    <h2 {% if site_content.contact_hours_label == 'Response Hours' %}data-i18n="contact.hoursHeading"{% endif %}>{{ site_content.contact_hours_label }}</h2>
+                    <p {% if site_content.contact_hours == 'Sunday to Thursday, 9:00 AM to 5:00 PM.' %}data-i18n="contact.defaultHours"{% endif %}>{{ site_content.contact_hours }}</p>
                 </section>
                 {% if site_content.facebook_url or site_content.instagram_url or site_content.tiktok_url %}
                 <section class="contact-detail">
-                    <h2>Social Media</h2>
+                    <h2 data-i18n="contact.social">Social Media</h2>
                     <p class="contact-social-links">
                         {% if site_content.facebook_url %}{% if site_content.facebook_url.startswith('https://') or site_content.facebook_url.startswith('http://') %}<a href="{{ site_content.facebook_url }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% else %}<span>Facebook: {{ site_content.facebook_url }}</span>{% endif %}{% endif %}
                         {% if site_content.instagram_url %}{% if site_content.instagram_url.startswith('https://') or site_content.instagram_url.startswith('http://') %}<a href="{{ site_content.instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% else %}<span>Instagram: {{ site_content.instagram_url }}</span>{% endif %}{% endif %}
@@ -105,8 +105,8 @@
                 </section>
                 {% endif %}
                 <section class="contact-detail">
-                    <h2>{{ site_content.contact_note_title }}</h2>
-                    <p>{{ site_content.contact_note }}</p>
+                    <h2 {% if site_content.contact_note_title == 'Your Feedback Matters' %}data-i18n="contact.noteHeading"{% endif %}>{{ site_content.contact_note_title }}</h2>
+                    <p {% if site_content.contact_note == 'Share an idea or comment with the nizarphonetics team.' %}data-i18n="contact.defaultNote"{% endif %}>{{ site_content.contact_note }}</p>
                 </section>
             </aside>
         </div>
@@ -118,7 +118,7 @@
             event.preventDefault();
             const button = contactForm.querySelector('button[type="submit"]');
             button.disabled = true;
-            contactStatus.textContent = 'Submitting your message...';
+            contactStatus.textContent = window.siteTranslate('contact.sending');
             const formData = new FormData(contactForm);
             try {
                 const response = await fetch('/submit_contact', {

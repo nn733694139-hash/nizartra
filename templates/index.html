@@ -12,16 +12,20 @@
     <main class="home-shell">
         <section class="home-hero">
             <div class="home-intro">
-                <p class="eyebrow">{{ site_content.home_badge }}</p>
-                <h1>{{ site_content.home_heading }}</h1>
-                <p>{{ site_content.home_intro }}</p>
-                <p class="founder-signature"><span>Created by</span><strong>{{ site_content.founder_name }}</strong></p>
+                <p class="eyebrow" {% if site_content.home_badge == 'A focused phonetics and pronunciation studio' %}data-i18n="home.badge"{% endif %}>{{ site_content.home_badge }}</p>
+                <h1 {% if site_content.home_heading == 'Hear English with clarity.' %}data-i18n="home.heading"{% endif %}>{{ site_content.home_heading }}</h1>
+                <p {% if site_content.home_intro == 'Explore English pronunciation, compare British and American speech, and build confidence one sound at a time.' %}data-i18n="home.intro"{% endif %}>{{ site_content.home_intro }}</p>
+                <p class="founder-signature"><span data-i18n="home.created">Created by</span><strong>{{ site_content.founder_name }}</strong></p>
                 <div class="hero-actions">
-                    <a class="primary-link" href="/phonetics">Open phonetics studio <span aria-hidden="true">↗</span></a>
-                    <label class="accent-picker">Speech accent
-                        <select id="homeAccent" aria-label="Choose speech accent">
-                            <option value="en-GB">British English</option>
-                            <option value="en-US">American English</option>
+                    <a class="primary-link phonetics-entry" href="/phonetics">
+                        <span class="entry-label" data-i18n="home.startLabel">START HERE</span>
+                        <span data-i18n="home.enter">Open phonetics studio</span>
+                        <span class="entry-arrow" aria-hidden="true">➜</span>
+                    </a>
+                    <label class="accent-picker"><span data-i18n="home.speechAccent">Speech accent</span>
+                        <select id="homeAccent" aria-label="Choose speech accent" data-i18n-aria="home.chooseAccent">
+                            <option value="en-GB" data-i18n="home.british">British English</option>
+                            <option value="en-US" data-i18n="home.american">American English</option>
                         </select>
                     </label>
                 </div>
@@ -32,46 +36,46 @@
             </figure>
         </section>
 
-        <nav class="tool-grid" aria-label="Pronunciation tools">
+        <nav class="tool-grid" aria-label="Pronunciation tools" data-i18n-aria="home.tools">
             <a href="/phonetics" class="service-card">
                 <span class="icon" aria-hidden="true">IPA</span>
-                <h2>Phonetics</h2>
-                <p>Explore pronunciation with IPA transcription.</p>
+                <h2 data-i18n="home.phoneticsTitle">Phonetics</h2>
+                <p data-i18n="home.phoneticsText">Explore pronunciation with IPA transcription.</p>
             </a>
             <a href="/thanks" class="service-card">
                 <span class="icon" aria-hidden="true">+</span>
-                <h2>People</h2>
-                <p>Meet the teachers, colleagues, and contributors.</p>
+                <h2 data-i18n="home.peopleTitle">People</h2>
+                <p data-i18n="home.peopleText">Meet the teachers, colleagues, and contributors.</p>
             </a>
             <a href="/about" class="service-card">
                 <span class="icon" aria-hidden="true">B</span>
-                <h2>About the Studio</h2>
-                <p>Learn about the people and purpose behind the studio.</p>
+                <h2 data-i18n="home.aboutTitle">About the Studio</h2>
+                <p data-i18n="home.aboutText">Learn about the people and purpose behind the studio.</p>
             </a>
         </nav>
 
         <section class="shared-section" aria-labelledby="feedbackHeading">
-            <h2 id="feedbackHeading">اقترح لنا اقتراحك <span>/ Share a suggestion</span></h2>
+            <h2 id="feedbackHeading" data-i18n="feedback.title">Suggest an idea</h2>
             <form id="feedbackForm">
-                <label>Student name (optional)
-                    <input id="feedbackName" type="text" maxlength="80" placeholder="Your name">
+                <label><span data-i18n="feedback.name">Student name (optional)</span>
+                    <input id="feedbackName" type="text" maxlength="80" placeholder="Your name" data-i18n-placeholder="feedback.yourName">
                 </label>
-                <label>Your suggestion
-                    <textarea id="feedbackMessage" maxlength="5000" required placeholder="Write your feedback"></textarea>
+                <label><span data-i18n="feedback.message">Your suggestion</span>
+                    <textarea id="feedbackMessage" maxlength="5000" required placeholder="Write your feedback" data-i18n-placeholder="feedback.placeholder"></textarea>
                 </label>
-                <div><button type="submit">Send suggestion</button></div>
+                <div><button type="submit" data-i18n="feedback.send">Send suggestion</button></div>
             </form>
             <p id="feedbackStatus" class="form-status" role="status" aria-live="polite"></p>
         </section>
     </main>
 
-    <footer>nizarphonetics · English Phonetics Studio</footer>
+    <footer>nizarphonetics · <span data-i18n="home.footer">English Phonetics Studio</span></footer>
 
     <script>
         document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             const status = document.getElementById('feedbackStatus');
-            status.textContent = 'Sending your suggestion...';
+            status.textContent = window.siteTranslate('feedback.sending');
             try {
                 const response = await fetch('/submit_feedback', {
                     method: 'POST',
@@ -83,7 +87,7 @@
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Unable to send the suggestion.');
-                status.textContent = data.result;
+                status.textContent = window.siteTranslate('feedback.received');
                 event.target.reset();
             } catch (error) {
                 status.textContent = error.message;

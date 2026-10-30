@@ -19,6 +19,7 @@ const startCaption = document.getElementById('startCaption');
 const tongueStart = document.getElementById('tongueStart');
 const tongueEnd = document.getElementById('tongueEnd');
 const endDiagram = document.getElementById('endDiagram');
+const uiText = (key, fallback) => window.siteTranslate?.(key) || fallback;
 
 const soundSets = {
     'en-GB': {
@@ -131,11 +132,11 @@ function selectSound(sound) {
     articulationTitle.textContent = `/${sound.ipa}/ · ${sound.lexical}`;
     articulationNote.textContent = sound.tip;
     articulationStatus.textContent = sound.voicing
-        ? `${sound.voicing === 'voiced' ? 'VOICED · vocal folds vibrate' : 'VOICELESS · no vocal-fold vibration'} · ${sound.place}`
-        : sound.glide ? 'VOWEL GLIDE · tongue moves between positions' : 'VOWEL · tongue position';
+        ? `${uiText(sound.voicing === 'voiced' ? 'phonetics.voicedStatus' : 'phonetics.voicelessStatus', sound.voicing.toUpperCase())} · ${sound.place}`
+        : sound.glide ? uiText('phonetics.vowelGlide', 'VOWEL GLIDE · tongue moves between positions') : uiText('phonetics.vowelStatus', 'VOWEL · tongue position');
     articulationStatus.classList.toggle('is-voiced', sound.voicing === 'voiced');
     articulationStatus.classList.toggle('is-voiceless', sound.voicing === 'voiceless');
-    startCaption.textContent = sound.glide ? 'Starting tongue position' : sound.voicing ? sound.place : 'Tongue position';
+    startCaption.textContent = sound.glide ? uiText('phonetics.startingPosition', 'Starting tongue position') : sound.voicing ? sound.place : uiText('phonetics.tonguePosition', 'Tongue position');
     tongueStart.setAttribute('d', tonguePath(sound.position));
     endDiagram.hidden = !sound.glide;
     if (sound.glide) tongueEnd.setAttribute('d', tonguePath(sound.glide));
@@ -146,7 +147,7 @@ function selectSound(sound) {
 
 function speak(text, accent = currentAccent) {
     if (!('speechSynthesis' in window)) {
-        speechNote.textContent = 'Speech playback is not available in this browser.';
+        speechNote.textContent = uiText('phonetics.unavailable', 'Speech playback is not available in this browser.');
         return;
     }
     window.speechSynthesis.cancel();
@@ -160,18 +161,18 @@ function speak(text, accent = currentAccent) {
         activeUtterance = null;
         speechNote.textContent = '';
     };
-    speechNote.textContent = `Speaking in ${accent === 'en-GB' ? 'British' : 'American'} English.`;
+    speechNote.textContent = uiText(accent === 'en-GB' ? 'phonetics.speakingGB' : 'phonetics.speakingUS', 'Speaking in English.');
     window.speechSynthesis.speak(utterance);
 }
 
 function renderSounds() {
     const sounds = visibleSounds();
     const filters = soundMode === 'all'
-        ? [['all', 'All sounds'], ['vowels', 'Vowels'], ['consonants', 'Consonants'], ['short', 'Short'], ['long', 'Long'], ['diphthong', 'Diphthongs'], ['voiceless', 'Voiceless'], ['voiced', 'Voiced']]
+        ? [['all', uiText('phonetics.allSounds', 'All sounds')], ['vowels', uiText('phonetics.vowels', 'Vowels')], ['consonants', uiText('phonetics.consonants', 'Consonants')], ['short', uiText('phonetics.short', 'Short')], ['long', uiText('phonetics.long', 'Long')], ['diphthong', uiText('phonetics.diphthongs', 'Diphthongs')], ['voiceless', uiText('phonetics.voiceless', 'Voiceless')], ['voiced', uiText('phonetics.voiced', 'Voiced')]]
         : soundMode === 'vowels'
-        ? [['all', 'All vowels'], ['short', 'Short'], ['long', 'Long'], ['diphthong', 'Diphthongs']]
-        : [['all', 'All consonants'], ['voiceless', 'Voiceless'], ['voiced', 'Voiced']];
-    soundFilters.setAttribute('aria-label', soundMode === 'all' ? 'Filter all English sounds' : soundMode === 'vowels' ? 'Filter vowel types' : 'Filter consonant voicing');
+        ? [['all', uiText('phonetics.allVowels', 'All vowels')], ['short', uiText('phonetics.short', 'Short')], ['long', uiText('phonetics.long', 'Long')], ['diphthong', uiText('phonetics.diphthongs', 'Diphthongs')]]
+        : [['all', uiText('phonetics.allConsonants', 'All consonants')], ['voiceless', uiText('phonetics.voiceless', 'Voiceless')], ['voiced', uiText('phonetics.voiced', 'Voiced')]];
+    soundFilters.setAttribute('aria-label', uiText(soundMode === 'all' ? 'phonetics.filterAll' : soundMode === 'vowels' ? 'phonetics.filterVowels' : 'phonetics.filterConsonants', 'Filter sounds'));
     soundFilters.innerHTML = filters.map(([filter, label]) => `<button type="button" class="sound-filter${currentFilter === filter ? ' is-active' : ''}" data-filter="${filter}" aria-pressed="${currentFilter === filter}">${label}</button>`).join('');
     soundFilters.querySelectorAll('.sound-filter').forEach(button => {
         button.addEventListener('click', () => {
@@ -179,22 +180,20 @@ function renderSounds() {
             renderSounds();
         });
     });
-    soundLibraryTitle.textContent = soundMode === 'all' ? 'English sound inventory'
-        : soundMode === 'vowels' ? 'Vowel sound map' : 'Consonant sound map';
+    soundLibraryTitle.textContent = uiText(soundMode === 'all' ? 'phonetics.inventory'
+        : soundMode === 'vowels' ? 'phonetics.vowelMap' : 'phonetics.consonantMap', 'English sound inventory');
     const vowelCount = soundSets[currentAccent].sounds.length;
-    accentDescription.textContent = `${soundSets[currentAccent].description} · ${vowelCount + consonantSounds.length} sounds (${vowelCount} vowels, ${consonantSounds.length} consonants)`;
-    soundLegend.setAttribute('aria-label', soundMode === 'all' ? 'Vowel and consonant categories' : soundMode === 'vowels' ? 'Vowel categories' : 'Voicing categories');
+    accentDescription.textContent = `${uiText(currentAccent === 'en-GB' ? 'phonetics.accentGBName' : 'phonetics.accentUSName', soundSets[currentAccent].description)} · ${vowelCount + consonantSounds.length} ${uiText('phonetics.allSounds', 'sounds')} (${vowelCount} ${uiText('phonetics.vowels', 'vowels')}, ${consonantSounds.length} ${uiText('phonetics.consonants', 'consonants')})`;
+    soundLegend.setAttribute('aria-label', uiText(soundMode === 'all' ? 'phonetics.vowelCategories' : soundMode === 'vowels' ? 'phonetics.vowelCategories' : 'phonetics.voicingCategories', 'Sound categories'));
     soundLegend.innerHTML = soundMode === 'all'
-        ? '<span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span><span class="legend-voiceless">Voiceless</span><span class="legend-voiced">Voiced</span>'
+        ? `<span class="legend-short">${uiText('phonetics.shortVowels', 'Short vowels')}</span><span class="legend-long">${uiText('phonetics.longVowels', 'Long vowels')}</span><span class="legend-diphthong">${uiText('phonetics.diphthongs', 'Diphthongs')}</span><span class="legend-voiceless">${uiText('phonetics.voiceless', 'Voiceless')}</span><span class="legend-voiced">${uiText('phonetics.voiced', 'Voiced')}</span>`
         : soundMode === 'vowels'
-            ? '<span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span>'
-            : '<span class="legend-voiceless">Voiceless · no vibration</span><span class="legend-voiced">Voiced · vibration</span>';
-    const consonantNote = currentAccent === 'en-GB'
-        ? 'Most consonants are shared across accents. British English usually has no /r/ after a vowel; /t/ in “water” is typically not a flap.'
-        : 'Most consonants are shared across accents. General American pronounces /r/ in “car”; /t/ in “water” may become a voiced flap /ɾ/.';
+            ? `<span class="legend-short">${uiText('phonetics.shortVowels', 'Short vowels')}</span><span class="legend-long">${uiText('phonetics.longVowels', 'Long vowels')}</span><span class="legend-diphthong">${uiText('phonetics.diphthongs', 'Diphthongs')}</span>`
+            : `<span class="legend-voiceless">${uiText('phonetics.noVibration', 'Voiceless · no vibration')}</span><span class="legend-voiced">${uiText('phonetics.vibration', 'Voiced · vibration')}</span>`;
+    const consonantNote = uiText(currentAccent === 'en-GB' ? 'phonetics.consonantNoteGB' : 'phonetics.consonantNoteUS', 'Most consonants are shared across accents.');
     accentNote.textContent = soundMode === 'all'
-        ? `${soundSets[currentAccent].note} ${consonantNote}`
-        : soundMode === 'vowels' ? soundSets[currentAccent].note : consonantNote;
+        ? `${uiText(currentAccent === 'en-GB' ? 'phonetics.vowelNoteGB' : 'phonetics.vowelNoteUS', soundSets[currentAccent].note)} ${consonantNote}`
+        : soundMode === 'vowels' ? uiText(currentAccent === 'en-GB' ? 'phonetics.vowelNoteGB' : 'phonetics.vowelNoteUS', soundSets[currentAccent].note) : consonantNote;
     soundGrid.replaceChildren();
     sounds.forEach(sound => {
         const card = document.createElement('article');
@@ -202,9 +201,10 @@ function renderSounds() {
         card.dataset.sound = sound.ipa;
         card.dataset.word = sound.word;
         const categoryLabel = sound.voicing
-            ? `${sound.voicing.toUpperCase()} CONSONANT`
-            : sound.category === 'diphthong' ? 'DIPHTHONG' : `${sound.category.toUpperCase()} VOWEL`;
-        card.innerHTML = `<button type="button" class="sound-select" aria-label="Select ${sound.lexical || sound.place}, ${sound.word}"><span class="sound-kind">${categoryLabel}</span><strong class="sound-ipa">/${sound.ipa}/</strong><span class="sound-lexical">${sound.lexical || sound.place}</span><span class="sound-example">${sound.word}</span><span class="sound-example-ipa">${sound.example}</span></button><button type="button" class="sample-play" aria-label="Listen to ${sound.word}">▶</button>`;
+            ? uiText(sound.voicing === 'voiced' ? 'phonetics.voicedConsonant' : 'phonetics.voicelessConsonant', `${sound.voicing.toUpperCase()} CONSONANT`)
+            : sound.category === 'diphthong' ? uiText('phonetics.diphthongLabel', 'DIPHTHONG')
+                : `${uiText(sound.category === 'short' ? 'phonetics.shortVowel' : 'phonetics.longVowel', sound.category.toUpperCase())} · ${uiText('phonetics.vowelLabel', 'VOWEL')}`;
+        card.innerHTML = `<button type="button" class="sound-select" aria-label="${uiText('phonetics.select', 'Select')} ${sound.lexical || sound.place}, ${sound.word}"><span class="sound-kind">${categoryLabel}</span><strong class="sound-ipa">/${sound.ipa}/</strong><span class="sound-lexical">${sound.lexical || sound.place}</span><span class="sound-example">${sound.word}</span><span class="sound-example-ipa">${sound.example}</span></button><button type="button" class="sample-play" aria-label="${uiText('phonetics.listen', 'Listen')} ${sound.word}">▶</button>`;
         card.querySelector('.sound-select').addEventListener('click', () => selectSound(sound));
         card.querySelector('.sample-play').addEventListener('click', () => {
             selectSound(sound);
@@ -235,7 +235,7 @@ function setAccent(accent) {
 async function processPhonetics() {
     const text = input.value.trim();
     if (!text) {
-        result.textContent = 'Your phonetic transcription will appear here.';
+        result.textContent = uiText('phonetics.transcriptionPlaceholder', 'Your phonetic transcription will appear here.');
         ipaText = '';
         listenButton.disabled = true;
         downloadButton.disabled = true;
@@ -245,7 +245,7 @@ async function processPhonetics() {
     if (controller) controller.abort();
     controller = new AbortController();
     const currentController = controller;
-    result.textContent = 'Preparing phonetic transcription...';
+    result.textContent = uiText('phonetics.processing', 'Preparing phonetic transcription...');
     try {
         const response = await fetch('/phonetics_process', {
             method: 'POST',
@@ -254,7 +254,7 @@ async function processPhonetics() {
             signal: currentController.signal
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Unable to prepare phonetic transcription.');
+        if (!response.ok) throw new Error(data.error || uiText('phonetics.transcriptionError', 'Unable to prepare phonetic transcription.'));
         if (controller === currentController) {
             ipaText = data.ipa;
             result.textContent = ipaText;
@@ -320,14 +320,14 @@ volumeSlider.addEventListener('input', () => {
 copyButton.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(ipaText);
-        speechNote.textContent = 'IPA copied to clipboard.';
+        speechNote.textContent = uiText('phonetics.copySuccess', 'IPA copied to clipboard.');
     } catch {
-        speechNote.textContent = 'Clipboard access is unavailable in this browser.';
+        speechNote.textContent = uiText('phonetics.copyError', 'Clipboard access is unavailable in this browser.');
     }
 });
 downloadButton.addEventListener('click', async () => {
     downloadButton.disabled = true;
-    speechNote.textContent = 'Generating your MP3...';
+    speechNote.textContent = uiText('phonetics.generating', 'Generating your MP3...');
     try {
         const response = await fetch('/speech_download', {
             method: 'POST',
@@ -336,7 +336,7 @@ downloadButton.addEventListener('click', async () => {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'Unable to generate your audio file.');
+            throw new Error(error.error || uiText('phonetics.generateError', 'Unable to generate your audio file.'));
         }
         const audioUrl = URL.createObjectURL(await response.blob());
         const link = document.createElement('a');
@@ -346,7 +346,7 @@ downloadButton.addEventListener('click', async () => {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(audioUrl), 1000);
-        speechNote.textContent = 'MP3 downloaded.';
+        speechNote.textContent = uiText('phonetics.downloaded', 'MP3 downloaded.');
     } catch (error) {
         speechNote.textContent = error.message;
     } finally {
@@ -355,3 +355,4 @@ downloadButton.addEventListener('click', async () => {
 });
 
 setAccent(currentAccent in soundSets ? currentAccent : 'en-GB');
+document.addEventListener('site-language-changed', () => renderSounds());

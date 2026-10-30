@@ -8,13 +8,25 @@
     </a>
     <button class="nav-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-navigation">☰</button>
     <nav class="site-nav-links" id="main-navigation">
-        <a href="/" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
-        <a href="/phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
-        <a href="/about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
-        <a href="/contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
-        <a href="/thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Acknowledgements</a>
+        <a href="/" data-i18n="nav.home" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+        <a href="/phonetics" data-i18n="nav.phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
+        <a href="/about" data-i18n="nav.about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
+        <a href="/contact" data-i18n="nav.contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
+        <a href="/thanks" data-i18n="nav.thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Acknowledgements</a>
     </nav>
+    <button class="language-switcher" id="languageSwitcher" type="button" aria-label="Change language" data-i18n-aria="language.switch">EN</button>
 </header>
+<dialog class="language-dialog" id="languagePrompt" aria-labelledby="languagePromptTitle">
+    <section class="language-dialog-panel">
+        <p class="language-dialog-kicker" data-i18n="language.kicker">LANGUAGE / 01</p>
+        <h2 id="languagePromptTitle" data-i18n="language.title">Choose your language</h2>
+        <p data-i18n="language.description">Select the language you want to use on this site.</p>
+        <div class="language-options">
+            <button type="button" data-language-choice="ar" data-i18n="language.arabic">العربية</button>
+            <button type="button" data-language-choice="en" data-i18n="language.english">English</button>
+        </div>
+    </section>
+</dialog>
 <script>
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.site-nav-links');
@@ -23,4 +35,6 @@
         navToggle.setAttribute('aria-expanded', String(!expanded));
         navLinks.classList.toggle('is-open', !expanded);
     });
+    window.siteLanguageConfig = {promptEnabled: {{ site_content.language_prompt_enabled | tojson }}};
 </script>
+<script src="{{ url_for('static', filename='site-language.js') }}" defer></script>
