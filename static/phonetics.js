@@ -108,6 +108,9 @@ let ipaText = '';
 let timer;
 let controller;
 let activeUtterance = null;
+let activeAudio = null;
+let activeAudioUrl = '';
+let speechRequestController = null;
 
 function visibleSounds() {
     const vowels = soundSets[currentAccent].sounds;
@@ -145,24 +148,120 @@ function selectSound(sound) {
     });
 }
 
-function speak(text, accent = currentAccent) {
-    if (!('speechSynthesis' in window)) {
-        speechNote.textContent = uiText('phonetics.unavailable', 'Speech playback is not available in this browser.');
-        return;
+async function playGeneratedSpeech(text, accent) {
+    speechRequestController?.abort();
+    activeAudio?.pause();
+    if (activeAudioUrl) URL.revokeObjectURL(activeAudioUrl);
+    activeAudio = null;
+    activeAudioUrl = '';
+
+    const requestController = new AbortController();
+    speechRequestController = requestController;
+    listenButton.disabled = true;
+    speechNote.textContent = uiText('phonetics.generating', 'Generating your MP3...');
+    try {
+        const response = await fetch('/speech_download', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text, accent, volume: 100}),
+            signal: requestController.signal
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || uiText('phonetics.generateError', 'Unable to generate your audio file.'));
+        }
+        if (speechRequestController !== requestController) return;
+        activeAudioUrl = URL.createObjectURL(await response.blob());
+        const audio = new Audio(activeAudioUrl);
+        activeAudio = audio;
+        audio.volume = Number(volumeSlider.value) / 100;
+        audio.onended = () => {
+            if (activeAudio === audio) {
+                activeAudio = null;
+                activeAudioUrl = '';
+                URL.revokeObjectURL(audio.src);
+                speechNote.textContent = '';
+            }
+        };
+        audio.onerror = () => {
+            if (activeAudio === audio) {
+                activeAudio = null;
+                activeAudioUrl = '';
+                URL.revokeObjectURL(audio.src);
+                speechNote.textContent = uiText('phonetics.generateError', 'Unable to generate your audio file.');
+            }
+        };
+        await audio.play();
+        speechNote.textContent = uiText(accent === 'en-GB' ? 'phonetics.speakingGB' : 'phonetics.speakingUS', 'Speaking in English.');
+    } catch (error) {
+        if (error.name !== 'AbortError') speechNote.textContent = error.message;
+    } finally {
+        if (speechRequestController === requestController) {
+            speechRequestController = null;
+            listenButton.disabled = !input.value.trim();
+        }
     }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = accent;
-    utterance.volume = Number(volumeSlider.value) / 100;
-    activeUtterance = utterance;
-    const voice = window.speechSynthesis.getVoices().find(item => item.lang.toLowerCase() === accent.toLowerCase());
-    if (voice) utterance.voice = voice;
-    utterance.onend = () => {
-        activeUtterance = null;
-        speechNote.textContent = '';
+}
+
+function speak(text, accent = currentAccent) {
+    if (!text) return;
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const voice = window.speechSynthesis.getVoices().find(item => item.lang.toLowerCase() === accent.toLowerCase());
+        if (voice) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = accent;
+            utterance.voice = voice;
+            utterance.volume = Number(volumeSlider.value) / 100;
+            activeUtterance = utterance;
+            utterance.onend = () => {
+                if (activeUtterance === utterance) {
+                    activeUtterance = null;
+                    speechNote.textContent = '';
+                }
+            };
+            utterance.onerror = event => {
+                if (activeUtterance !== utterance) return;
+                activeUtterance = null;
+                if (!['canceled', 'interrupted'].includes(event.error)) playGeneratedSpeech(text, accent);
+            };
+            speechNote.textContent = uiText(accent === 'en-GB' ? 'phonetics.speakingGB' : 'phonetics.speakingUS', 'Speaking in English.');
+            window.speechSynthesis.speak(utterance);
+            return;
+        }
+    }
+    playGeneratedSpeech(text, accent);
+}
+
+function playPhoneme(sound) {
+    window.speechSynthesis?.cancel();
+    activeUtterance = null;
+    speechRequestController?.abort();
+    activeAudio?.pause();
+    if (activeAudioUrl) URL.revokeObjectURL(activeAudioUrl);
+    activeAudioUrl = '';
+
+    const audioKey = Array.from(sound.ipa, character => character.codePointAt(0).toString(16)).join('-');
+    const audio = new Audio(`/static/phoneme-audio/${currentAccent}/${audioKey}.wav`);
+    activeAudio = audio;
+    audio.volume = Number(volumeSlider.value) / 100;
+    audio.onended = () => {
+        if (activeAudio === audio) {
+            activeAudio = null;
+            speechNote.textContent = '';
+        }
     };
-    speechNote.textContent = uiText(accent === 'en-GB' ? 'phonetics.speakingGB' : 'phonetics.speakingUS', 'Speaking in English.');
-    window.speechSynthesis.speak(utterance);
+    audio.onerror = () => {
+        if (activeAudio === audio) {
+            activeAudio = null;
+            speechNote.textContent = uiText('phonetics.generateError', 'Unable to play this sound.');
+        }
+    };
+    audio.play().then(() => {
+        if (activeAudio === audio) speechNote.textContent = `/${sound.ipa}/ · ${currentAccent === 'en-GB' ? 'British' : 'American'} English`;
+    }).catch(error => {
+        if (activeAudio === audio) speechNote.textContent = error.message;
+    });
 }
 
 function renderSounds() {
@@ -204,12 +303,11 @@ function renderSounds() {
             ? uiText(sound.voicing === 'voiced' ? 'phonetics.voicedConsonant' : 'phonetics.voicelessConsonant', `${sound.voicing.toUpperCase()} CONSONANT`)
             : sound.category === 'diphthong' ? uiText('phonetics.diphthongLabel', 'DIPHTHONG')
                 : `${uiText(sound.category === 'short' ? 'phonetics.shortVowel' : 'phonetics.longVowel', sound.category.toUpperCase())} · ${uiText('phonetics.vowelLabel', 'VOWEL')}`;
-        card.innerHTML = `<button type="button" class="sound-select" aria-label="${uiText('phonetics.select', 'Select')} ${sound.lexical || sound.place}, ${sound.word}"><span class="sound-kind">${categoryLabel}</span><strong class="sound-ipa">/${sound.ipa}/</strong><span class="sound-lexical">${sound.lexical || sound.place}</span><span class="sound-example">${sound.word}</span><span class="sound-example-ipa">${sound.example}</span></button><button type="button" class="sample-play" aria-label="${uiText('phonetics.listen', 'Listen')} ${sound.word}">▶</button>`;
+        card.innerHTML = `<button type="button" class="sound-select" aria-label="${uiText('phonetics.select', 'Select')} ${sound.lexical || sound.place}, ${sound.word}"><span class="sound-kind">${categoryLabel}</span><strong class="sound-ipa">/${sound.ipa}/</strong><span class="sound-lexical">${sound.lexical || sound.place}</span><span class="sound-example">${sound.word}</span><span class="sound-example-ipa">${sound.example}</span></button><button type="button" class="sample-play" title="${uiText('phonetics.listenPhoneme', 'Listen to phoneme')} /${sound.ipa}/" aria-label="${uiText('phonetics.listenPhoneme', 'Listen to phoneme')} /${sound.ipa}/">▶</button>`;
         card.querySelector('.sound-select').addEventListener('click', () => selectSound(sound));
         card.querySelector('.sample-play').addEventListener('click', () => {
             selectSound(sound);
-            speak(sound.word);
-            speechNote.textContent = `${sound.word} · ${currentAccent === 'en-GB' ? 'British' : 'American'} English`;
+            playPhoneme(sound);
         });
         soundGrid.append(card);
     });
@@ -316,6 +414,7 @@ volumeSlider.addEventListener('input', () => {
     volumeValue.value = `${volumeSlider.value}%`;
     volumeValue.textContent = `${volumeSlider.value}%`;
     if (activeUtterance) activeUtterance.volume = Number(volumeSlider.value) / 100;
+    if (activeAudio) activeAudio.volume = Number(volumeSlider.value) / 100;
 });
 copyButton.addEventListener('click', async () => {
     try {

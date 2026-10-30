@@ -4,6 +4,9 @@
             'language.kicker': 'LANGUAGE / 01',
             'language.title': 'Choose your language',
             'language.description': 'Select the language you want to use on this site.',
+            'language.closeEnglish': 'Close and continue in English',
+            'phonetics.listenSoundIn': 'Hear the sound in',
+            'phonetics.listenPhoneme': 'Listen to phoneme',
             'language.arabic': 'العربية',
             'language.english': 'English',
             'language.switch': 'Change language',
@@ -179,6 +182,9 @@
             'language.kicker': 'اللغة / 01',
             'language.title': 'اختر لغة الموقع',
             'language.description': 'اختر اللغة التي تفضّل استخدامها في الموقع.',
+            'language.closeEnglish': 'إغلاق ومتابعة الموقع بالإنجليزية',
+            'phonetics.listenSoundIn': 'استمع إلى الصوت في كلمة',
+            'phonetics.listenPhoneme': 'استمع إلى الفونيم',
             'language.arabic': 'العربية',
             'language.english': 'الإنجليزية',
             'language.switch': 'تغيير لغة الموقع',
@@ -399,6 +405,7 @@
     prompt?.querySelectorAll('[data-language-choice]').forEach(button => {
         button.addEventListener('click', () => chooseLanguage(button.dataset.languageChoice));
     });
+    document.getElementById('languagePromptClose')?.addEventListener('click', () => chooseLanguage('en'));
     prompt?.addEventListener('cancel', event => {
         event.preventDefault();
         chooseLanguage('en');

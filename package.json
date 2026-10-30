@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:phoneme-audio": "node scripts/generate-phoneme-audio.js"
+  },
+  "devDependencies": {
+    "espeak-ng": "1.0.2"
+  }
+}
