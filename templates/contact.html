@@ -30,6 +30,8 @@
         .contact-detail:nth-child(1), .contact-detail:nth-child(2), .contact-detail:nth-child(3) { background: #111; }
         .contact-detail h2 { margin: 0 0 7px; font-size: 16px; }
         .contact-detail p { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+        .contact-detail a { color: inherit; text-decoration-color: var(--contact-accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
+        .contact-detail a:hover { color: var(--contact-accent); }
         .contact-note { margin: 14px 0 0; color: #c3d0d3; font-size: 12px; line-height: 1.7; }
         .contact-decoration-grid .contact-form-panel { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 24px 24px; }
         .contact-decoration-glow .contact-heading h1 { text-shadow: 0 0 24px color-mix(in srgb, var(--contact-accent) 48%, transparent); }
@@ -80,12 +82,28 @@
             <aside class="contact-details" aria-label="Contact information">
                 <section class="contact-detail">
                     <h2>{{ site_content.contact_email_label }}</h2>
-                    <p>{{ site_content.contact_email }}</p>
+                    <p><a href="mailto:{{ site_content.contact_email }}">{{ site_content.contact_email }}</a></p>
                 </section>
+                {% if site_content.contact_phone %}
+                <section class="contact-detail">
+                    <h2>Phone</h2>
+                    <p><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a></p>
+                </section>
+                {% endif %}
                 <section class="contact-detail">
                     <h2>{{ site_content.contact_hours_label }}</h2>
                     <p>{{ site_content.contact_hours }}</p>
                 </section>
+                {% if site_content.facebook_url or site_content.instagram_url or site_content.tiktok_url %}
+                <section class="contact-detail">
+                    <h2>Social Media</h2>
+                    <p class="contact-social-links">
+                        {% if site_content.facebook_url %}{% if site_content.facebook_url.startswith('https://') or site_content.facebook_url.startswith('http://') %}<a href="{{ site_content.facebook_url }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% else %}<span>Facebook: {{ site_content.facebook_url }}</span>{% endif %}{% endif %}
+                        {% if site_content.instagram_url %}{% if site_content.instagram_url.startswith('https://') or site_content.instagram_url.startswith('http://') %}<a href="{{ site_content.instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% else %}<span>Instagram: {{ site_content.instagram_url }}</span>{% endif %}{% endif %}
+                        {% if site_content.tiktok_url %}{% if site_content.tiktok_url.startswith('https://') or site_content.tiktok_url.startswith('http://') %}<a href="{{ site_content.tiktok_url }}" target="_blank" rel="noopener noreferrer">TikTok</a>{% else %}<span>TikTok: {{ site_content.tiktok_url }}</span>{% endif %}{% endif %}
+                    </p>
+                </section>
+                {% endif %}
                 <section class="contact-detail">
                     <h2>{{ site_content.contact_note_title }}</h2>
                     <p>{{ site_content.contact_note }}</p>

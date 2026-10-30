@@ -105,7 +105,6 @@
         <div class="stack">
             {% for message in get_flashed_messages() %}<p class="flash">{{ message }}</p>{% endfor %}
 
-            <section class="panel" aria-labelledby="settings-title">
             <section class="panel" aria-labelledby="content-title">
                 <div class="section-head"><div><h2 id="content-title">Site Content</h2><small>Edit the text, then save your changes.</small></div></div>
                 <form method="post" action="{{ url_for('admin_save') }}">
@@ -128,6 +127,10 @@
                         <label>Values Text<textarea name="values_text" maxlength="700">{{ site_content.values_text }}</textarea></label>
                         <label>Founder Name<input name="founder_name" maxlength="100" value="{{ site_content.founder_name }}"></label>
                         <label>Contact Email<input type="email" name="contact_email" maxlength="254" value="{{ site_content.contact_email }}"></label>
+                        <label>Phone Number<input type="tel" name="contact_phone" maxlength="40" value="{{ site_content.contact_phone }}" placeholder="+1 555 123 4567"></label>
+                        <label>Facebook Account<input type="text" name="facebook_url" maxlength="500" value="{{ site_content.facebook_url }}" placeholder="Your Facebook name or username"></label>
+                        <label>Instagram Account<input type="text" name="instagram_url" maxlength="500" value="{{ site_content.instagram_url }}" placeholder="Your Instagram name or username"></label>
+                        <label>TikTok Account<input type="text" name="tiktok_url" maxlength="500" value="{{ site_content.tiktok_url }}" placeholder="Your TikTok name or username"></label>
                         <label>Contact Page Heading<input name="contact_title" maxlength="120" value="{{ site_content.contact_title }}"></label>
                         <label>Contact Page Intro<textarea name="contact_intro" maxlength="1000">{{ site_content.contact_intro }}</textarea></label>
                         <label>Contact Accent Color<input type="color" name="contact_accent" value="{{ site_content.contact_accent }}"></label>

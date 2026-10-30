@@ -15,7 +15,7 @@
                 <p class="eyebrow">{{ site_content.home_badge }}</p>
                 <h1>{{ site_content.home_heading }}</h1>
                 <p>{{ site_content.home_intro }}</p>
-                <p class="founder-signature"><span>Created by</span><strong>Nizar Sharqi</strong></p>
+                <p class="founder-signature"><span>Created by</span><strong>{{ site_content.founder_name }}</strong></p>
                 <div class="hero-actions">
                     <a class="primary-link" href="/phonetics">Open phonetics studio <span aria-hidden="true">↗</span></a>
                     <label class="accent-picker">Speech accent
@@ -27,8 +27,8 @@
                 </div>
             </div>
             <figure class="founder-portrait">
-                <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Nizar Sharqi, founder of nizarphonetics">
-                <figcaption><span>FOUNDER / DEVELOPER</span><strong>Nizar Sharqi</strong></figcaption>
+                <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="{{ site_content.founder_name }}, founder of nizarphonetics">
+                <figcaption><span>FOUNDER / DEVELOPER</span><strong>{{ site_content.founder_name }}</strong></figcaption>
             </figure>
         </section>
 

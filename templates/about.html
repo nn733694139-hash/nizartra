@@ -71,7 +71,7 @@
         </section>
 
         <section class="about-founder" aria-label="Site founder">
-            <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of نزار أحمد شرقي">
+            <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of {{ site_content.founder_name }}">
             <div>
                 <h2>{{ site_content.founder_name }}</h2>
                 <p>{{ site_content.founder_bio }}</p>

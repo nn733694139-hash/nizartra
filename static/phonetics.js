@@ -101,7 +101,7 @@ const consonantSounds = [
 
 let currentAccent = localStorage.getItem('nizarphonetics-accent') || 'en-GB';
 let currentFilter = 'all';
-let soundMode = 'vowels';
+let soundMode = 'all';
 let currentSound = null;
 let ipaText = '';
 let timer;
@@ -109,8 +109,16 @@ let controller;
 let activeUtterance = null;
 
 function visibleSounds() {
-    const sounds = soundMode === 'vowels' ? soundSets[currentAccent].sounds : consonantSounds;
-    return sounds.filter(sound => currentFilter === 'all' || (sound.category || sound.voicing) === currentFilter);
+    const vowels = soundSets[currentAccent].sounds;
+    const sounds = soundMode === 'vowels' ? vowels
+        : soundMode === 'consonants' ? consonantSounds
+            : [...vowels, ...consonantSounds];
+    return sounds.filter(sound => {
+        if (currentFilter === 'all') return true;
+        if (currentFilter === 'vowels') return !sound.voicing;
+        if (currentFilter === 'consonants') return Boolean(sound.voicing);
+        return (sound.category || sound.voicing) === currentFilter;
+    });
 }
 
 function tonguePath(position) {
@@ -158,10 +166,12 @@ function speak(text, accent = currentAccent) {
 
 function renderSounds() {
     const sounds = visibleSounds();
-    const filters = soundMode === 'vowels'
+    const filters = soundMode === 'all'
+        ? [['all', 'All sounds'], ['vowels', 'Vowels'], ['consonants', 'Consonants'], ['short', 'Short'], ['long', 'Long'], ['diphthong', 'Diphthongs'], ['voiceless', 'Voiceless'], ['voiced', 'Voiced']]
+        : soundMode === 'vowels'
         ? [['all', 'All vowels'], ['short', 'Short'], ['long', 'Long'], ['diphthong', 'Diphthongs']]
         : [['all', 'All consonants'], ['voiceless', 'Voiceless'], ['voiced', 'Voiced']];
-    soundFilters.setAttribute('aria-label', soundMode === 'vowels' ? 'Filter vowel types' : 'Filter consonant voicing');
+    soundFilters.setAttribute('aria-label', soundMode === 'all' ? 'Filter all English sounds' : soundMode === 'vowels' ? 'Filter vowel types' : 'Filter consonant voicing');
     soundFilters.innerHTML = filters.map(([filter, label]) => `<button type="button" class="sound-filter${currentFilter === filter ? ' is-active' : ''}" data-filter="${filter}" aria-pressed="${currentFilter === filter}">${label}</button>`).join('');
     soundFilters.querySelectorAll('.sound-filter').forEach(button => {
         button.addEventListener('click', () => {
@@ -169,17 +179,22 @@ function renderSounds() {
             renderSounds();
         });
     });
-    soundLibraryTitle.textContent = soundMode === 'vowels' ? 'Vowel sound map' : 'Consonant sound map';
-    accentDescription.textContent = `${soundSets[currentAccent].description}${soundMode === 'consonants' ? ' · English consonants' : ''}`;
-    soundLegend.setAttribute('aria-label', soundMode === 'vowels' ? 'Vowel categories' : 'Voicing categories');
-    soundLegend.innerHTML = soundMode === 'vowels'
-        ? '<span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span>'
-        : '<span class="legend-voiceless">Voiceless · no vibration</span><span class="legend-voiced">Voiced · vibration</span>';
-    accentNote.textContent = soundMode === 'vowels'
-        ? soundSets[currentAccent].note
-        : currentAccent === 'en-GB'
-            ? 'Most consonants are shared across accents. In this British reference, /r/ is usually not pronounced after a vowel; /t/ in “water” is typically not a flap.'
-            : 'Most consonants are shared across accents. General American pronounces /r/ in “car”; /t/ in “water” may become a voiced flap /ɾ/.';
+    soundLibraryTitle.textContent = soundMode === 'all' ? 'English sound inventory'
+        : soundMode === 'vowels' ? 'Vowel sound map' : 'Consonant sound map';
+    const vowelCount = soundSets[currentAccent].sounds.length;
+    accentDescription.textContent = `${soundSets[currentAccent].description} · ${vowelCount + consonantSounds.length} sounds (${vowelCount} vowels, ${consonantSounds.length} consonants)`;
+    soundLegend.setAttribute('aria-label', soundMode === 'all' ? 'Vowel and consonant categories' : soundMode === 'vowels' ? 'Vowel categories' : 'Voicing categories');
+    soundLegend.innerHTML = soundMode === 'all'
+        ? '<span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span><span class="legend-voiceless">Voiceless</span><span class="legend-voiced">Voiced</span>'
+        : soundMode === 'vowels'
+            ? '<span class="legend-short">Short vowels</span><span class="legend-long">Long vowels</span><span class="legend-diphthong">Diphthongs</span>'
+            : '<span class="legend-voiceless">Voiceless · no vibration</span><span class="legend-voiced">Voiced · vibration</span>';
+    const consonantNote = currentAccent === 'en-GB'
+        ? 'Most consonants are shared across accents. British English usually has no /r/ after a vowel; /t/ in “water” is typically not a flap.'
+        : 'Most consonants are shared across accents. General American pronounces /r/ in “car”; /t/ in “water” may become a voiced flap /ɾ/.';
+    accentNote.textContent = soundMode === 'all'
+        ? `${soundSets[currentAccent].note} ${consonantNote}`
+        : soundMode === 'vowels' ? soundSets[currentAccent].note : consonantNote;
     soundGrid.replaceChildren();
     sounds.forEach(sound => {
         const card = document.createElement('article');

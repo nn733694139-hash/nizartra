@@ -176,6 +176,10 @@ SITE_CONTENT_DEFAULTS = {
     'contact_hours_label': 'Response Hours',
     'contact_note_title': 'Your Feedback Matters',
     'contact_email': 'hello@example.com',
+    'contact_phone': '',
+    'facebook_url': '',
+    'instagram_url': '',
+    'tiktok_url': '',
     'contact_hours': 'Sunday to Thursday, 9:00 AM to 5:00 PM.',
     'contact_note': 'Share an idea or comment with the nizarphonetics team.',
     'contact_accent': '#d5ff3f',
@@ -386,7 +390,9 @@ def admin_save():
         'founder_name': 100, 'founder_bio': 1000, 'contact_title': 120,
         'contact_intro': 1000, 'contact_email_label': 80,
         'contact_hours_label': 80, 'contact_note_title': 100,
-        'contact_email': 254, 'contact_hours': 300, 'contact_note': 600,
+        'contact_email': 254, 'contact_phone': 40,
+        'facebook_url': 500, 'instagram_url': 500, 'tiktok_url': 500,
+        'contact_hours': 300, 'contact_note': 600,
         'contact_accent': 7, 'contact_decoration': 20
     }
     for field, limit in field_limits.items():
@@ -398,6 +404,9 @@ def admin_save():
     email = content['contact_email']
     if email and ('@' not in email or '.' not in email.rsplit('@', 1)[-1]):
         flash('Please check the contact email format.')
+        return redirect(url_for('admin_page'))
+    if re.search(r'[^0-9+().\-\s]', content['contact_phone']):
+        flash('Please use a valid phone number.')
         return redirect(url_for('admin_page'))
     if 'students' in request.form:
         students = [line.strip()[:100] for line in request.form.get('students', '').splitlines() if line.strip()]
