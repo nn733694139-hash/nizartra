@@ -32,6 +32,11 @@
         .contact-detail p { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
         .contact-detail a { color: inherit; text-decoration-color: var(--contact-accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
         .contact-detail a:hover { color: var(--contact-accent); }
+        .contact-value-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .contact-copy { padding: 5px 9px; border: 1px solid var(--contact-accent); border-radius: 3px; background: transparent; color: var(--contact-accent); font: inherit; font-size: 11px; cursor: pointer; }
+        .contact-copy:hover { background: var(--contact-accent); color: #080808; }
+        .contact-copy-status { min-height: 1.4em; color: var(--contact-accent); font-size: 12px; }
+        .contact-social-links { display: grid; gap: 8px; }
         .contact-note { margin: 14px 0 0; color: #c3d0d3; font-size: 12px; line-height: 1.7; }
         .contact-decoration-grid .contact-form-panel { background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px); background-size: 24px 24px; }
         .contact-decoration-glow .contact-heading h1 { text-shadow: 0 0 24px color-mix(in srgb, var(--contact-accent) 48%, transparent); }
@@ -80,27 +85,29 @@
             </section>
 
             <aside class="contact-details" aria-label="Contact information" data-i18n-aria="contact.information">
+                {% if site_content.contact_email %}
                 <section class="contact-detail">
                     <h2 {% if site_content.contact_email_label == 'Email' %}data-i18n="contact.emailHeading"{% endif %}>{{ site_content.contact_email_label }}</h2>
-                    <p><a href="mailto:{{ site_content.contact_email }}">{{ site_content.contact_email }}</a></p>
+                    <p class="contact-value-row"><a href="mailto:{{ site_content.contact_email }}">{{ site_content.contact_email }}</a><button class="contact-copy" type="button" data-copy-value="{{ site_content.contact_email }}" data-i18n="contact.copy">Copy</button></p>
                 </section>
+                {% endif %}
                 {% if site_content.contact_phone %}
                 <section class="contact-detail">
                     <h2 data-i18n="contact.phone">Phone</h2>
-                    <p><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a></p>
+                    <p class="contact-value-row"><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a><button class="contact-copy" type="button" data-copy-value="{{ site_content.contact_phone }}" data-i18n="contact.copy">Copy</button>{% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer" data-i18n="contact.whatsapp">WhatsApp</a>{% endif %}</p>
                 </section>
                 {% endif %}
                 <section class="contact-detail">
                     <h2 {% if site_content.contact_hours_label == 'Response Hours' %}data-i18n="contact.hoursHeading"{% endif %}>{{ site_content.contact_hours_label }}</h2>
                     <p {% if site_content.contact_hours == 'Sunday to Thursday, 9:00 AM to 5:00 PM.' %}data-i18n="contact.defaultHours"{% endif %}>{{ site_content.contact_hours }}</p>
                 </section>
-                {% if site_content.facebook_url or site_content.instagram_url or site_content.tiktok_url %}
+                {% if social_profiles %}
                 <section class="contact-detail">
                     <h2 data-i18n="contact.social">Social Media</h2>
                     <p class="contact-social-links">
-                        {% if site_content.facebook_url %}{% if site_content.facebook_url.startswith('https://') or site_content.facebook_url.startswith('http://') %}<a href="{{ site_content.facebook_url }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% else %}<span>Facebook: {{ site_content.facebook_url }}</span>{% endif %}{% endif %}
-                        {% if site_content.instagram_url %}{% if site_content.instagram_url.startswith('https://') or site_content.instagram_url.startswith('http://') %}<a href="{{ site_content.instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% else %}<span>Instagram: {{ site_content.instagram_url }}</span>{% endif %}{% endif %}
-                        {% if site_content.tiktok_url %}{% if site_content.tiktok_url.startswith('https://') or site_content.tiktok_url.startswith('http://') %}<a href="{{ site_content.tiktok_url }}" target="_blank" rel="noopener noreferrer">TikTok</a>{% else %}<span>TikTok: {{ site_content.tiktok_url }}</span>{% endif %}{% endif %}
+                        {% for label, account, profile_url in social_profiles %}
+                            <span class="contact-value-row">{% if profile_url %}<a href="{{ profile_url }}" target="_blank" rel="noopener noreferrer">{{ label }}: {{ account }}</a>{% else %}<span>{{ label }}: {{ account }}</span>{% endif %}<button class="contact-copy" type="button" data-copy-value="{{ account }}" data-i18n="contact.copy">Copy</button></span>
+                        {% endfor %}
                     </p>
                 </section>
                 {% endif %}
@@ -110,6 +117,7 @@
                 </section>
             </aside>
         </div>
+        <p id="contactCopyStatus" class="contact-copy-status" role="status" aria-live="polite"></p>
     </main>
     <script>
         const contactForm = document.getElementById('contactForm');
@@ -135,6 +143,39 @@
             } finally {
                 button.disabled = false;
             }
+        });
+    </script>
+    <script>
+        document.querySelectorAll('.contact-copy').forEach(button => {
+            button.addEventListener('click', async () => {
+                const status = document.getElementById('contactCopyStatus');
+                try {
+                    let copied = false;
+                    if (navigator.clipboard?.writeText) {
+                        try {
+                            await navigator.clipboard.writeText(button.dataset.copyValue);
+                            copied = true;
+                        } catch (error) {
+                            copied = false;
+                        }
+                    }
+                    if (!copied) {
+                        const temporaryInput = document.createElement('textarea');
+                        temporaryInput.value = button.dataset.copyValue;
+                        temporaryInput.setAttribute('readonly', '');
+                        temporaryInput.style.position = 'fixed';
+                        temporaryInput.style.opacity = '0';
+                        document.body.appendChild(temporaryInput);
+                        temporaryInput.select();
+                        const copied = document.execCommand('copy');
+                        temporaryInput.remove();
+                        if (!copied) throw new Error('copy failed');
+                    }
+                    status.textContent = window.siteTranslate('contact.copied');
+                } catch (error) {
+                    status.textContent = window.siteTranslate('contact.copyFailed');
+                }
+            });
         });
     </script>
 </body>

@@ -8,6 +8,7 @@ import os
 import re
 import secrets
 from pathlib import Path
+from urllib.parse import quote, urlsplit
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort, send_file
@@ -290,6 +291,8 @@ def load_message_file(filename, limit=40):
             continue
         if isinstance(entry, dict):
             entry['_id'] = hashlib.sha256(f'{line_number}:{line}'.encode('utf-8')).hexdigest()
+            if filename == 'feedback_submissions.jsonl':
+                entry['is_read'] = bool(entry.get('is_read', False))
             submitted_at = entry.get('submitted_at', '')
             try:
                 parsed_date = datetime.fromisoformat(submitted_at.replace('Z', '+00:00'))
@@ -298,6 +301,23 @@ def load_message_file(filename, limit=40):
                 entry['_display_date'] = submitted_at or 'Unknown'
             messages.append(entry)
     return messages
+
+
+def find_feedback_line(lines, feedback_id):
+    if len(feedback_id) != 64:
+        return None
+    return next((
+        index for index, line in enumerate(lines)
+        if secrets.compare_digest(
+            hashlib.sha256(f'{index}:{line}'.encode('utf-8')).hexdigest(), feedback_id
+        )
+    ), None)
+
+
+def save_feedback_lines(path, lines):
+    temporary_path = path.with_suffix('.tmp')
+    temporary_path.write_text('\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')
+    temporary_path.replace(path)
 
 
 @app.route('/admin', methods=['GET'])
@@ -447,6 +467,32 @@ def admin_add_student():
         flash('Name added.')
     return redirect(url_for('admin_page') + '#students')
 
+@app.route('/admin/students/<int:student_index>/edit', methods=['POST'])
+@admin_required
+def admin_edit_student(student_index):
+    if not valid_csrf(request.form):
+        abort(400)
+    content = load_site_content()
+    students = content['students']
+    if student_index < 0 or student_index >= len(students):
+        abort(404)
+    name = request.form.get('name', '')
+    if not name.strip():
+        flash('Enter a name to save.')
+    elif len(name) > 100:
+        flash('Names must be 100 characters or fewer.')
+    elif name.casefold() in {
+        student.casefold() for index, student in enumerate(students)
+        if index != student_index
+    }:
+        flash('This name already exists.')
+    else:
+        students[student_index] = name
+        content['students'] = students
+        save_site_content(content)
+        flash('Name updated.')
+    return redirect(url_for('admin_page') + '#students')
+
 @app.route('/admin/students/<int:student_index>/delete', methods=['POST'])
 @admin_required
 def admin_delete_student(student_index):
@@ -467,26 +513,42 @@ def admin_delete_student(student_index):
 def admin_delete_feedback(feedback_id):
     if not valid_csrf(request.form):
         abort(400)
-    if len(feedback_id) != 64:
-        abort(404)
     feedback_path = Path(app.instance_path) / 'feedback_submissions.jsonl'
     try:
         lines = feedback_path.read_text(encoding='utf-8').splitlines()
     except OSError:
         abort(404)
-    matching_index = next((
-        index for index, line in enumerate(lines)
-        if secrets.compare_digest(
-            hashlib.sha256(f'{index}:{line}'.encode('utf-8')).hexdigest(), feedback_id
-        )
-    ), None)
+    matching_index = find_feedback_line(lines, feedback_id)
     if matching_index is None:
         abort(404)
     del lines[matching_index]
-    temporary_path = feedback_path.with_suffix('.tmp')
-    temporary_path.write_text('\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')
-    temporary_path.replace(feedback_path)
+    save_feedback_lines(feedback_path, lines)
     flash('Feedback deleted.')
+    return redirect(url_for('admin_page') + '#feedback')
+
+@app.route('/admin/feedback/<feedback_id>/read', methods=['POST'])
+@admin_required
+def admin_mark_feedback_read(feedback_id):
+    if not valid_csrf(request.form):
+        abort(400)
+    feedback_path = Path(app.instance_path) / 'feedback_submissions.jsonl'
+    try:
+        lines = feedback_path.read_text(encoding='utf-8').splitlines()
+    except OSError:
+        abort(404)
+    matching_index = find_feedback_line(lines, feedback_id)
+    if matching_index is None:
+        abort(404)
+    try:
+        entry = json.loads(lines[matching_index])
+    except ValueError:
+        abort(404)
+    if not isinstance(entry, dict):
+        abort(404)
+    entry['is_read'] = True
+    lines[matching_index] = json.dumps(entry, ensure_ascii=False)
+    save_feedback_lines(feedback_path, lines)
+    flash('Feedback marked as read.')
     return redirect(url_for('admin_page') + '#feedback')
 
 @app.route('/admin/upload', methods=['POST'])
@@ -676,9 +738,51 @@ def thanks_page():
 def about_page():
     return render_template('about.html')
 
+def social_profile_url(platform, account):
+    base_urls = {
+        'facebook': 'https://www.facebook.com/',
+        'instagram': 'https://www.instagram.com/',
+        'tiktok': 'https://www.tiktok.com/@',
+    }
+    if platform not in base_urls:
+        return ''
+    account = str(account or '').strip()
+    if not account:
+        return ''
+    candidate = account
+    if re.match(r'^(?:www\.)?(?:facebook\.com|instagram\.com|tiktok\.com)/', candidate, re.IGNORECASE):
+        candidate = f'https://{candidate}'
+    if re.match(r'^https?://', candidate, re.IGNORECASE):
+        parsed_url = urlsplit(candidate)
+        return candidate if parsed_url.netloc and parsed_url.hostname else ''
+    username = account.removeprefix('@')
+    if not re.fullmatch(r'[A-Za-z0-9._-]{1,100}', username):
+        return ''
+    profile_url = base_urls[platform] + quote(username, safe='._-')
+    return profile_url + '/' if platform == 'instagram' else profile_url
+
 @app.route('/contact')
 def contact_page():
-    return render_template('contact.html')
+    content = load_site_content()
+    social_profiles = [
+        ('Facebook', 'facebook', content['facebook_url']),
+        ('Instagram', 'instagram', content['instagram_url']),
+        ('TikTok', 'tiktok', content['tiktok_url']),
+    ]
+    social_profiles = [
+        (label, account, social_profile_url(platform, account))
+        for label, platform, account in social_profiles if account
+    ]
+    whatsapp_number = re.sub(r'\D', '', content['contact_phone'])
+    return render_template(
+        'contact.html',
+        social_profiles=social_profiles,
+        whatsapp_url=f'https://wa.me/{whatsapp_number}' if whatsapp_number else '',
+    )
+
+@app.route('/feedback', strict_slashes=False)
+def feedback_page():
+    return render_template('feedback.html')
 
 @app.route('/')
 def home():
@@ -723,14 +827,31 @@ def submit_feedback():
     data = request.get_json(silent=True) or {}
     message = str(data.get('message', '')).strip()
     name = str(data.get('name', '')).strip()[:80]
+    email = str(data.get('email', '')).strip()[:254]
+    phone = str(data.get('phone', '')).strip()[:40]
+    if not name:
+        return jsonify({'error': 'Enter your name before submitting.'}), 400
+    if not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', email):
+        return jsonify({'error': 'Enter a valid email address before submitting.'}), 400
     if not message:
         return jsonify({'error': 'Enter your feedback before submitting.'}), 400
     if len(message) > 5000:
         return jsonify({'error': 'Feedback must be 5,000 characters or fewer.'}), 400
+    if email and ('@' not in email or '.' not in email.rsplit('@', 1)[-1]):
+        return jsonify({'error': 'Please enter a valid email address.'}), 400
+    if re.search(r'[^0-9+().\-\s]', phone):
+        return jsonify({'error': 'Please enter a valid phone number.'}), 400
 
     feedback_path = Path(app.instance_path) / 'feedback_submissions.jsonl'
     feedback_path.parent.mkdir(parents=True, exist_ok=True)
-    entry = {'submitted_at': datetime.now(timezone.utc).isoformat(), 'name': name, 'message': message}
+    entry = {
+        'submitted_at': datetime.now(timezone.utc).isoformat(),
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'message': message,
+        'is_read': False,
+    }
     with feedback_path.open('a', encoding='utf-8') as feedback_file:
         feedback_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
     return jsonify({'result': 'Your feedback has been received. Thank you for sharing.'})

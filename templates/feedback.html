@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_content.brand_name }} | Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+</head>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
+    {% include '_navbar.html' %}
+    <main class="feedback-page">
+        <header class="feedback-heading">
+            <p class="eyebrow" data-i18n="feedback.pageTitle">Share your feedback</p>
+            <h1 data-i18n="feedback.title">Suggest an idea</h1>
+            <p data-i18n="feedback.pageIntro">Send an idea or suggestion to the nizarphonetics team.</p>
+        </header>
+        <section class="shared-section" aria-labelledby="feedbackHeading">
+            <h2 id="feedbackHeading" data-i18n="feedback.title">Suggest an idea</h2>
+            <form id="feedbackForm">
+                <label><span data-i18n="feedback.name">Name</span>
+                    <input id="feedbackName" type="text" maxlength="80" autocomplete="name" placeholder="Your name" data-i18n-placeholder="feedback.yourName" required>
+                </label>
+                <label><span data-i18n="feedback.email">Email</span>
+                    <input id="feedbackEmail" type="email" maxlength="254" autocomplete="email" placeholder="name@example.com" data-i18n-placeholder="feedback.emailPlaceholder" required>
+                </label>
+                <label><span data-i18n="feedback.phone">Phone (optional)</span>
+                    <input id="feedbackPhone" type="tel" maxlength="40" placeholder="+1 555 123 4567" data-i18n-placeholder="feedback.phonePlaceholder">
+                </label>
+                <label><span data-i18n="feedback.message">Your suggestion</span>
+                    <textarea id="feedbackMessage" maxlength="5000" required placeholder="Write your feedback" data-i18n-placeholder="feedback.placeholder"></textarea>
+                </label>
+                <div><button type="submit" data-i18n="feedback.send">Send suggestion</button></div>
+            </form>
+            <p id="feedbackStatus" class="form-status" role="status" aria-live="polite"></p>
+        </section>
+    </main>
+    <footer>nizarphonetics · <span data-i18n="home.footer">English Phonetics Studio</span></footer>
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const status = document.getElementById('feedbackStatus');
+            status.className = 'form-status';
+            status.textContent = window.siteTranslate('feedback.sending');
+            try {
+                const response = await fetch('/submit_feedback', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        name: document.getElementById('feedbackName').value,
+                        email: document.getElementById('feedbackEmail').value,
+                        phone: document.getElementById('feedbackPhone').value,
+                        message: document.getElementById('feedbackMessage').value
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Unable to send the suggestion.');
+                status.classList.add('is-success');
+                status.textContent = window.siteTranslate('feedback.received');
+                event.target.reset();
+            } catch (error) {
+                status.classList.add('is-error');
+                status.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

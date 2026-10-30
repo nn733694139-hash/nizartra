@@ -33,7 +33,9 @@
         .messages, .student-list { display: grid; gap: 10px; margin-top: 16px; }
         .entry p { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
         .meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
-        .student-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; }
+        .student-entry { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; }
+        .student-edit-form { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+        .student-edit-form input { padding: 8px 9px; }
         .student-entry form, .logout-form { margin: 0; }
         .student-entry button { padding: 6px 10px; font-size: 12px; }
         .suggestion-table-wrap { width: 100%; overflow-x: auto; margin-top: 16px; }
@@ -41,9 +43,13 @@
         .suggestion-table th, .suggestion-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
         .suggestion-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
         .suggestion-table td { font-size: 13px; line-height: 1.65; }
-        .suggestion-table td:nth-child(2) { min-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .suggestion-table td:nth-child(4) { min-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
         .suggestion-table time { color: var(--muted); white-space: nowrap; }
         .suggestion-table form { margin: 0; }
+        .feedback-actions { display: flex; align-items: center; gap: 7px; }
+        .feedback-status { display: inline-block; padding: 4px 7px; border: 1px solid #555; border-radius: 3px; font-size: 11px; white-space: nowrap; }
+        .feedback-status.is-read { border-color: var(--accent); color: var(--accent); }
+        .feedback-status.is-unread { border-color: #7ef6e8; color: #7ef6e8; }
         .suggestion-table button { padding: 7px 10px; border: 1px solid #666; background: transparent; color: #fff; font: inherit; cursor: pointer; }
         .suggestion-table button:hover { border-color: var(--accent); color: var(--accent); }
         .flash { padding: 12px 14px; border: 1px solid var(--line); border-radius: 5px; background: #1a1a1a; color: var(--text); }
@@ -127,10 +133,10 @@
                         <label>Values Text<textarea name="values_text" maxlength="700">{{ site_content.values_text }}</textarea></label>
                         <label>Founder Name<input name="founder_name" maxlength="100" value="{{ site_content.founder_name }}"></label>
                         <label>Contact Email<input type="email" name="contact_email" maxlength="254" value="{{ site_content.contact_email }}"></label>
-                        <label>Phone Number<input type="tel" name="contact_phone" maxlength="40" value="{{ site_content.contact_phone }}" placeholder="+1 555 123 4567"></label>
-                        <label>Facebook Account<input type="text" name="facebook_url" maxlength="500" value="{{ site_content.facebook_url }}" placeholder="Your Facebook name or username"></label>
-                        <label>Instagram Account<input type="text" name="instagram_url" maxlength="500" value="{{ site_content.instagram_url }}" placeholder="Your Instagram name or username"></label>
-                        <label>TikTok Account<input type="text" name="tiktok_url" maxlength="500" value="{{ site_content.tiktok_url }}" placeholder="Your TikTok name or username"></label>
+                        <label>Phone / WhatsApp<input type="tel" name="contact_phone" maxlength="40" value="{{ site_content.contact_phone }}" placeholder="+1 555 123 4567"></label>
+                        <label>Facebook Account<input type="text" name="facebook_url" maxlength="500" value="{{ site_content.facebook_url }}" placeholder="@username or profile URL"></label>
+                        <label>Instagram Account<input type="text" name="instagram_url" maxlength="500" value="{{ site_content.instagram_url }}" placeholder="@username or profile URL"></label>
+                        <label>TikTok Account<input type="text" name="tiktok_url" maxlength="500" value="{{ site_content.tiktok_url }}" placeholder="@username or profile URL"></label>
                         <label>Contact Page Heading<input name="contact_title" maxlength="120" value="{{ site_content.contact_title }}"></label>
                         <label>Contact Page Intro<textarea name="contact_intro" maxlength="1000">{{ site_content.contact_intro }}</textarea></label>
                         <label>Contact Accent Color<input type="color" name="contact_accent" value="{{ site_content.contact_accent }}"></label>
@@ -154,7 +160,7 @@
             </section>
 
             <section class="panel" id="students" aria-labelledby="students-title">
-                <div class="section-head"><div><h2 id="students-title">Names</h2><small>Add a name or remove one from the list.</small></div></div>
+                <div class="section-head"><div><h2 id="students-title">Names</h2><small>Add, edit, or remove names. Each edit updates only that exact entry.</small></div></div>
                 <form class="actions" method="post" action="{{ url_for('admin_add_student') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <label style="flex:1 1 240px">New Name<input name="name" maxlength="100" required></label>
@@ -163,7 +169,11 @@
                 <div class="student-list">
                     {% for student in site_content.students %}
                         <div class="student-entry">
-                            <span>{{ student }}</span>
+                            <form class="student-edit-form" method="post" action="{{ url_for('admin_edit_student', student_index=loop.index0) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="text" name="name" maxlength="100" value="{{ student }}" aria-label="Edit name: {{ student }}" required>
+                                <button type="submit">Save</button>
+                            </form>
                             <form method="post" action="{{ url_for('admin_delete_student', student_index=loop.index0) }}" onsubmit="return confirm('Delete this name?')">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                 <button class="danger" type="submit">Delete</button>
@@ -192,19 +202,28 @@
                 <div class="section-head"><div><h2 id="feedback-title">Student Suggestions</h2><small>{{ feedback_messages|length }} most recent submissions</small></div></div>
                 <div class="suggestion-table-wrap">
                     <table class="suggestion-table">
-                        <thead><tr><th>Student</th><th>Suggestion</th><th>Date and time</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Suggestion</th><th>Date and time</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody>
                     {% for opinion in feedback_messages %}
                         <tr>
                             <td>{{ opinion.name or 'Anonymous' }}</td>
+                            <td>{{ opinion.email or '&mdash;'|safe }}</td>
+                            <td>{{ opinion.phone or '&mdash;'|safe }}</td>
                             <td>{{ opinion.message }}</td>
                             <td><time>{{ opinion._display_date }}</time></td>
-                            <td><form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this suggestion?')">
+                            <td><span class="feedback-status {% if opinion.is_read %}is-read{% else %}is-unread{% endif %}">{{ 'Read' if opinion.is_read else 'Unread' }}</span></td>
+                            <td><div class="feedback-actions">
+                                {% if not opinion.is_read %}<form method="post" action="{{ url_for('admin_mark_feedback_read', feedback_id=opinion._id) }}">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" aria-label="Delete suggestion from {{ opinion.name or 'Anonymous' }}">Delete</button>
-                                </form></td>
+                                    <button type="submit" aria-label="Mark suggestion from {{ opinion.name }} as read">Mark read</button>
+                                </form>{% endif %}
+                                <form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this suggestion?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" aria-label="Delete suggestion from {{ opinion.name }}">Delete</button>
+                                </form>
+                            </div></td>
                         </tr>
-                    {% else %}<tr><td colspan="4">No suggestions have been submitted yet.</td></tr>{% endfor %}
+                    {% else %}<tr><td colspan="7">No suggestions have been submitted yet.</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
