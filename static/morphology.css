@@ -3,6 +3,9 @@
 .morphology-heading .eyebrow { color: var(--site-accent); }
 .morphology-heading h1 { margin: 0; font-size: 44px; line-height: 1.12; }
 .morphology-heading > p:last-child { color: #aaa; line-height: 1.75; }
+.morphology-subnav { position: relative; z-index: 3; display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 26px; padding: 7px 0; border-top: 1px solid #303030; border-bottom: 1px solid #303030; background: rgba(8,8,8,.96); }
+.morphology-subnav a { padding: 8px 11px; border-bottom: 2px solid transparent; color: #aaa; font-size: 11px; text-decoration: none; }
+.morphology-subnav a:hover, .morphology-subnav a:focus-visible { border-bottom-color: var(--site-accent); color: var(--site-accent); outline: none; }
 .morphology-overview { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; gap: 24px; padding: 21px; border: 1px solid #303030; background: #0c0c0c; }
 .overview-copy { max-width: 470px; }
 .overview-copy h2 { margin: 0; color: #f1f1f1; font-size: 23px; line-height: 1.3; }
@@ -119,6 +122,12 @@
 .features-grid p { margin: 0; color: #aaa; font-size: 11px; line-height: 1.75; }
 .features-grid strong { color: #eee; }
 .features-grid em { color: var(--site-accent); }
+.coined-words-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 1px; margin-top: 16px; border: 1px solid #303030; background: #303030; }
+.coined-word-item { display: grid; align-content: start; gap: 8px; min-width: 0; padding: 16px; background: #0c0c0c; }
+.coined-process { color: var(--site-cyan); font-size: 8px; font-weight: 800; }
+.coined-word-item > strong { color: var(--site-accent); font-family: "DM Mono", "Courier New", monospace; font-size: 20px; }
+.coined-word-item p { margin: 0; color: #aaa; font-size: 10px; line-height: 1.7; }
+.coined-word-item code { color: #eee; font-family: "DM Mono", "Courier New", monospace; }
 .morphology-reference-list { display: grid; gap: 0; margin: 14px 0; padding-inline-start: 24px; border-top: 1px solid #303030; }
 .morphology-reference-list li { padding: 11px 8px; border-bottom: 1px solid #292929; color: #d2d2d2; font-size: 11px; line-height: 1.65; }
 .morphology-reference-list cite { color: #fff; }
@@ -136,8 +145,9 @@
     .allomorphy-row > strong { grid-column: 1 / -1; }
 }
 @media (max-width: 520px) {
-    .morphology-page { padding-top: 36px; }
-    .morphology-heading h1 { font-size: 34px; }
+    .morphology-page { padding-top: 36px; overflow-x: clip; }
+    .morphology-heading h1 { font-size: 34px; overflow-wrap: anywhere; }
+    .analysis-reading h3 { font-size: 22px; overflow-wrap: anywhere; }
     .morphology-overview { padding: 15px; }
     .overview-copy h2 { font-size: 20px; }
     .overview-pieces { gap: 4px; }
@@ -150,6 +160,12 @@
     .process-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .contrast-table { min-width: 620px; }
     .allomorphy-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 360px) {
+    .overview-pieces { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 4px; }
+    .overview-piece { width: min(100%, 120px); }
+    .overview-operator { line-height: 1; }
+    .overview-result { max-width: 100%; font-size: 15px; overflow-wrap: anywhere; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) {
     .overview-piece, .overview-result, .overview-arrow, .affixation-step, .morph-tree > .tree-node, .tree-children > .tree-branch { animation: none; }

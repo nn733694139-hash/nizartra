@@ -17,6 +17,12 @@
         <p data-i18n="morphology.intro">Explore the smallest meaningful units in language, how they combine, and how words change form or meaning.</p>
     </header>
 
+    <nav class="morphology-subnav" aria-label="Morphology sections">
+        <a href="#wordFormation">Word Formation</a>
+        <a href="#coinedWords">Coined Words</a>
+        <a href="#morphemeLabTitle">Morpheme Diagrams</a>
+    </nav>
+
     <section class="morphology-overview" aria-labelledby="morphologyDefinitionTitle">
         <div class="overview-copy">
             <p class="morphology-kicker">THE IDEA</p>
@@ -123,7 +129,7 @@
         <p class="table-note" data-i18n="morphology.allomorphyRule">These are conditioned allomorphs: the choice follows a phonological rule. Irregular forms may follow other patterns.</p>
     </section>
 
-    <section class="morphology-section word-formation-section" aria-labelledby="wordFormationTitle">
+    <section class="morphology-section word-formation-section" id="wordFormation" aria-labelledby="wordFormationTitle">
         <div class="morphology-section-heading">
             <span class="tool-index">05</span>
             <div><h2 id="wordFormationTitle" data-i18n="morphology.wordFormationTitle">Word-formation processes</h2><p data-i18n="morphology.wordFormationIntro">Select a process to reveal how the example is formed.</p></div>
@@ -139,9 +145,33 @@
         </div>
     </section>
 
-    <section class="morphology-section features-section" aria-labelledby="featuresTitle">
+    <section class="morphology-section coined-words-section" id="coinedWords" aria-labelledby="coinedWordsTitle">
         <div class="morphology-section-heading">
             <span class="tool-index">06</span>
+            <div><h2 id="coinedWordsTitle">Coined words and lexical innovation</h2><p>New words can be created by blending forms, reusing names, or assigning a new lexical meaning.</p></div>
+        </div>
+        <div class="coined-words-grid">
+            <article class="coined-word-item">
+                <span class="coined-process">BLENDING</span>
+                <strong>brunch</strong>
+                <p><code>breakfast</code> + <code>lunch</code> combine their forms and meanings.</p>
+            </article>
+            <article class="coined-word-item">
+                <span class="coined-process">BLENDING</span>
+                <strong>smog</strong>
+                <p><code>smoke</code> + <code>fog</code> form a compact name for a kind of air pollution.</p>
+            </article>
+            <article class="coined-word-item">
+                <span class="coined-process">EPONYM</span>
+                <strong>boycott</strong>
+                <p>A personal surname becomes a common verb and noun through historical use.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="morphology-section features-section" aria-labelledby="featuresTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">07</span>
             <div><h2 id="featuresTitle" data-i18n="morphology.featuresTitle">Morphological features and rules</h2><p data-i18n="morphology.featuresIntro">Roots, bases and stems combine with grammatical features under language-specific constraints.</p></div>
         </div>
         <div class="features-grid">
@@ -156,7 +186,7 @@
 
     <section class="morphology-section references-section" aria-labelledby="morphologyReferencesTitle">
         <div class="morphology-section-heading">
-            <span class="tool-index">07</span>
+            <span class="tool-index">08</span>
             <div><h2 id="morphologyReferencesTitle" data-i18n="morphology.referencesTitle">Academic references</h2><p data-i18n="morphology.referencesIntro">Introductory and specialist sources for the concepts in this guide.</p></div>
         </div>
         <p class="table-note">The distinctions between free and bound morphemes, derivation and inflection, and major word-formation processes are presented here as established topics in linguistic morphology. Lieber and Bauer provide specialist introductions; Aronoff and Fudeman discuss core morphological concepts and analysis.</p>

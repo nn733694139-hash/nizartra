@@ -741,6 +741,10 @@ def phonology_page():
 def morphology_page():
     return render_template('morphology.html')
 
+@app.route('/syntax')
+def syntax_page():
+    return render_template('syntax.html')
+
 @app.route('/site-image/<filename>')
 def site_image(filename):
     if filename not in {'my_photo.jpg', 'my_photo2.jpg'}:

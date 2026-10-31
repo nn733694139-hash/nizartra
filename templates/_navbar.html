@@ -9,9 +9,25 @@
     <button class="nav-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-navigation">☰</button>
     <nav class="site-nav-links" id="main-navigation">
         <a href="/" data-i18n="nav.home" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
-        <a href="/phonetics" data-i18n="nav.phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
+        <details class="nav-dropdown" {% if request.path == '/syntax' %}open{% endif %}>
+            <summary data-i18n="nav.syntax">Syntax</summary>
+            <div class="nav-dropdown-menu">
+                <a href="/syntax" {% if request.path == '/syntax' %}aria-current="page"{% endif %}>Syntax overview</a>
+                <a href="/syntax#workedSentenceTitle">Sentence parsing</a>
+                <a href="/syntax#treeTitle">Tree diagrams</a>
+            </div>
+        </details>
+        <details class="nav-dropdown" {% if request.path == '/morphology' %}open{% endif %}>
+            <summary data-i18n="nav.morphology">Morphology</summary>
+            <div class="nav-dropdown-menu">
+                <a href="/morphology">Morphology overview</a>
+                <a href="/morphology#wordFormation">Word formation</a>
+                <a href="/morphology#coinedWords">Coined words</a>
+                <a href="/morphology#morphemeLabTitle">Morpheme diagrams</a>
+            </div>
+        </details>
         <a href="/phonology" data-i18n="nav.phonology" {% if request.path == '/phonology' %}aria-current="page"{% endif %}>Phonology</a>
-        <a href="/morphology" data-i18n="nav.morphology" {% if request.path == '/morphology' %}aria-current="page"{% endif %}>Morphology</a>
+        <a href="/phonetics" data-i18n="nav.phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
         <a href="/about" data-i18n="nav.about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
         <a href="/contact" data-i18n="nav.contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
         <a href="/feedback" data-i18n="nav.feedback" {% if request.path == '/feedback' %}aria-current="page"{% endif %}>Feedback</a>
