@@ -36,7 +36,7 @@ body::before {
 }
 body.has-site-background::before {
     display: block;
-    background-image: linear-gradient(rgba(0, 0, 0, .72), rgba(0, 0, 0, .82)), url('/static/my_photo2.jpg');
+    background-image: linear-gradient(rgba(0, 0, 0, .72), rgba(0, 0, 0, .82)), var(--site-background-image);
 }
 a { color: var(--site-text); }
 .site-nav {

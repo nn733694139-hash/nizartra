@@ -71,7 +71,7 @@
         </section>
 
         <section class="about-founder" aria-label="Site founder" data-i18n-aria="about.founder">
-            <img src="{{ url_for('static', filename='my_photo.jpg') }}" alt="Photo of {{ site_content.founder_name }}">
+            <img src="{{ url_for('site_image', filename='my_photo.jpg') }}" alt="Photo of {{ site_content.founder_name }}">
             <div>
                 <h2>{{ site_content.founder_name }}</h2>
                 <p {% if site_content.founder_bio == 'Founder of nizarphonetics, building thoughtful tools for English pronunciation and phonetic learning.' %}data-i18n="about.founderBio"{% endif %}>{{ site_content.founder_bio }}</p>

@@ -1,6 +1,6 @@
 <header class="site-nav">
     <a class="site-brand" href="/" aria-label="{{ site_content.brand_name }} home">
-        <img class="brand-avatar" src="{{ url_for('static', filename='my_photo.jpg') }}" alt="{{ site_content.founder_name }}">
+        <img class="brand-avatar" src="{{ url_for('site_image', filename='my_photo.jpg') }}" alt="{{ site_content.founder_name }}">
         <span class="brand-copy">
             <strong>{{ site_content.brand_name }}</strong>
             <small>{{ site_content.brand_tagline }}</small>
@@ -17,6 +17,7 @@
     </nav>
     <button class="language-switcher" id="languageSwitcher" type="button" aria-label="Change language" data-i18n-aria="language.switch">EN</button>
 </header>
+<style>:root { --site-background-image: url("{{ url_for('site_image', filename='my_photo2.jpg') }}"); }</style>
 <dialog class="language-dialog" id="languagePrompt" aria-labelledby="languagePromptTitle">
     <section class="language-dialog-panel">
         <button class="language-dialog-close" id="languagePromptClose" type="button" aria-label="Close and continue in English" data-i18n-aria="language.closeEnglish">×</button>

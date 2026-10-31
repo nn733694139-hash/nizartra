@@ -11,13 +11,17 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort, send_file, send_from_directory
 import eng_to_ipa
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 app = Flask(__name__)
+configured_data_dir = os.environ.get('APP_DATA_DIR')
+if configured_data_dir:
+    app.instance_path = str(Path(configured_data_dir).expanduser().resolve())
+Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 _admin_env_auth = None
 _admin_env_credentials = None
 
@@ -573,7 +577,8 @@ def admin_upload():
         image.verify()
         uploaded.stream.seek(0)
         image = Image.open(uploaded.stream).convert('RGB')
-        destination = Path(app.static_folder) / destinations[slot]
+        destination = Path(app.instance_path) / 'uploads' / destinations[slot]
+        destination.parent.mkdir(parents=True, exist_ok=True)
         temporary_path = destination.with_name(f'.{destination.stem}.{secrets.token_hex(6)}.tmp')
         image.save(temporary_path, format='JPEG', quality=92, optimize=True)
         temporary_path.replace(destination)
@@ -729,6 +734,15 @@ HTML_INDEX = """
 @app.route('/phonetics')
 def phonetics_page():
     return render_template('phonetics.html')
+
+@app.route('/site-image/<filename>')
+def site_image(filename):
+    if filename not in {'my_photo.jpg', 'my_photo2.jpg'}:
+        abort(404)
+    uploads_dir = Path(app.instance_path) / 'uploads'
+    if (uploads_dir / filename).is_file():
+        return send_from_directory(uploads_dir, filename)
+    return send_from_directory(app.static_folder, filename)
 
 @app.route('/thanks')
 def thanks_page():
