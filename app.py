@@ -189,7 +189,6 @@ SITE_CONTENT_DEFAULTS = {
     'contact_note': 'Share an idea or comment with the nizarphonetics team.',
     'contact_accent': '#d5ff3f',
     'contact_decoration': 'minimal',
-    'language_prompt_enabled': True,
     'background_enabled': False,
     'faculty': ['Dr. ابراهيم جبريل', 'Dr. نعمة الحاج', 'Dr. محمد علي', 'Dr. سمير الحمادي'],
     'students': [
@@ -444,7 +443,6 @@ def admin_save():
         flash('The maximum is 30 faculty names.')
         return redirect(url_for('admin_page'))
     content['faculty'] = faculty
-    content['language_prompt_enabled'] = request.form.get('language_prompt_enabled') == 'on'
     content['background_enabled'] = request.form.get('background_enabled') == 'on'
     save_site_content(content)
     flash('Site content saved.')
@@ -734,6 +732,10 @@ HTML_INDEX = """
 @app.route('/phonetics')
 def phonetics_page():
     return render_template('phonetics.html')
+
+@app.route('/phonology')
+def phonology_page():
+    return render_template('phonology.html')
 
 @app.route('/site-image/<filename>')
 def site_image(filename):

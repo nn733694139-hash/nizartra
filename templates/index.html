@@ -8,6 +8,11 @@
 </head>
 <body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
     {% include '_navbar.html' %}
+    <aside class="site-announcement" aria-label="Welcome and language notice">
+        <span class="announcement-indicator" aria-hidden="true"></span>
+        <span class="announcement-copy"><strong>Welcome! This site was created by Nizar Sharqi.</strong><span>Use English as your browser language to access all site features.</span></span>
+        <button class="site-announcement-close" type="button" aria-label="Dismiss welcome notice">×</button>
+    </aside>
 
     <main class="home-shell">
         <section class="home-hero">
@@ -41,6 +46,11 @@
                 <span class="icon" aria-hidden="true">IPA</span>
                 <h2 data-i18n="home.phoneticsTitle">Phonetics</h2>
                 <p data-i18n="home.phoneticsText">Explore pronunciation with IPA transcription.</p>
+            </a>
+            <a href="/phonology" class="service-card">
+                <span class="icon" aria-hidden="true">PH</span>
+                <h2 data-i18n="home.phonologyTitle">Phonology</h2>
+                <p data-i18n="home.phonologyText">Explore speech sounds and how the vocal tract produces them.</p>
             </a>
             <a href="/thanks" class="service-card">
                 <span class="icon" aria-hidden="true">+</span>

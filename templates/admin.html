@@ -152,7 +152,6 @@
                         <label>Contact Hours<input name="contact_hours" maxlength="300" value="{{ site_content.contact_hours }}"></label>
                         <label>Contact Note<textarea name="contact_note" maxlength="600">{{ site_content.contact_note }}</textarea></label>
                         <label class="full">Faculty and Teachers<textarea name="faculty" maxlength="4000" placeholder="One name per line">{{ site_content.faculty | join('\n') }}</textarea></label>
-                        <label style="display:flex; align-items:center; gap:10px;">Show language choice to visitors<input type="checkbox" name="language_prompt_enabled" {% if site_content.language_prompt_enabled %}checked{% endif %}></label>
                         <label style="display:flex; align-items:center; gap:10px;">Enable uploaded background<input type="checkbox" name="background_enabled" {% if site_content.background_enabled %}checked{% endif %}></label>
                     </div>
                     <div class="actions"><button type="submit">Save Site Content</button></div>

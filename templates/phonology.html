@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_content.brand_name }} | Phonology</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='phonology.css') }}">
+</head>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
+{% include '_navbar.html' %}
+
+<main class="phonology-page">
+    <header class="phonology-heading">
+        <p class="eyebrow" data-i18n="phonology.eyebrow">SPEECH LAB / 03</p>
+        <h1 data-i18n="phonology.title">How speech is made</h1>
+        <p data-i18n="phonology.intro">Trace the airstream from the diaphragm to the articulators. Select a region to explore its role in speech production.</p>
+    </header>
+
+    <section class="phonology-workspace" aria-labelledby="diagramTitle">
+        <div class="phonology-diagram-column">
+            <div class="phonology-section-heading">
+                <span class="tool-index">01</span>
+                <h2 id="diagramTitle" data-i18n="phonology.diagramTitle">The speech production system</h2>
+            </div>
+            <div class="speech-diagram-wrap">
+                <svg class="speech-diagram" viewBox="0 0 640 760" role="img" aria-labelledby="speechDiagramTitle speechDiagramDescription">
+                    <title id="speechDiagramTitle" data-i18n="phonology.svgTitle">Interactive diagram of the speech production system</title>
+                    <desc id="speechDiagramDescription" data-i18n="phonology.svgDescription">A side-view diagram connects the diaphragm and lungs through the larynx to the mouth, nose and articulators.</desc>
+                    <defs>
+                        <linearGradient id="bodyDepth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b2929"/><stop offset=".52" stop-color="#11191a"/><stop offset="1" stop-color="#0a1012"/></linearGradient>
+                        <radialGradient id="lungDepth" cx="45%" cy="40%" r="72%"><stop offset="0" stop-color="#4c8f89" stop-opacity=".62"/><stop offset="1" stop-color="#173a3b" stop-opacity=".82"/></radialGradient>
+                        <linearGradient id="larynxDepth" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb09d" stop-opacity=".7"/><stop offset="1" stop-color="#9f4f4b" stop-opacity=".32"/></linearGradient>
+                        <linearGradient id="tongueDepth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb09d"/><stop offset="1" stop-color="#a95051"/></linearGradient>
+                        <marker id="airArrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                            <path d="M0 0 L10 5 L0 10Z" fill="#d5ff3f" />
+                        </marker>
+                    </defs>
+                    <path class="body-outline" d="M180 704 C154 652 153 578 167 520 C181 462 208 430 245 411 L255 335 C226 300 208 259 211 203 C214 130 260 82 327 80 C384 78 426 111 433 159 C468 171 493 194 497 218 C500 238 478 254 454 265 L436 300 C430 326 413 350 389 366 L394 405 C454 425 490 465 506 523 C520 575 516 648 497 704 Z" />
+                    <path class="torso-line" d="M245 411 C287 430 350 431 394 405 M167 520 C252 494 416 496 506 523" />
+                    <g class="rib-cage anatomy-part" data-organ="rib-cage">
+                        <path d="M226 444 C209 449 194 461 186 478 M224 457 C207 463 194 477 189 493 M221 472 C205 479 195 493 193 508 M220 488 C205 496 199 510 199 524" />
+                        <path d="M376 444 C393 449 408 461 416 478 M378 457 C395 463 408 477 413 493 M381 472 C397 479 407 493 409 508 M382 488 C397 496 403 510 403 524" />
+                    </g>
+                    <path class="sternum anatomy-part" data-organ="rib-cage" d="M300 438 L300 493 M314 438 L314 493" />
+                    <path class="lung-shape anatomy-part" data-organ="lungs" d="M236 447 C210 465 205 516 218 555 C230 590 259 593 280 568 L291 470Z" />
+                    <path class="lung-shape anatomy-part" data-organ="lungs" d="M303 469 L313 568 C334 593 364 590 377 554 C392 513 383 465 356 447Z" />
+                    <path class="lung-fissure anatomy-part" data-organ="lungs" d="M218 510 C239 511 258 523 278 542 M314 522 C334 509 354 493 383 490 M315 529 C336 535 355 547 373 558" />
+                    <path class="diaphragm-line anatomy-part" data-organ="diaphragm" d="M204 583 C252 616 337 618 388 582" />
+                    <path id="airflowPath" class="airflow-path" d="M298 615 C297 577 300 541 300 505 C300 470 305 431 307 394 C309 363 307 335 309 307 C311 279 325 259 350 245 C382 228 412 224 450 227" />
+                    <path id="nasalAirflowPath" class="nasal-airflow-path" d="M298 615 C297 577 300 541 300 505 C300 470 305 431 307 394 C309 363 307 335 309 307 C311 279 325 259 350 245 C363 222 381 192 402 166" />
+                    <g class="air-particle air-particle--oral" aria-hidden="true"><circle r="7"><animateMotion id="airflowMotion" dur="2.6s" repeatCount="indefinite" begin="indefinite"><mpath href="#airflowPath" /></animateMotion></circle></g>
+                    <g class="air-particle air-particle--nasal" aria-hidden="true"><circle r="7"><animateMotion id="nasalMotion" dur="2.6s" repeatCount="indefinite" begin="indefinite"><mpath href="#nasalAirflowPath" /></animateMotion></circle></g>
+                    <path class="nasal-cavity anatomy-part" data-organ="nasal" d="M365 130 C404 132 430 157 433 180 C435 198 420 208 397 207 L359 201Z" />
+                    <path class="oral-cavity anatomy-part" data-organ="oral" d="M358 211 C382 208 415 213 447 226 C425 242 398 250 365 245Z" />
+                    <path class="pharynx-wall anatomy-part" data-organ="pharynx" d="M356 250 C348 278 338 310 324 339" />
+                    <path class="palate-line anatomy-part" data-organ="palate" d="M359 211 C386 207 416 214 431 222" />
+                    <path class="velum-line anatomy-part" data-organ="velum" d="M431 222 Q439 224 447 228" />
+                    <path class="alveolar-line anatomy-part" data-organ="alveolar" d="M437 222 Q443 224 448 228" />
+                    <path class="uvula-shape anatomy-part" data-organ="uvula" d="M430 222 Q432 229 428 232" />
+                    <path class="tongue-shape anatomy-part" data-organ="tongue" d="M354 245 C379 237 405 235 434 237 C418 249 391 256 361 255Z" />
+                    <path class="tongue-tip anatomy-part" data-organ="tongue-tip" d="M414 237 Q425 236 434 237 Q427 244 416 246Z" />
+                    <path class="teeth-shape anatomy-part" data-organ="teeth" d="M437 222 L452 227 L447 235 L434 232Z" />
+                    <path class="lips-shape anatomy-part" data-organ="lips" d="M449 224 Q461 222 470 227 Q461 232 448 230" />
+                    <path class="jaw-shape anatomy-part" data-organ="jaw" d="M380 257 Q422 272 461 258" />
+                    <path class="epiglottis anatomy-part" data-organ="epiglottis" d="M321 338 C331 327 334 313 329 304 C325 314 317 323 312 331Z" />
+                    <path class="larynx-shape anatomy-part" data-organ="larynx" d="M294 339 L307 333 L322 339 L326 363 L307 380 L289 363Z" />
+                    <path class="thyroid-cartilage anatomy-part" data-organ="thyroid-cartilage" d="M291 342 L307 335 L323 342 L320 362 L307 370 L294 362Z" />
+                    <path class="vocal-folds anatomy-part" data-organ="vocal-folds" d="M297 362 Q307 357 317 362 L307 367Z M297 372 Q307 367 317 372 L307 377Z" />
+                    <path class="glottis anatomy-part" data-organ="vocal-folds" d="M307 367 L307 372" />
+                    <ellipse class="cricoid-cartilage anatomy-part" data-organ="cricoid-cartilage" cx="307" cy="382" rx="17" ry="8" />
+                    <path class="trachea-line anatomy-part" data-organ="trachea" d="M307 393 L307 476" />
+                    <g class="tracheal-rings anatomy-part" data-organ="trachea">
+                        <path d="M299 402 Q307 406 315 402 M299 411 Q307 415 315 411 M299 420 Q307 424 315 420 M299 429 Q307 433 315 429 M299 438 Q307 442 315 438 M299 447 Q307 451 315 447 M299 456 Q307 460 315 456 M299 465 Q307 469 315 465" />
+                    </g>
+                    <path class="bronchi-line anatomy-part" data-organ="bronchi" d="M307 475 C291 486 278 495 268 506 M307 475 C324 485 340 496 350 507" />
+                    <text class="diagram-label" x="81" y="581" data-i18n="phonology.labelDiaphragm">DIAPHRAGM</text>
+                    <path class="anatomy-callout" d="M224 468 L153 451 L86 451"/><text class="diagram-label" x="32" y="447" data-i18n="phonology.labelRibCage">RIB CAGE</text>
+                    <path class="anatomy-callout" d="M229 492 L158 478 L87 478"/><text class="diagram-label" x="32" y="474" data-i18n="phonology.labelLungs">LUNGS</text>
+                    <path class="anatomy-callout" d="M300 433 L197 433 L135 433"/><text class="diagram-label" x="50" y="429" data-i18n="phonology.labelTrachea">TRACHEA</text>
+                    <path class="anatomy-callout" d="M282 493 L180 505 L112 505"/><text class="diagram-label" x="32" y="501" data-i18n="phonology.labelBronchi">BRONCHI</text>
+                    <path class="anatomy-callout" d="M291 367 L195 382 L133 382"/><text class="diagram-label" x="32" y="378" data-i18n="phonology.labelVocalFolds">VOCAL FOLDS</text>
+                    <path class="anatomy-callout" d="M325 319 L415 305 L478 305"/><text class="diagram-label" x="482" y="309" data-i18n="phonology.labelEpiglottis">EPIGLOTTIS</text>
+                    <path class="anatomy-callout" d="M405 163 L477 151 L516 151"/><text class="diagram-label" x="520" y="155" data-i18n="phonology.labelNasal">NASAL CAVITY</text>
+                    <path class="anatomy-callout" d="M416 214 L475 204 L521 204"/><text class="diagram-label" x="525" y="208" data-i18n="phonology.labelPalate">PALATE</text>
+                    <path class="anatomy-callout" d="M394 249 L468 260 L513 260"/><text class="diagram-label" x="517" y="264" data-i18n="phonology.labelTongue">TONGUE</text>
+
+                    <g class="diagram-node" data-term="diaphragm" role="button" tabindex="0" aria-label="Diaphragm" data-i18n-aria="phonology.termDiaphragm">
+                        <circle cx="300" cy="600" r="17"/><text x="300" y="605">1</text>
+                    </g>
+                    <g class="diagram-node" data-term="lungs" role="button" tabindex="0" aria-label="Lungs" data-i18n-aria="phonology.termLungs">
+                        <circle cx="250" cy="511" r="17"/><text x="250" y="516">2</text>
+                    </g>
+                    <g class="diagram-node" data-term="trachea" role="button" tabindex="0" aria-label="Trachea" data-i18n-aria="phonology.termTrachea">
+                        <circle cx="307" cy="434" r="17"/><text x="307" y="439">3</text>
+                    </g>
+                    <g class="diagram-node" data-term="larynx" role="button" tabindex="0" aria-label="Larynx and vocal folds" data-i18n-aria="phonology.termLarynx">
+                        <circle cx="307" cy="366" r="17"/><text x="307" y="371">4</text>
+                    </g>
+                    <g class="diagram-node" data-term="pharynx" role="button" tabindex="0" aria-label="Pharynx" data-i18n-aria="phonology.termPharynx">
+                        <circle cx="351" cy="285" r="17"/><text x="351" y="290">5</text>
+                    </g>
+                    <g class="diagram-node" data-term="nasal" role="button" tabindex="0" aria-label="Nasal cavity" data-i18n-aria="phonology.termNasal">
+                        <circle cx="403" cy="165" r="17"/><text x="403" y="170">6</text>
+                    </g>
+                    <g class="diagram-node" data-term="velum" role="button" tabindex="0" aria-label="Velum" data-i18n-aria="phonology.termVelum">
+                        <circle cx="363" cy="209" r="17"/><text x="363" y="214">7</text>
+                    </g>
+                    <g class="diagram-node" data-term="hardPalate" role="button" tabindex="0" aria-label="Hard palate">
+                        <circle cx="398" cy="209" r="17"/><text x="398" y="214">8</text>
+                    </g>
+                    <g class="diagram-node" data-term="alveolar" role="button" tabindex="0" aria-label="Alveolar ridge" data-i18n-aria="phonology.termAlveolar">
+                        <circle cx="435" cy="220" r="17"/><text x="435" y="225">9</text>
+                    </g>
+                    <g class="diagram-node" data-term="tongueBody" role="button" tabindex="0" aria-label="Tongue body">
+                        <circle cx="380" cy="251" r="17"/><text x="380" y="256">10</text>
+                    </g>
+                    <g class="diagram-node" data-term="lips" role="button" tabindex="0" aria-label="Lips and teeth" data-i18n-aria="phonology.termLips">
+                        <circle cx="475" cy="240" r="17"/><text x="475" y="245">11</text>
+                    </g>
+                </svg>
+            </div>
+            <div class="diagram-controls">
+                <p class="diagram-caption" data-i18n="phonology.diagramCaption">Airflow direction · select an organ below to highlight it and trace the airstream</p>
+                <button class="airflow-replay" id="replayAirflow" type="button"><span aria-hidden="true">↻</span><span data-i18n="phonology.replay">Trace airflow</span></button>
+            </div>
+            <p class="airflow-status" id="airflowStatus" role="status" aria-live="polite" data-i18n="phonology.flowReady">Select an organ to follow the airflow from the lungs to the mouth.</p>
+            <div class="term-index" id="termIndex" aria-label="Speech production terms" data-i18n-aria="phonology.termIndex"></div>
+        </div>
+
+        <aside class="term-detail" aria-live="polite" aria-labelledby="termTitle">
+            <p class="eyebrow" data-i18n="phonology.selectedTerm">SELECTED TERM</p>
+            <h2 id="termTitle" data-i18n="phonology.termDiaphragm">Diaphragm</h2>
+            <p class="term-definition" id="termDefinition" data-i18n="phonology.definitionDiaphragm">The main muscle involved in inhalation. Its movement helps create the airflow used for speech.</p>
+            <div class="term-facts">
+                <p><span data-i18n="phonology.termRole">Role</span><strong id="termRole" data-i18n="phonology.roleDiaphragm">Airstream support</strong></p>
+                <p><span data-i18n="phonology.termStage">Speech pathway</span><strong id="termStage" data-i18n="phonology.stageDiaphragm">1 · Initiation</strong></p>
+            </div>
+            <p class="airflow-note" data-i18n="phonology.airflowNote">For most English speech, air flows outward from the lungs (a pulmonic egressive airstream).</p>
+        </aside>
+    </section>
+
+    <section class="sound-demo" aria-labelledby="soundDemoTitle">
+        <div class="phonology-section-heading">
+            <span class="tool-index">02</span>
+            <h2 id="soundDemoTitle" data-i18n="phonology.soundDemoTitle">How organs work together to make a sound</h2>
+        </div>
+        <p class="concepts-intro" data-i18n="phonology.soundDemoIntro">Choose a sound to see its airflow route, voicing and articulators working together.</p>
+        <div class="sound-choices" role="group" aria-label="Choose a sound example" data-i18n-aria="phonology.soundChoices">
+            <button type="button" class="sound-choice is-active" data-demo="m" aria-pressed="true"><strong>/m/</strong><span>moon</span></button>
+            <button type="button" class="sound-choice" data-demo="s" aria-pressed="false"><strong>/s/</strong><span>see</span></button>
+            <button type="button" class="sound-choice" data-demo="t" aria-pressed="false"><strong>/t/</strong><span>tea</span></button>
+            <button type="button" class="sound-choice" data-demo="a" aria-pressed="false"><strong>/ɑː/</strong><span>father</span></button>
+            <button type="button" class="sound-choice" data-demo="h" aria-pressed="false"><strong>/h/</strong><span>hat</span></button>
+        </div>
+        <div class="sound-demo-layout">
+            <div class="sound-demo-explanation">
+                <p class="eyebrow" data-i18n="phonology.soundInFocus">SOUND IN FOCUS</p>
+                <h3 id="demoSymbol">/m/ · moon</h3>
+                <p id="demoDescription" class="demo-description" aria-live="polite"></p>
+                <div class="demo-facts">
+                    <p><span data-i18n="phonology.demoPlace">Place</span><strong id="demoPlace"></strong></p>
+                    <p><span data-i18n="phonology.demoManner">Manner</span><strong id="demoManner"></strong></p>
+                    <p><span data-i18n="phonology.demoVoicing">Voicing</span><strong id="demoVoicing"></strong></p>
+                    <p><span data-i18n="phonology.demoAirRoute">Air route</span><strong id="demoAirRoute"></strong></p>
+                </div>
+            </div>
+            <div class="sound-demo-steps">
+                <h3 data-i18n="phonology.demoSequence">How the sound is made</h3>
+                <ol id="soundSteps"></ol>
+                <h3 class="participating-title" data-i18n="phonology.demoOrgans">Participating organs</h3>
+                <div id="demoParticipants" class="demo-participants"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="phoneme-inventory" aria-labelledby="inventoryTitle">
+        <div class="phonology-section-heading">
+            <span class="tool-index">03</span>
+            <h2 id="inventoryTitle" data-i18n="phonology.inventoryTitle">English sound inventory</h2>
+        </div>
+        <p class="inventory-intro" data-i18n="phonology.inventoryIntro">Select a sound to inspect its articulation, voicing and position on the vocal-tract diagram. Diphthongs animate the tongue glide.</p>
+        <div class="inventory-filters" role="group" aria-label="Filter sound inventory" data-i18n-aria="phonology.inventoryFilters">
+            <button type="button" class="inventory-filter is-active" data-inventory-filter="all" aria-pressed="true" data-i18n="phonology.inventoryAll">All 44 sounds</button>
+            <button type="button" class="inventory-filter" data-inventory-filter="consonant" aria-pressed="false" data-i18n="phonology.inventoryConsonants">24 consonants</button>
+            <button type="button" class="inventory-filter" data-inventory-filter="monophthong" aria-pressed="false" data-i18n="phonology.inventoryMonophthongs">12 vowels</button>
+            <button type="button" class="inventory-filter" data-inventory-filter="diphthong" aria-pressed="false" data-i18n="phonology.inventoryDiphthongs">8 diphthongs</button>
+        </div>
+        <p class="inventory-reference-note" data-i18n="phonology.inventoryAccentNote">Vowel inventory: a common Standard Southern British teaching reference. Vowel systems and some pronunciations differ across English accents.</p>
+        <div class="inventory-layout">
+            <div class="inventory-sound-grid" id="inventorySoundGrid" role="group" aria-label="English phonemes"></div>
+            <aside class="inventory-detail" aria-live="polite" aria-labelledby="inventorySoundTitle">
+                <div class="inventory-diagram-wrap">
+                    <svg class="inventory-diagram" viewBox="0 0 440 260" role="img" aria-labelledby="inventorySvgTitle inventorySvgDescription">
+                        <title id="inventorySvgTitle" data-i18n="phonology.inventorySvgTitle">Side view of the vocal tract during sound production</title>
+                        <desc id="inventorySvgDescription" data-i18n="phonology.inventorySvgDescription">The illustration marks the place of articulation and shows airflow through the mouth or nose.</desc>
+                        <defs>
+                            <marker id="inventoryAirArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+                                <path d="M0 0 L8 4 L0 8Z" fill="#d5ff3f" />
+                            </marker>
+                        </defs>
+                        <path class="inventory-head" d="M76 237 C45 195 53 99 104 54 C144 17 211 23 254 45 C290 64 306 91 320 116 C346 123 378 137 399 151 L399 163 L379 169 L352 175 L326 174 C303 191 287 215 279 237Z" />
+                        <path class="inventory-nasal-space" d="M294 93 Q332 93 357 112 L385 146 Q360 139 335 134 L301 123Z" />
+                        <path class="inventory-oral-space" d="M211 116 Q267 108 326 130 L380 151 Q365 164 331 163 Q281 158 235 152Z" />
+                        <path class="inventory-palate" d="M211 116 Q270 108 326 130" />
+                        <path class="inventory-velum" d="M326 130 Q340 135 347 141" />
+                        <path class="inventory-teeth" d="M365 143 L383 150 L378 159 L360 154Z" />
+                        <path class="inventory-tongue" d="M163 187 Q208 157 257 151 Q306 150 351 160 Q313 177 269 180 Q217 183 163 187Z" />
+                        <path class="inventory-lips" d="M381 149 Q394 148 401 153 Q394 160 380 160" />
+                        <path class="inventory-pharynx" d="M211 119 Q194 143 185 169" />
+                        <path class="inventory-larynx" d="M163 181 L178 188 L177 207 L162 215Z" />
+                        <path class="inventory-vocal-folds" d="M164 197 L176 197 M164 202 L176 202" />
+                        <path id="inventoryFlowPath" class="inventory-flow-path" d="M124 217 C143 205 152 188 165 175 C187 150 222 144 261 145 C309 145 351 150 386 154" />
+                        <path id="inventoryGlidePath" class="inventory-glide-path" d="M260 150 L320 120" />
+                        <circle id="inventoryTongueMarker" class="inventory-tongue-marker" cx="260" cy="150" r="8">
+                            <animateMotion id="inventoryGlideMotion" dur="1.3s" repeatCount="indefinite" begin="indefinite"><mpath href="#inventoryGlidePath" /></animateMotion>
+                        </circle>
+                        <circle id="inventoryPlaceMarker" class="inventory-place-marker" cx="365" cy="150" r="8" />
+                        <text class="inventory-label" x="58" y="235" data-i18n="phonology.inventoryLarynxLabel">LARYNX</text>
+                        <text class="inventory-label" x="278" y="197" data-i18n="phonology.inventoryTongueLabel">TONGUE</text>
+                        <text class="inventory-label" x="345" y="82" data-i18n="phonology.inventoryNoseLabel">NOSE</text>
+                    </svg>
+                </div>
+                <div class="inventory-sound-summary">
+                    <p class="eyebrow" data-i18n="phonology.selectedSound">SELECTED SOUND</p>
+                    <h3 id="inventorySoundTitle">/p/</h3>
+                    <p class="inventory-example" id="inventorySoundExample"></p>
+                    <p class="inventory-explanation" id="inventorySoundExplanation" aria-live="polite"></p>
+                    <dl class="inventory-properties" id="inventoryProperties"></dl>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="phonology-concepts" aria-labelledby="conceptsTitle">
+        <div class="phonology-section-heading">
+            <span class="tool-index">04</span>
+            <h2 id="conceptsTitle" data-i18n="phonology.conceptsTitle">The sound system</h2>
+        </div>
+        <p class="concepts-intro" data-i18n="phonology.conceptsIntro">Phonology studies how a language organizes sounds into meaningful patterns.</p>
+        <div class="concept-list">
+            <details class="concept-item" open>
+                <summary data-i18n="phonology.conceptPhoneme">Phoneme and contrast</summary>
+                <p data-i18n="phonology.conceptPhonemeText">A phoneme is a sound category that can distinguish words. In English, /p/ and /b/ contrast in pat and bat. A minimal pair differs in one sound and demonstrates that contrast.</p>
+            </details>
+            <details class="concept-item">
+                <summary data-i18n="phonology.conceptAllophone">Allophones and distribution</summary>
+                <p data-i18n="phonology.conceptAllophoneText">Allophones are context-dependent pronunciations of one phoneme that do not change word meaning. Their distribution may be predictable from neighboring sounds, or vary across speakers.</p>
+            </details>
+            <details class="concept-item">
+                <summary data-i18n="phonology.conceptSyllable">Syllables and sound patterns</summary>
+                <p data-i18n="phonology.conceptSyllableText">A syllable is commonly described as an onset, a nucleus and an optional coda. Languages differ in which consonant sequences they allow at syllable edges.</p>
+            </details>
+            <details class="concept-item">
+                <summary data-i18n="phonology.conceptProsody">Stress, rhythm and intonation</summary>
+                <p data-i18n="phonology.conceptProsodyText">Prosody organizes speech above the individual sound: stress marks relative prominence, rhythm patterns timing, and intonation uses pitch movement to shape phrasing and meaning.</p>
+            </details>
+            <details class="concept-item">
+                <summary data-i18n="phonology.conceptProcesses">Common sound processes</summary>
+                <p data-i18n="phonology.conceptProcessesText">Assimilation makes a sound more like a neighbor; deletion removes a sound; insertion adds one; and neutralization removes a contrast in a particular context. These patterns vary by language and speaking style.</p>
+            </details>
+        </div>
+    </section>
+
+    <section class="phonology-academics" aria-labelledby="referencesTitle">
+        <div class="phonology-section-heading">
+            <span class="tool-index">05</span>
+            <h2 id="referencesTitle" data-i18n="phonology.referencesTitle">Academic references</h2>
+        </div>
+        <p data-i18n="phonology.referencesIntro">The diagram and definitions use established descriptions of the vocal tract and speech production:</p>
+        <ol class="reference-list">
+            <li><span>Ladefoged, P., &amp; Johnson, K. (2015). <cite>A Course in Phonetics</cite> (7th ed.). Cengage Learning.</span></li>
+            <li><span>International Phonetic Association. (1999). <cite>Handbook of the International Phonetic Association</cite>. Cambridge University Press.</span></li>
+            <li><span>Roach, P. (2009). <cite>English Phonetics and Phonology: A Practical Course</cite> (4th ed.). Cambridge University Press.</span></li>
+            <li><span>Catford, J. C. (2001). <cite>A Practical Introduction to Phonetics</cite> (2nd ed.). Oxford University Press.</span></li>
+        </ol>
+        <p class="attribution-note" data-i18n="phonology.thakurNote">Attribution note: an initial Crossref and Open Library catalogue search did not identify a verifiable phonetics publication by “Dr. Thakur Damodar”. No rules are attributed to this name here without a specific title or source. Share the publication details to add a precise citation.</p>
+    </section>
+</main>
+
+<script src="{{ url_for('static', filename='phonology.js') }}" defer></script>
+<script src="{{ url_for('static', filename='phonology-inventory.js') }}" defer></script>
+</body>
+</html>

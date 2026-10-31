@@ -14,6 +14,7 @@
             'language.switchToEnglish': 'EN',
             'nav.home': 'Home',
             'nav.phonetics': 'Phonetics',
+            'nav.phonology': 'Phonology',
             'nav.about': 'Who we are?',
             'nav.contact': 'Contact us',
             'nav.feedback': 'Feedback',
@@ -31,6 +32,8 @@
             'home.tools': 'Pronunciation tools',
             'home.phoneticsTitle': 'Phonetics',
             'home.phoneticsText': 'Explore pronunciation with IPA transcription.',
+            'home.phonologyTitle': 'Phonology',
+            'home.phonologyText': 'Explore speech sounds and how the vocal tract produces them.',
             'home.peopleTitle': 'People',
             'home.peopleText': 'Meet the teachers, colleagues, and contributors.',
             'home.aboutTitle': 'About the Studio',
@@ -100,7 +103,92 @@
             'thanks.faculty': 'Professors and Supervisors',
             'thanks.people': 'Colleagues and Students',
             'phonetics.heading': 'English, sound by sound.',
+            'phonology.eyebrow': 'SPEECH LAB / 03',
+            'phonology.title': 'How speech is made',
+            'phonology.intro': 'Trace the airstream from the diaphragm to the articulators. Select a region to explore its role in speech production.',
+            'phonology.diagramTitle': 'The speech production system',
+            'phonology.svgTitle': 'Interactive diagram of the speech production system',
+            'phonology.svgDescription': 'A side-view diagram connects the diaphragm and lungs through the larynx to the mouth, nose and articulators.',
+            'phonology.labelDiaphragm': 'DIAPHRAGM',
+            'phonology.labelRibCage': 'RIB CAGE',
+            'phonology.labelLungs': 'LUNGS',
+            'phonology.labelLarynx': 'LARYNX',
+            'phonology.labelTrachea': 'TRACHEA',
+            'phonology.labelBronchi': 'BRONCHI',
+            'phonology.labelVocalFolds': 'VOCAL FOLDS',
+            'phonology.labelEpiglottis': 'EPIGLOTTIS',
+            'phonology.labelNasal': 'NASAL CAVITY',
+            'phonology.labelOral': 'ORAL CAVITY',
+            'phonology.labelPalate': 'PALATE',
+            'phonology.labelTongue': 'TONGUE',
+            'phonology.diagramCaption': 'Select an organ below to highlight it and trace the airstream.',
+            'phonology.replay': 'Trace airflow',
+            'phonology.flowReady': 'Select an organ to follow the airflow from the lungs to the mouth.',
+            'phonology.flowActive': 'Tracing the airstream from the lungs through the vocal tract.',
+            'phonology.flowActiveNasal': 'Air flows from the lungs and exits through the nose.',
+            'phonology.termIndex': 'Speech production terms',
+            'phonology.groupRespiratory': 'Respiratory system',
+            'phonology.groupPhonatory': 'Phonation and voice',
+            'phonology.groupResonance': 'Resonating cavities',
+            'phonology.groupArticulation': 'Articulators',
+            'phonology.soundDemoTitle': 'How organs work together to make a sound',
+            'phonology.soundDemoIntro': 'Choose a sound to see its airflow route, voicing and articulators working together.',
+            'phonology.soundChoices': 'Choose a sound example',
+            'phonology.soundInFocus': 'SOUND IN FOCUS',
+            'phonology.demoPlace': 'Place',
+            'phonology.demoManner': 'Manner',
+            'phonology.demoVoicing': 'Voicing',
+            'phonology.demoAirRoute': 'Air route',
+            'phonology.demoSequence': 'How the sound is made',
+            'phonology.demoOrgans': 'Participating organs',
+            'phonology.inventoryTitle': 'English sound inventory',
+            'phonology.inventoryIntro': 'Select a sound to inspect its articulation, voicing and position on the vocal-tract diagram. Diphthongs animate the tongue glide.',
+            'phonology.inventoryFilters': 'Filter sound inventory',
+            'phonology.inventoryAll': 'All 44 sounds',
+            'phonology.inventoryConsonants': '24 consonants',
+            'phonology.inventoryMonophthongs': '12 vowels',
+            'phonology.inventoryDiphthongs': '8 diphthongs',
+            'phonology.inventoryAccentNote': 'Vowel inventory: a common Standard Southern British teaching reference. Vowel systems and some pronunciations differ across English accents.',
+            'phonology.inventorySvgTitle': 'Side view of the vocal tract during sound production',
+            'phonology.inventorySvgDescription': 'The illustration marks the place of articulation and shows airflow through the mouth or nose.',
+            'phonology.inventoryLarynxLabel': 'LARYNX',
+            'phonology.inventoryTongueLabel': 'TONGUE',
+            'phonology.inventoryNoseLabel': 'NOSE',
+            'phonology.selectedSound': 'SELECTED SOUND',
+            'phonology.selectedTerm': 'SELECTED TERM',
+            'phonology.termDiaphragm': 'Diaphragm',
+            'phonology.termLungs': 'Lungs',
+            'phonology.termTrachea': 'Trachea',
+            'phonology.termLarynx': 'Larynx and vocal folds',
+            'phonology.termPharynx': 'Pharynx',
+            'phonology.termNasal': 'Nasal cavity',
+            'phonology.termVelum': 'Velum (soft palate)',
+            'phonology.termPalate': 'Hard palate',
+            'phonology.termAlveolar': 'Alveolar ridge',
+            'phonology.termTongue': 'Tongue',
+            'phonology.termLips': 'Lips and teeth',
+            'phonology.definitionDiaphragm': 'The main muscle involved in inhalation. Its movement helps create the airflow used for speech.',
+            'phonology.termRole': 'Role',
+            'phonology.roleDiaphragm': 'Airstream support',
+            'phonology.termStage': 'Speech pathway',
+            'phonology.stageDiaphragm': '1 · Initiation',
+            'phonology.airflowNote': 'For most English speech, air flows outward from the lungs (a pulmonic egressive airstream).',
+            'phonology.referencesTitle': 'Academic references',
+            'phonology.referencesIntro': 'The diagram and definitions use established descriptions of the vocal tract and speech production:',
+            'phonology.thakurNote': 'Attribution note: an initial Crossref and Open Library catalogue search did not identify a verifiable phonetics publication by “Dr. Thakur Damodar”. No rules are attributed to this name here without a specific title or source. Share the publication details to add a precise citation.',
             'phonetics.intro': 'Explore phonemes, compare accents, and listen to each sound in context.',
+            'phonology.conceptsTitle': 'The sound system',
+            'phonology.conceptsIntro': 'Phonology studies how a language organizes sounds into meaningful patterns.',
+            'phonology.conceptPhoneme': 'Phoneme and contrast',
+            'phonology.conceptPhonemeText': 'A phoneme is a sound category that can distinguish words. In English, /p/ and /b/ contrast in pat and bat. A minimal pair differs in one sound and demonstrates that contrast.',
+            'phonology.conceptAllophone': 'Allophones and distribution',
+            'phonology.conceptAllophoneText': 'Allophones are context-dependent pronunciations of one phoneme that do not change word meaning. Their distribution may be predictable from neighboring sounds, or vary across speakers.',
+            'phonology.conceptSyllable': 'Syllables and sound patterns',
+            'phonology.conceptSyllableText': 'A syllable is commonly described as an onset, a nucleus and an optional coda. Languages differ in which consonant sequences they allow at syllable edges.',
+            'phonology.conceptProsody': 'Stress, rhythm and intonation',
+            'phonology.conceptProsodyText': 'Prosody organizes speech above the individual sound: stress marks relative prominence, rhythm patterns timing, and intonation uses pitch movement to shape phrasing and meaning.',
+            'phonology.conceptProcesses': 'Common sound processes',
+            'phonology.conceptProcessesText': 'Assimilation makes a sound more like a neighbor; deletion removes a sound; insertion adds one; and neutralization removes a contrast in a particular context. These patterns vary by language and speaking style.',
             'phonetics.labOne': 'SPEECH LAB / 01',
             'phonetics.labTwo': 'SPEECH LAB / 02',
             'phonetics.transcription': 'IPA transcription',
@@ -192,6 +280,7 @@
             'language.switchToEnglish': 'EN',
             'nav.home': 'الرئيسية',
             'nav.phonetics': 'الأصوات',
+            'nav.phonology': 'علم الأصوات',
             'nav.about': 'من نحن',
             'nav.contact': 'تواصل معنا',
             'nav.feedback': 'الاقتراحات',
@@ -209,6 +298,8 @@
             'home.tools': 'أدوات النطق',
             'home.phoneticsTitle': 'الصوتيات',
             'home.phoneticsText': 'تعرّف على النطق باستخدام رموز IPA الصوتية.',
+            'home.phonologyTitle': 'علم الأصوات',
+            'home.phonologyText': 'استكشف أصوات الكلام وكيفية إنتاجها بواسطة الجهاز الصوتي.',
             'home.peopleTitle': 'فريق العمل',
             'home.peopleText': 'تعرّف على المدرسين والزملاء والمساهمين.',
             'home.aboutTitle': 'عن المنصة',
@@ -278,7 +369,85 @@
             'thanks.faculty': 'الأساتذة والمشرفون',
             'thanks.people': 'الزملاء والطلاب',
             'phonetics.heading': 'الإنجليزية، صوتاً بعد صوت.',
+            'phonology.eyebrow': 'مختبر النطق / 03',
+            'phonology.title': 'كيف يتكوّن الكلام',
+            'phonology.intro': 'تتبّع تيار الهواء من الحجاب الحاجز إلى أعضاء النطق. اختر منطقة لمعرفة دورها في إنتاج الكلام.',
+            'phonology.diagramTitle': 'جهاز إنتاج الكلام',
+            'phonology.svgTitle': 'رسم تفاعلي لجهاز إنتاج الكلام',
+            'phonology.svgDescription': 'رسم جانبي يوضح اتصال الحجاب الحاجز والرئتين بالحنجرة ثم الفم والأنف وأعضاء النطق.',
+            'phonology.labelDiaphragm': 'الحجاب الحاجز',
+            'phonology.labelLungs': 'الرئتان',
+            'phonology.labelLarynx': 'الحنجرة',
+            'phonology.labelNasal': 'التجويف الأنفي',
+            'phonology.labelOral': 'التجويف الفموي',
+            'phonology.diagramCaption': 'اختر عضواً أدناه لإبرازه وتتبع تيار الهواء.',
+            'phonology.replay': 'تتبّع تيار الهواء',
+            'phonology.flowReady': 'اختر عضواً لتتبّع الهواء من الرئتين إلى الفم.',
+            'phonology.flowActive': 'يتحرك تيار الهواء من الرئتين عبر الجهاز الصوتي.',
+            'phonology.flowActiveNasal': 'يتحرك الهواء من الرئتين ويخرج عبر الأنف.',
+            'phonology.termIndex': 'مصطلحات إنتاج الكلام',
+            'phonology.groupRespiratory': 'الجهاز التنفسي',
+            'phonology.groupPhonatory': 'التصويت والصوت',
+            'phonology.groupResonance': 'تجاويف الرنين',
+            'phonology.groupArticulation': 'أعضاء النطق',
+            'phonology.soundDemoTitle': 'كيف تتعاون الأعضاء لإنتاج صوت؟',
+            'phonology.soundDemoIntro': 'اختر صوتاً لمشاهدة مسار الهواء والجهر وأعضاء النطق وهي تعمل معاً.',
+            'phonology.soundChoices': 'اختر مثالاً صوتياً',
+            'phonology.soundInFocus': 'الصوت المحدد',
+            'phonology.demoPlace': 'موضع النطق',
+            'phonology.demoManner': 'طريقة النطق',
+            'phonology.demoVoicing': 'الجهر',
+            'phonology.demoAirRoute': 'مسار الهواء',
+            'phonology.demoSequence': 'كيف يتكوّن الصوت',
+            'phonology.demoOrgans': 'الأعضاء المشاركة',
+            'phonology.inventoryTitle': 'مخزون الأصوات الإنجليزية',
+            'phonology.inventoryIntro': 'اختر صوتاً لمعرفة طريقة نطقه وجهريته وموضعه على رسم الجهاز الصوتي. تتحرك علامة اللسان في الحركات المزدوجة.',
+            'phonology.inventoryFilters': 'تصفية مخزون الأصوات',
+            'phonology.inventoryAll': 'كل الأصوات الـ44',
+            'phonology.inventoryConsonants': '24 صامتاً',
+            'phonology.inventoryMonophthongs': '12 حركة مفردة',
+            'phonology.inventoryDiphthongs': '8 حركات مزدوجة',
+            'phonology.inventoryAccentNote': 'الحركات هنا وفق مرجع تعليمي شائع للإنجليزية البريطانية الجنوبية القياسية. تختلف أنظمة الحركات وبعض النطقات بين اللهجات.',
+            'phonology.inventorySvgTitle': 'منظر جانبي لمجرى الصوت أثناء إنتاج الصوت',
+            'phonology.inventorySvgDescription': 'يوضح الرسم موضع النطق ومسار الهواء عبر الفم أو الأنف.',
+            'phonology.inventoryLarynxLabel': 'الحنجرة',
+            'phonology.inventoryTongueLabel': 'اللسان',
+            'phonology.inventoryNoseLabel': 'الأنف',
+            'phonology.selectedSound': 'الصوت المحدد',
+            'phonology.selectedTerm': 'المصطلح المحدد',
+            'phonology.termDiaphragm': 'الحجاب الحاجز',
+            'phonology.termLungs': 'الرئتان',
+            'phonology.termTrachea': 'القصبة الهوائية',
+            'phonology.termLarynx': 'الحنجرة والطيتان الصوتيتان',
+            'phonology.termPharynx': 'البلعوم',
+            'phonology.termNasal': 'التجويف الأنفي',
+            'phonology.termVelum': 'الطبق (الحنك اللين)',
+            'phonology.termPalate': 'الحنك الصلب',
+            'phonology.termAlveolar': 'اللثة (الحافة السنخية)',
+            'phonology.termTongue': 'اللسان',
+            'phonology.termLips': 'الشفتان والأسنان',
+            'phonology.definitionDiaphragm': 'العضلة الأساسية في الشهيق. تساعد حركتها على توليد تيار الهواء المستخدم في الكلام.',
+            'phonology.termRole': 'الدور',
+            'phonology.roleDiaphragm': 'دعم تيار الهواء',
+            'phonology.termStage': 'مسار إنتاج الكلام',
+            'phonology.stageDiaphragm': '1 · بدء تيار الهواء',
+            'phonology.airflowNote': 'في معظم أصوات الإنجليزية، يخرج الهواء من الرئتين إلى الخارج (تيار هوائي رئوي زفيري).',
+            'phonology.referencesTitle': 'مراجع أكاديمية',
+            'phonology.referencesIntro': 'يستند الرسم والتعريفات إلى أوصاف معتمدة للجهاز الصوتي وإنتاج الكلام:',
+            'phonology.thakurNote': 'ملاحظة حول النسبة: لم يُظهر البحث الأولي في فهرسي Crossref وOpen Library منشوراً صوتياً يمكن التحقق منه باسم «د. ثاكور دامودار». لذلك لم ننسب إليه قواعد دون عنوان أو مصدر محدد. أرسل بيانات المرجع لإضافته باستشهاد دقيق.',
             'phonetics.intro': 'اكتشف الأصوات وقارن اللهجات واستمع إلى كل صوت في سياقه.',
+            'phonology.conceptsTitle': 'النظام الصوتي للغة',
+            'phonology.conceptsIntro': 'يدرس علم الأصوات كيفية تنظيم اللغة لأصواتها في أنماط ذات معنى.',
+            'phonology.conceptPhoneme': 'الفونيم والتقابل الصوتي',
+            'phonology.conceptPhonemeText': 'الفونيم فئة صوتية يمكنها التمييز بين الكلمات. يتقابل /p/ و/b/ في كلمتي pat وbat. والزوج الأدنى كلمتان تختلفان في صوت واحد، ما يوضح هذا التقابل.',
+            'phonology.conceptAllophone': 'الألوفونات والتوزيع',
+            'phonology.conceptAllophoneText': 'الألوفونات نطقات سياقية للفونيم نفسه لا تغيّر معنى الكلمة. وقد يمكن توقع توزيعها من الأصوات المجاورة، أو تختلف باختلاف المتحدثين.',
+            'phonology.conceptSyllable': 'المقاطع والأنماط الصوتية',
+            'phonology.conceptSyllableText': 'يوصف المقطع عادة بأنه بداية ونواة وقافية اختيارية. وتختلف اللغات في تتابعات الصوامت التي تسمح بها في أطراف المقاطع.',
+            'phonology.conceptProsody': 'النبر والإيقاع والتنغيم',
+            'phonology.conceptProsodyText': 'ينظم التنغيم الكلام بما يتجاوز الصوت المفرد: يحدد النبر البروز النسبي، وينظم الإيقاع التوقيت، ويسهم تغير طبقة الصوت في بناء العبارات والمعنى.',
+            'phonology.conceptProcesses': 'عمليات صوتية شائعة',
+            'phonology.conceptProcessesText': 'يجعل المماثلة الصوت أقرب إلى صوت مجاور، ويحذف الحذف صوتاً، ويضيف الإدراج صوتاً، ويزيل التعادل تقابلاً في سياق محدد. وتختلف هذه الأنماط بين اللغات وأساليب الكلام.',
             'phonetics.labOne': 'مختبر النطق / 01',
             'phonetics.labTwo': 'مختبر النطق / 02',
             'phonetics.transcription': 'التحويل إلى رموز IPA',
@@ -358,20 +527,16 @@
         }
     };
 
-    const languageKey = 'nizarphonetics-language';
-    const prompt = document.getElementById('languagePrompt');
-    const switcher = document.getElementById('languageSwitcher');
-    let activeLanguage = localStorage.getItem(languageKey) === 'ar' ? 'ar' : 'en';
+    const activeLanguage = 'en';
 
     function translate(key) {
-        return translations[activeLanguage][key] || translations.en[key] || key;
+        return translations.en[key] || key;
     }
 
-    function applyLanguage(language) {
-        activeLanguage = language === 'ar' ? 'ar' : 'en';
-        document.documentElement.lang = activeLanguage;
-        document.documentElement.dir = activeLanguage === 'ar' ? 'rtl' : 'ltr';
-        document.body.classList.toggle('is-arabic', activeLanguage === 'ar');
+    function applyEnglish() {
+        document.documentElement.lang = 'en';
+        document.documentElement.dir = 'ltr';
+        document.body.classList.remove('is-arabic');
 
         document.querySelectorAll('[data-i18n]').forEach(element => {
             element.textContent = translate(element.dataset.i18n);
@@ -385,32 +550,13 @@
         document.querySelectorAll('[data-i18n-title]').forEach(element => {
             element.title = translate(element.dataset.i18nTitle);
         });
-        if (switcher) {
-            switcher.textContent = translate(activeLanguage === 'ar' ? 'language.switchToEnglish' : 'language.switchToArabic');
-        }
+        document.querySelector('.site-announcement-close')?.addEventListener('click', () => {
+            document.querySelector('.site-announcement')?.remove();
+        });
         document.dispatchEvent(new CustomEvent('site-language-changed', {detail: {language: activeLanguage}}));
     }
 
-    function chooseLanguage(language) {
-        localStorage.setItem(languageKey, language);
-        applyLanguage(language);
-        if (prompt?.open) prompt.close();
-    }
-
-    applyLanguage(activeLanguage);
-    if (!localStorage.getItem(languageKey) && window.siteLanguageConfig?.promptEnabled && prompt?.showModal) {
-        prompt.showModal();
-    }
-
-    prompt?.querySelectorAll('[data-language-choice]').forEach(button => {
-        button.addEventListener('click', () => chooseLanguage(button.dataset.languageChoice));
-    });
-    document.getElementById('languagePromptClose')?.addEventListener('click', () => chooseLanguage('en'));
-    prompt?.addEventListener('cancel', event => {
-        event.preventDefault();
-        chooseLanguage('en');
-    });
-    switcher?.addEventListener('click', () => chooseLanguage(activeLanguage === 'ar' ? 'en' : 'ar'));
+    applyEnglish();
 
     window.siteTranslate = translate;
     window.siteLanguage = () => activeLanguage;

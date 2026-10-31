@@ -10,26 +10,14 @@
     <nav class="site-nav-links" id="main-navigation">
         <a href="/" data-i18n="nav.home" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
         <a href="/phonetics" data-i18n="nav.phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
+        <a href="/phonology" data-i18n="nav.phonology" {% if request.path == '/phonology' %}aria-current="page"{% endif %}>Phonology</a>
         <a href="/about" data-i18n="nav.about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
         <a href="/contact" data-i18n="nav.contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
         <a href="/feedback" data-i18n="nav.feedback" {% if request.path == '/feedback' %}aria-current="page"{% endif %}>Feedback</a>
         <a href="/thanks" data-i18n="nav.thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Acknowledgements</a>
     </nav>
-    <button class="language-switcher" id="languageSwitcher" type="button" aria-label="Change language" data-i18n-aria="language.switch">EN</button>
 </header>
 <style>:root { --site-background-image: url("{{ url_for('site_image', filename='my_photo2.jpg') }}"); }</style>
-<dialog class="language-dialog" id="languagePrompt" aria-labelledby="languagePromptTitle">
-    <section class="language-dialog-panel">
-        <button class="language-dialog-close" id="languagePromptClose" type="button" aria-label="Close and continue in English" data-i18n-aria="language.closeEnglish">×</button>
-        <p class="language-dialog-kicker" data-i18n="language.kicker">LANGUAGE / 01</p>
-        <h2 id="languagePromptTitle" data-i18n="language.title">Choose your language</h2>
-        <p data-i18n="language.description">Select the language you want to use on this site.</p>
-        <div class="language-options">
-            <button type="button" data-language-choice="ar" data-i18n="language.arabic">العربية</button>
-            <button type="button" data-language-choice="en" data-i18n="language.english">English</button>
-        </div>
-    </section>
-</dialog>
 <script>
     const navToggle = document.querySelector('.nav-toggle');
     const navLinks = document.querySelector('.site-nav-links');
@@ -38,6 +26,5 @@
         navToggle.setAttribute('aria-expanded', String(!expanded));
         navLinks.classList.toggle('is-open', !expanded);
     });
-    window.siteLanguageConfig = {promptEnabled: {{ site_content.language_prompt_enabled | tojson }}};
 </script>
 <script src="{{ url_for('static', filename='site-language.js') }}" defer></script>

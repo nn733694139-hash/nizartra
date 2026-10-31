@@ -1,0 +1,207 @@
+.phonology-page { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 54px 0 88px; }
+.phonology-heading { max-width: 760px; margin-bottom: 32px; }
+.phonology-heading .eyebrow { color: var(--site-accent); }
+.phonology-heading h1 { margin: 0; font-size: 46px; line-height: 1.1; }
+.phonology-heading > p:last-child { color: #aaa; line-height: 1.7; }
+.phonology-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 310px); align-items: start; gap: 20px; }
+.phonology-diagram-column, .term-detail { min-width: 0; }
+.phonology-section-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--site-line); }
+.phonology-section-heading h2 { margin: 0; font-size: 20px; }
+.speech-diagram-wrap { margin-top: 12px; border: 1px solid #303030; background: rgba(15,15,15,.9); }
+.speech-diagram { display: block; width: min(100%, 590px); height: auto; margin: 0 auto; }
+.body-outline { fill: url(#bodyDepth); stroke: #879694; stroke-width: 3; }
+.torso-line, .trachea-line, .bronchi-line { fill: none; stroke: #879694; stroke-width: 3; }
+.lung-shape { fill: url(#lungDepth); stroke: var(--site-cyan); stroke-width: 2; }
+.rib-cage { fill: none; stroke: #718083; stroke-width: 3; stroke-linecap: round; opacity: .8; }
+.sternum { fill: none; stroke: #9aa8a6; stroke-width: 3; stroke-linecap: round; }
+.lung-fissure { fill: none; stroke: rgba(190,245,235,.68); stroke-width: 1.5; stroke-linecap: round; }
+.tracheal-rings { fill: none; stroke: #a3b4b1; stroke-width: 2; opacity: .78; }
+.diaphragm-line { fill: none; stroke: var(--site-accent); stroke-width: 4; }
+.airflow-path { fill: none; stroke: var(--site-accent); stroke-width: 5; stroke-dasharray: 7 11; marker-end: url(#airArrow); opacity: .9; }
+.speech-diagram.is-animating .airflow-path { animation: airflow-dash .55s linear infinite; }
+.nasal-airflow-path { display: none; fill: none; stroke: var(--site-accent); stroke-width: 5; stroke-dasharray: 7 11; marker-end: url(#airArrow); opacity: .9; }
+.speech-diagram.is-nasal .airflow-path { opacity: .2; }
+.speech-diagram.is-nasal .nasal-airflow-path { display: block; }
+.speech-diagram.is-nasal .air-particle--oral { display: none; }
+.speech-diagram.is-nasal .air-particle--nasal { display: block; }
+.speech-diagram.is-nasal.is-animating .nasal-airflow-path { animation: airflow-dash .55s linear infinite; }
+.air-particle circle { fill: #fff; stroke: var(--site-accent); stroke-width: 5; filter: drop-shadow(0 0 7px rgba(213,255,63,.8)); }
+.speech-diagram.is-voiced [data-organ="vocal-folds"] { animation: vocal-fold-vibration .12s ease-in-out infinite alternate; }
+@keyframes vocal-fold-vibration { to { stroke-width: 6; filter: drop-shadow(0 0 4px rgba(255,138,112,.8)); } }
+.anatomy-part { transition: stroke .2s ease, filter .2s ease; }
+.anatomy-part.is-selected { stroke: var(--site-accent); filter: drop-shadow(0 0 5px rgba(213,255,63,.6)); }
+@keyframes airflow-dash { to { stroke-dashoffset: -36; } }
+.nasal-cavity, .oral-cavity { fill: #11191a; stroke: #8c999a; stroke-width: 2; }
+.palate-line, .velum-line, .alveolar-line, .uvula-shape, .pharynx-wall, .jaw-shape { fill: none; stroke: #bcc7c5; stroke-width: 3; stroke-linecap: round; }
+.velum-line { stroke: var(--site-cyan); stroke-width: 4; }
+.alveolar-line { stroke: #fff; stroke-width: 5; }
+.uvula-shape { stroke: var(--sound-diphthong); stroke-width: 4; }
+.pharynx-wall { stroke: #718083; stroke-width: 5; }
+.jaw-shape { stroke: #718083; stroke-width: 3; }
+.tongue-shape { fill: rgba(255,138,112,.78); stroke: #ffc0ad; stroke-width: 2; }
+.tongue-tip { fill: #ffb09d; stroke: #fff0ea; stroke-width: 1.5; }
+.teeth-shape { fill: #f0eee3; stroke: #aaa; stroke-width: 1; }
+.lips-shape { fill: none; stroke: var(--sound-diphthong); stroke-width: 4; stroke-linecap: round; }
+.larynx-shape { fill: url(#larynxDepth); stroke: #ff9a83; stroke-width: 2; }
+.thyroid-cartilage, .cricoid-cartilage { fill: rgba(255,138,112,.28); stroke: #ffb09d; stroke-width: 2; }
+.epiglottis { fill: #c5796d; stroke: #ffc0ad; stroke-width: 2; }
+.vocal-folds { fill: #f3b6a8; stroke: #fff0ea; stroke-width: 1.5; stroke-linecap: round; }
+.glottis { fill: none; stroke: #171010; stroke-width: 3; stroke-linecap: round; }
+.anatomy-callout { fill: none; stroke: #aab8b6; stroke-width: 1.2; opacity: .75; }
+.diagram-label { fill: #d3dddb; font: 700 9px "Avenir Next", "Trebuchet MS", sans-serif; letter-spacing: .55px; }
+.diagram-node { cursor: pointer; outline: none; }
+.diagram-node circle { r: 10px; fill: #080808; stroke: var(--site-cyan); stroke-width: 1.5; transition: fill .16s ease, stroke .16s ease; }
+.diagram-node text { fill: #fff; font: 700 8px "Avenir Next", "Trebuchet MS", sans-serif; text-anchor: middle; pointer-events: none; }
+.diagram-node:hover circle, .diagram-node:focus circle, .diagram-node.is-active circle { fill: var(--site-accent); stroke: #080808; }
+.diagram-node:hover text, .diagram-node:focus text, .diagram-node.is-active text { fill: #080808; }
+.diagram-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 9px; }
+.diagram-caption { margin: 0; color: #929292; font-size: 11px; line-height: 1.6; }
+.airflow-replay { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; min-height: 36px; padding: 0 11px; border: 1px solid var(--site-cyan); background: transparent; color: var(--site-cyan); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.airflow-replay:hover { background: var(--site-cyan); color: #080808; }
+.airflow-replay span:first-child { font-size: 17px; }
+.airflow-status { min-height: 1.4em; margin: 6px 0 0; color: #aaa; font-size: 10px; }
+.term-index { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.term-group { min-width: 0; padding-top: 9px; border-top: 1px solid #303030; }
+.term-group h3 { margin: 0 0 7px; color: var(--site-accent); font-size: 11px; }
+.term-group-buttons { display: grid; gap: 4px; }
+.term-index button { display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 38px; padding: 6px 9px; border: 1px solid #303030; background: #101010; color: #c9c9c9; font: inherit; font-size: 11px; text-align: start; cursor: pointer; }
+.term-index button:hover, .term-index button.is-active { border-color: var(--site-cyan); color: var(--site-cyan); }
+.term-index button span { color: var(--site-accent); font-family: monospace; }
+.term-detail { position: sticky; top: 16px; padding: 20px; border: 1px solid #333; background: #101010; }
+.term-detail .eyebrow { margin-bottom: 12px; color: var(--site-muted); font-size: 10px; }
+.term-detail h2 { margin: 0 0 14px; color: var(--site-accent); font-size: 25px; }
+.term-definition { min-height: 105px; margin: 0; color: #ccc; font-size: 13px; line-height: 1.75; }
+.term-facts { margin-top: 17px; border-top: 1px solid #303030; }
+.term-facts p { display: grid; gap: 5px; margin: 0; padding: 12px 0; border-bottom: 1px solid #303030; }
+.term-facts span { color: #929292; font-size: 10px; text-transform: uppercase; }
+.term-facts strong { color: #eee; font-size: 12px; }
+.airflow-note { margin: 17px 0 0; padding-inline-start: 11px; border-inline-start: 2px solid var(--site-cyan); color: #aaa; font-size: 11px; line-height: 1.7; }
+.sound-demo { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--site-line); }
+.sound-demo > .phonology-section-heading h2 { max-width: 650px; }
+.sound-choices { display: flex; flex-wrap: wrap; gap: 5px; margin: 18px 0 20px; }
+.sound-choice { display: grid; min-width: 82px; min-height: 62px; align-content: center; justify-items: start; gap: 4px; padding: 8px 12px; border: 1px solid #393939; background: #101010; color: #ddd; font: inherit; text-align: start; cursor: pointer; }
+.sound-choice:hover { border-color: var(--site-cyan); }
+.sound-choice.is-active { border-color: var(--site-accent); background: rgba(213,255,63,.08); box-shadow: inset 0 2px var(--site-accent); }
+.sound-choice strong { color: var(--site-accent); font-family: "DM Mono", "Courier New", monospace; font-size: 20px; }
+.sound-choice span { color: #aaa; font-size: 10px; }
+.sound-demo-layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 28px; padding-top: 18px; border-top: 1px solid #303030; }
+.sound-demo-explanation { min-width: 0; padding-inline-start: 16px; border-inline-start: 2px solid var(--site-cyan); }
+.sound-demo-explanation .eyebrow { margin-bottom: 8px; font-size: 10px; }
+.sound-demo-explanation h3, .sound-demo-steps h3 { margin: 0 0 12px; color: var(--site-accent); font-size: 17px; }
+.demo-description { margin: 0; color: #c4c4c4; font-size: 12px; line-height: 1.8; }
+.demo-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; margin-top: 18px; border-top: 1px solid #303030; }
+.demo-facts p { display: grid; gap: 5px; margin: 0; padding: 10px 0; border-bottom: 1px solid #303030; }
+.demo-facts span { color: #909090; font-size: 9px; text-transform: uppercase; }
+.demo-facts strong { color: #eee; font-size: 11px; }
+.sound-demo-steps { min-width: 0; }
+.sound-demo-steps ol { display: grid; gap: 0; margin: 0; padding-inline-start: 22px; }
+.sound-demo-steps li { padding: 7px 5px; border-bottom: 1px solid #292929; color: #bbb; font-size: 11px; line-height: 1.7; }
+.sound-demo-steps li::marker { color: var(--site-accent); font-weight: 800; }
+.sound-demo-steps h3.participating-title { margin: 21px 0 10px; font-size: 13px; }
+.demo-participants { display: flex; flex-wrap: wrap; gap: 5px; }
+.demo-participants button { min-height: 30px; padding: 5px 8px; border: 1px solid #3a3a3a; background: #101010; color: var(--site-cyan); font: inherit; font-size: 10px; cursor: pointer; }
+.demo-participants button:hover { border-color: var(--site-cyan); background: rgba(126,246,232,.08); }
+.phonology-concepts { margin-top: 54px; }
+.concepts-intro { margin: 14px 0 20px; color: #aaa; font-size: 13px; line-height: 1.7; }
+.concept-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+.concept-item { min-width: 0; border-top: 1px solid var(--site-line); }
+.concept-item:last-child { border-bottom: 1px solid var(--site-line); }
+.concept-item summary { padding: 15px 2px; color: var(--site-cyan); font-size: 14px; font-weight: 700; cursor: pointer; }
+.concept-item summary::marker { color: var(--site-accent); }
+.concept-item p { margin: 0; padding: 0 2px 17px; color: #bbb; font-size: 12px; line-height: 1.75; }
+.phoneme-inventory { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--site-line); }
+.inventory-intro, .inventory-reference-note { color: #aaa; font-size: 12px; line-height: 1.7; }
+.inventory-intro { margin: 14px 0; }
+.inventory-filters { display: flex; flex-wrap: wrap; gap: 5px; margin: 16px 0 10px; }
+.inventory-filter { min-height: 38px; padding: 0 12px; border: 1px solid #393939; background: #101010; color: #aaa; font: inherit; font-size: 11px; cursor: pointer; }
+.inventory-filter:hover { border-color: var(--site-cyan); color: var(--site-cyan); }
+.inventory-filter.is-active { border-color: var(--site-accent); background: rgba(213,255,63,.08); color: var(--site-accent); }
+.inventory-reference-note { margin: 0 0 16px; color: #858585; font-size: 10px; }
+.inventory-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, .9fr); gap: 16px; align-items: start; }
+.inventory-sound-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); gap: 5px; min-width: 0; }
+.inventory-sound { display: grid; min-width: 0; min-height: 76px; align-content: center; justify-items: start; gap: 4px; padding: 7px 8px; border: 1px solid #303030; background: #101010; color: #bbb; text-align: start; cursor: pointer; }
+.inventory-sound:hover { border-color: var(--site-cyan); }
+.inventory-sound.is-active { border-color: var(--site-accent); background: rgba(213,255,63,.08); box-shadow: inset 0 2px var(--site-accent); }
+.inventory-sound strong { color: var(--site-cyan); font-family: "DM Mono", "Courier New", monospace; font-size: 20px; font-weight: 500; }
+.inventory-sound.is-active strong { color: var(--site-accent); }
+.inventory-sound span { max-width: 100%; color: #ddd; font-size: 10px; overflow-wrap: anywhere; }
+.inventory-sound small { max-width: 100%; color: #838383; font-size: 8px; line-height: 1.3; overflow-wrap: anywhere; }
+.inventory-detail { position: sticky; top: 16px; min-width: 0; border: 1px solid #333; background: #101010; }
+.inventory-diagram-wrap { padding: 8px; border-bottom: 1px solid #303030; background: #090909; }
+.inventory-diagram { display: block; width: 100%; height: auto; }
+.inventory-head { fill: #101515; stroke: #667170; stroke-width: 2.5; }
+.inventory-nasal-space, .inventory-oral-space { fill: #11191a; stroke: #8c999a; stroke-width: 1.5; }
+.inventory-palate, .inventory-velum, .inventory-pharynx, .inventory-larynx, .inventory-vocal-folds { fill: none; stroke: #aeb9b8; stroke-width: 2.5; stroke-linecap: round; }
+.inventory-velum { stroke: var(--site-cyan); stroke-width: 3; }
+.inventory-teeth { fill: #f0eee3; stroke: #aaa; stroke-width: 1; }
+.inventory-tongue { fill: rgba(255,138,112,.7); stroke: #ffc0ad; stroke-width: 1.5; }
+.inventory-lips { fill: none; stroke: var(--sound-diphthong); stroke-width: 3; stroke-linecap: round; }
+.inventory-vocal-folds { stroke: var(--sound-diphthong); }
+.inventory-flow-path { fill: none; stroke: var(--site-accent); stroke-width: 3; stroke-dasharray: 6 8; marker-end: url(#inventoryAirArrow); opacity: .8; animation: airflow-dash .65s linear infinite; }
+.inventory-glide-path { display: none; fill: none; stroke: var(--site-cyan); stroke-width: 2; stroke-dasharray: 4 5; opacity: .65; }
+.inventory-diagram.is-gliding .inventory-glide-path { display: block; }
+.inventory-air-particle circle { fill: #fff; stroke: var(--site-accent); stroke-width: 3; filter: drop-shadow(0 0 5px rgba(213,255,63,.75)); }
+.inventory-tongue-marker { fill: var(--site-accent); stroke: #080808; stroke-width: 2; filter: drop-shadow(0 0 5px rgba(213,255,63,.75)); }
+.inventory-place-marker { fill: var(--sound-diphthong); stroke: #fff; stroke-width: 2; filter: drop-shadow(0 0 5px rgba(255,138,112,.65)); }
+.inventory-diagram .is-hidden { display: none; }
+.inventory-diagram.is-gliding .inventory-tongue-marker { fill: var(--site-cyan); }
+.inventory-diagram.is-voiced .inventory-vocal-folds { animation: vocal-fold-vibration .12s ease-in-out infinite alternate; }
+.inventory-label { fill: #9ba5a4; font: 700 9px "Avenir Next", "Trebuchet MS", sans-serif; letter-spacing: .7px; }
+.inventory-sound-summary { padding: 16px; }
+.inventory-sound-summary .eyebrow { margin-bottom: 6px; color: #858585; font-size: 9px; }
+.inventory-sound-summary h3 { margin: 0; color: var(--site-accent); font-family: "DM Mono", "Courier New", monospace; font-size: 27px; }
+.inventory-example { margin: 5px 0 12px; color: var(--site-cyan); font-size: 12px; }
+.inventory-explanation { margin: 0; color: #c6c6c6; font-size: 11px; line-height: 1.75; }
+.inventory-properties { display: grid; grid-template-columns: minmax(90px, .7fr) minmax(0, 1.3fr); gap: 0 10px; margin: 14px 0 0; border-top: 1px solid #303030; }
+.inventory-properties dt, .inventory-properties dd { min-width: 0; margin: 0; padding: 8px 0; border-bottom: 1px solid #292929; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+.inventory-properties dt { color: #929292; }
+.inventory-properties dd { color: #eee; }
+.phonology-academics { margin-top: 58px; }
+.phonology-academics > p:not(.attribution-note) { color: #aaa; font-size: 13px; line-height: 1.7; }
+.reference-list { display: grid; gap: 0; margin: 18px 0; padding-inline-start: 25px; border-top: 1px solid var(--site-line); }
+.reference-list li { padding: 13px 10px; border-bottom: 1px solid var(--site-line); color: var(--site-cyan); }
+.reference-list li span { color: #d0d0d0; font-size: 12px; line-height: 1.7; }
+.reference-list cite { color: #fff; }
+.attribution-note { margin: 20px 0 0; padding: 14px 16px; border-inline-start: 2px solid var(--sound-diphthong); background: rgba(255,138,112,.06); color: #c4b8b4; font-size: 12px; line-height: 1.7; }
+html[dir="rtl"] .phonology-page { text-align: start; }
+html[dir="rtl"] .diagram-label { letter-spacing: 0; }
+@media (max-width: 760px) {
+    .phonology-workspace { grid-template-columns: 1fr; }
+    .sound-demo-layout { grid-template-columns: 1fr; gap: 22px; }
+    .inventory-layout { grid-template-columns: 1fr; }
+    .term-detail { position: static; }
+    .inventory-detail { position: static; }
+    .term-definition { min-height: 0; }
+}
+@media (max-width: 520px) {
+    .phonology-page { padding-top: 38px; }
+    .phonology-heading h1 { font-size: 36px; }
+    .phonology-section-heading { align-items: flex-start; }
+    .phonology-section-heading h2 { font-size: 18px; }
+    .diagram-label { font-size: 10px; }
+    .term-index, .concept-list { grid-template-columns: 1fr; }
+    .term-index button { font-size: 10px; }
+    .inventory-sound-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .inventory-sound { min-height: 68px; padding: 6px; }
+    .inventory-sound strong { font-size: 17px; }
+    .inventory-sound small { font-size: 7px; }
+    .inventory-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .inventory-filter { min-width: 0; padding: 0 6px; font-size: 10px; }
+    .diagram-controls { align-items: flex-start; flex-direction: column; }
+    .sound-choices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+    .sound-choice { min-width: 0; min-height: 58px; padding: 7px 5px; }
+    .sound-choice strong { font-size: 17px; }
+    .sound-choice span { max-width: 100%; font-size: 9px; overflow-wrap: anywhere; }
+    .demo-facts { gap: 0 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .diagram-node circle, .anatomy-part { transition: none; }
+    .speech-diagram.is-animating .airflow-path { animation: none; }
+    .speech-diagram.is-nasal.is-animating .nasal-airflow-path { animation: none; }
+    .speech-diagram.is-voiced [data-organ="vocal-folds"] { animation: none; }
+    .air-particle { display: none; }
+    .inventory-diagram.is-voiced .inventory-vocal-folds { animation: none; }
+    .inventory-flow-path { animation: none; }
+    .inventory-flow-path { animation: none; }
+    .inventory-air-particle { display: none; }
+}
