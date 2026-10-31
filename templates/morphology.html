@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_content.brand_name }} | Morphology</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='morphology.css') }}">
+</head>
+<body class="{% if site_content.background_enabled %}has-site-background{% endif %}">
+{% include '_navbar.html' %}
+
+<main class="morphology-page">
+    <header class="morphology-heading">
+        <p class="eyebrow" data-i18n="morphology.eyebrow">LANGUAGE LAB / 04</p>
+        <h1 data-i18n="morphology.title">Morphology: how words are built</h1>
+        <p data-i18n="morphology.intro">Explore the smallest meaningful units in language, how they combine, and how words change form or meaning.</p>
+    </header>
+
+    <section class="morphology-overview" aria-labelledby="morphologyDefinitionTitle">
+        <div class="overview-copy">
+            <p class="morphology-kicker">THE IDEA</p>
+            <h2 id="morphologyDefinitionTitle">Morphology studies how words are built.</h2>
+            <p>A word can contain a <strong>root</strong> and smaller meaningful parts called <strong>morphemes</strong>. Affixes attach to a base to change meaning or grammar.</p>
+            <p class="overview-example"><code>un-</code> + <code>happy</code> + <code>-ness</code> = <strong>unhappiness</strong></p>
+        </div>
+        <div class="overview-visual" role="img" aria-label="Animated word breakdown: prefix un, root happy, suffix ness combine into unhappiness">
+            <div class="overview-pieces">
+                <span class="overview-piece prefix-piece"><strong>un-</strong><small>prefix</small></span>
+                <span class="overview-operator">+</span>
+                <span class="overview-piece root-piece"><strong>happy</strong><small>root</small></span>
+                <span class="overview-operator">+</span>
+                <span class="overview-piece suffix-piece"><strong>-ness</strong><small>suffix</small></span>
+            </div>
+            <span class="overview-arrow" aria-hidden="true">↓</span>
+            <strong class="overview-result">unhappiness</strong>
+            <small class="overview-caption">prefix + root + suffix</small>
+        </div>
+    </section>
+
+    <section class="morphology-section morpheme-lab" aria-labelledby="morphemeLabTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">01</span>
+            <div><h2 id="morphemeLabTitle" data-i18n="morphology.labTitle">Morpheme explorer</h2><p data-i18n="morphology.labIntro">Choose a word to inspect its morphemes, bases and structure.</p></div>
+        </div>
+        <div class="example-selector" id="exampleSelector" role="group" aria-label="Choose a word to analyse" data-i18n-aria="morphology.chooseExample"></div>
+        <section class="affixation-board" aria-labelledby="affixationTitle" aria-live="polite">
+            <div class="affixation-board-heading">
+                <div><p class="morphology-kicker">WORD BUILDING</p><h3 id="affixationTitle">Affixation, step by step</h3></div>
+                <span id="affixationCategory" class="affixation-category"></span>
+            </div>
+            <ol id="affixationSteps" class="affixation-steps"></ol>
+        </section>
+        <div class="analysis-layout">
+            <div class="analysis-reading">
+                <p class="morphology-kicker" data-i18n="morphology.selectedWord">WORD ANALYSIS</p>
+                <h3 id="analysisWord" aria-live="polite"></h3>
+                <p id="analysisDefinition" class="analysis-definition"></p>
+                <div id="segmentation" class="segmentation" aria-label="Morpheme segmentation"></div>
+                <dl id="analysisFacts" class="analysis-facts"></dl>
+            </div>
+            <div class="tree-panel">
+                <div class="tree-heading"><h3 data-i18n="morphology.treeTitle">Morphological tree</h3><span data-i18n="morphology.treeKey">build from the inside out</span></div>
+                <div id="morphTree" class="morph-tree" role="img" aria-live="polite" aria-label="Morphological structure tree"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="morphology-section morpheme-types" aria-labelledby="morphemeTypesTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">02</span>
+            <div><h2 id="morphemeTypesTitle" data-i18n="morphology.morphemeTypesTitle">Morpheme types</h2><p data-i18n="morphology.morphemeTypesIntro">A morpheme is the smallest unit that carries meaning or grammatical function.</p></div>
+        </div>
+        <div class="type-columns">
+            <article class="type-column">
+                <h3 data-i18n="morphology.freeTitle">Free morphemes</h3>
+                <p data-i18n="morphology.freeText">Can stand alone as a word. They include lexical roots and grammatical words.</p>
+                <div class="morpheme-examples"><span>book</span><span>green</span><span>and</span><span>quickly</span></div>
+            </article>
+            <article class="type-column">
+                <h3 data-i18n="morphology.boundTitle">Bound morphemes</h3>
+                <p data-i18n="morphology.boundText">Must attach to another form. Roots such as <em>-ceive</em> and affixes such as <em>un-</em> are bound.</p>
+                <div class="morpheme-examples"><span>un-</span><span>-ness</span><span>-ed</span><span>-ceive</span></div>
+            </article>
+        </div>
+        <div class="affix-strip" aria-label="Affix positions">
+            <span><strong>prefix</strong><code>un-</code> + happy</span>
+            <span><strong>infix</strong>rare in English; common in other languages</span>
+            <span><strong>suffix</strong>kind + <code>-ness</code></span>
+            <span><strong>circumfix</strong>one affix split around a base in some languages</span>
+        </div>
+    </section>
+
+    <section class="morphology-section contrast-section" aria-labelledby="contrastTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">03</span>
+            <div><h2 id="contrastTitle" data-i18n="morphology.contrastTitle">Derivation and inflection</h2><p data-i18n="morphology.contrastIntro">Affixes can create a new lexeme or express a grammatical contrast.</p></div>
+        </div>
+        <div class="contrast-table-wrap">
+            <table class="contrast-table">
+                <thead><tr><th data-i18n="morphology.tableProperty">Property</th><th data-i18n="morphology.derivation">Derivational morphology</th><th data-i18n="morphology.inflection">Inflectional morphology</th></tr></thead>
+                <tbody>
+                    <tr><th data-i18n="morphology.tableFunction">Main function</th><td data-i18n="morphology.derivationFunction">Builds a new lexeme or changes word class/meaning.</td><td data-i18n="morphology.inflectionFunction">Expresses grammatical information without creating a new lexeme.</td></tr>
+                    <tr><th data-i18n="morphology.tableExample">Example</th><td><code>teach → teach<strong>er</strong></code> · verb to noun</td><td><code>cat → cat<strong>s</strong></code> · singular to plural</td></tr>
+                    <tr><th data-i18n="morphology.tablePosition">Typical position</th><td data-i18n="morphology.derivationPosition">May be prefix or suffix; ordering is language-specific.</td><td data-i18n="morphology.inflectionPosition">Often outside derivational material in English.</td></tr>
+                    <tr><th data-i18n="morphology.tableEnglish">English examples</th><td><code>un-</code>, <code>-ness</code>, <code>-er</code>, <code>-ize</code></td><td><code>-s</code>, <code>-ed</code>, <code>-ing</code>, <code>-er</code> (comparative)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="table-note" data-i18n="morphology.inflectionNote">A single affix can have different functions in different words; analyse its role in context.</p>
+    </section>
+
+    <section class="morphology-section allomorphy-section" aria-labelledby="allomorphyTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">04</span>
+            <div><h2 id="allomorphyTitle" data-i18n="morphology.allomorphyTitle">Allomorphy: one morpheme, different forms</h2><p data-i18n="morphology.allomorphyIntro">The plural and past-tense morphemes change pronunciation according to their sound environment.</p></div>
+        </div>
+        <div class="allomorphy-grid">
+            <div class="allomorphy-row"><strong>PLURAL <code>-s</code></strong><span><b>/s/</b> cats</span><span><b>/z/</b> dogs</span><span><b>/ɪz/</b> buses</span></div>
+            <div class="allomorphy-row"><strong>PAST <code>-ed</code></strong><span><b>/t/</b> walked</span><span><b>/d/</b> played</span><span><b>/ɪd/</b> wanted</span></div>
+            <div class="allomorphy-row irregular-row"><strong>IRREGULAR</strong><span><b>mouse → mice</b></span><span><b>go → went</b></span><span data-i18n="morphology.suppletion">suppletion / internal change</span></div>
+        </div>
+        <p class="table-note" data-i18n="morphology.allomorphyRule">These are conditioned allomorphs: the choice follows a phonological rule. Irregular forms may follow other patterns.</p>
+    </section>
+
+    <section class="morphology-section word-formation-section" aria-labelledby="wordFormationTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">05</span>
+            <div><h2 id="wordFormationTitle" data-i18n="morphology.wordFormationTitle">Word-formation processes</h2><p data-i18n="morphology.wordFormationIntro">Select a process to reveal how the example is formed.</p></div>
+        </div>
+        <div class="process-explorer">
+            <div id="processList" class="process-list" role="group" aria-label="Word formation process"></div>
+            <aside class="process-detail" aria-live="polite">
+                <p class="morphology-kicker" data-i18n="morphology.processInFocus">PROCESS IN FOCUS</p>
+                <h3 id="processTitle"></h3>
+                <p id="processDescription"></p>
+                <div id="processExample" class="process-example"></div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="morphology-section features-section" aria-labelledby="featuresTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">06</span>
+            <div><h2 id="featuresTitle" data-i18n="morphology.featuresTitle">Morphological features and rules</h2><p data-i18n="morphology.featuresIntro">Roots, bases and stems combine with grammatical features under language-specific constraints.</p></div>
+        </div>
+        <div class="features-grid">
+            <article><h3>Root · base · stem</h3><p><strong>Root:</strong> the irreducible lexical core. <strong>Base:</strong> any form an affix attaches to. <strong>Stem:</strong> the form to which inflection attaches. These terms describe different roles, not always different strings.</p></article>
+            <article><h3>Inflectional features</h3><p>English marks <strong>number</strong> (cat/cats), <strong>tense</strong> (walk/walked), <strong>aspect</strong> (walk/walking), <strong>person</strong> (I walk/she walks), <strong>degree</strong> (small/smaller), and <strong>case</strong> (I/me). Other languages may mark gender, mood, evidentiality, or richer agreement.</p></article>
+            <article><h3>Affixation and order</h3><p>Affixes attach to bases in constrained orders. In <em>un-happi-ness</em>, derivational material builds a word; inflection can attach outside it, as in <em>unhappiness-es</em>.</p></article>
+            <article><h3>Productivity and blocking</h3><p>A productive rule can form new words (<em>re-post</em>). Productivity is not unlimited: phonology, meaning, word class and existing forms constrain which combinations speakers accept.</p></article>
+            <article><h3>Compounding structure</h3><p>Compounds combine lexical bases. English compounds may be written closed (<em>toothbrush</em>), open (<em>post office</em>) or hyphenated (<em>well-known</em>); spelling alone does not determine structure.</p></article>
+            <article><h3>Morphological trees</h3><p>Trees represent hierarchical grouping, not just a sequence of letters. Bracketing can distinguish <em>[unlock]able</em> (“can be unlocked”) from <em>un[lockable]</em> (“not lockable”).</p></article>
+        </div>
+    </section>
+
+    <section class="morphology-section references-section" aria-labelledby="morphologyReferencesTitle">
+        <div class="morphology-section-heading">
+            <span class="tool-index">07</span>
+            <div><h2 id="morphologyReferencesTitle" data-i18n="morphology.referencesTitle">Academic references</h2><p data-i18n="morphology.referencesIntro">Introductory and specialist sources for the concepts in this guide.</p></div>
+        </div>
+        <p class="table-note">The distinctions between free and bound morphemes, derivation and inflection, and major word-formation processes are presented here as established topics in linguistic morphology. Lieber and Bauer provide specialist introductions; Aronoff and Fudeman discuss core morphological concepts and analysis.</p>
+        <ol class="morphology-reference-list">
+            <li>Yule, G. (2020). <cite>The Study of Language</cite> (7th ed.). Cambridge University Press.</li>
+            <li>Fromkin, V., Rodman, R., &amp; Hyams, N. (2014). <cite>An Introduction to Language</cite> (10th ed.). Cengage Learning.</li>
+            <li>Lieber, R. (2016). <cite>Introducing Morphology</cite> (2nd ed.). Cambridge University Press.</li>
+            <li>Bauer, L. (2003). <cite>Introducing Linguistic Morphology</cite> (2nd ed.). Edinburgh University Press.</li>
+            <li>Aronoff, M., &amp; Fudeman, K. (2011). <cite>What Is Morphology?</cite> (2nd ed.). Wiley-Blackwell.</li>
+        </ol>
+        <p class="attribution-note">Attribution note: the bibliographic lookup did not identify an unambiguous morphology publication by the name Dr. Thakur Damodar. No specific rule or research finding is attributed to him here without a verifiable title, journal, DOI, or institutional source. Supplying one of these details will allow his work to be cited accurately.</p>
+    </section>
+</main>
+
+<script src="{{ url_for('static', filename='morphology.js') }}" defer></script>
+</body>
+</html>

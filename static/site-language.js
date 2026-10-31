@@ -15,6 +15,7 @@
             'nav.home': 'Home',
             'nav.phonetics': 'Phonetics',
             'nav.phonology': 'Phonology',
+            'nav.morphology': 'Morphology',
             'nav.about': 'Who we are?',
             'nav.contact': 'Contact us',
             'nav.feedback': 'Feedback',
@@ -34,6 +35,8 @@
             'home.phoneticsText': 'Explore pronunciation with IPA transcription.',
             'home.phonologyTitle': 'Phonology',
             'home.phonologyText': 'Explore speech sounds and how the vocal tract produces them.',
+            'home.morphologyTitle': 'Morphology',
+            'home.morphologyText': 'Explore morphemes, word structure and word formation.',
             'home.peopleTitle': 'People',
             'home.peopleText': 'Meet the teachers, colleagues, and contributors.',
             'home.aboutTitle': 'About the Studio',
@@ -539,16 +542,20 @@
         document.body.classList.remove('is-arabic');
 
         document.querySelectorAll('[data-i18n]').forEach(element => {
-            element.textContent = translate(element.dataset.i18n);
+            const translation = translations.en[element.dataset.i18n];
+            if (translation !== undefined) element.textContent = translation;
         });
         document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-            element.placeholder = translate(element.dataset.i18nPlaceholder);
+            const translation = translations.en[element.dataset.i18nPlaceholder];
+            if (translation !== undefined) element.placeholder = translation;
         });
         document.querySelectorAll('[data-i18n-aria]').forEach(element => {
-            element.setAttribute('aria-label', translate(element.dataset.i18nAria));
+            const translation = translations.en[element.dataset.i18nAria];
+            if (translation !== undefined) element.setAttribute('aria-label', translation);
         });
         document.querySelectorAll('[data-i18n-title]').forEach(element => {
-            element.title = translate(element.dataset.i18nTitle);
+            const translation = translations.en[element.dataset.i18nTitle];
+            if (translation !== undefined) element.title = translation;
         });
         document.querySelector('.site-announcement-close')?.addEventListener('click', () => {
             document.querySelector('.site-announcement')?.remove();

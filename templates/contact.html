@@ -33,6 +33,11 @@
         .contact-detail a { color: inherit; text-decoration-color: var(--contact-accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
         .contact-detail a:hover { color: var(--contact-accent); }
         .contact-value-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .contact-phone-number { margin-bottom: 12px !important; }
+        .contact-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .contact-action { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 8px 14px; border: 1px solid var(--contact-accent); border-radius: 3px; background: var(--contact-accent); color: #080808 !important; font-size: 13px; font-weight: 700; text-decoration: none; }
+        .contact-action:hover { filter: brightness(.9); }
+        .contact-action-call { background: transparent; color: var(--contact-accent) !important; }
         .contact-copy { padding: 5px 9px; border: 1px solid var(--contact-accent); border-radius: 3px; background: transparent; color: var(--contact-accent); font: inherit; font-size: 11px; cursor: pointer; }
         .contact-copy:hover { background: var(--contact-accent); color: #080808; }
         .contact-copy-status { min-height: 1.4em; color: var(--contact-accent); font-size: 12px; }
@@ -94,7 +99,11 @@
                 {% if site_content.contact_phone %}
                 <section class="contact-detail">
                     <h2 data-i18n="contact.phone">Phone</h2>
-                    <p class="contact-value-row"><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a><button class="contact-copy" type="button" data-copy-value="{{ site_content.contact_phone }}" data-i18n="contact.copy">Copy</button>{% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer" data-i18n="contact.whatsapp">WhatsApp</a>{% endif %}</p>
+                    <p class="contact-phone-number"><a href="tel:{{ site_content.contact_phone | replace(' ', '') }}">{{ site_content.contact_phone }}</a></p>
+                    <div class="contact-actions">
+                        {% if whatsapp_url %}<a class="contact-action" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer" aria-label="Message {{ site_content.contact_phone }} on WhatsApp" data-i18n="contact.whatsapp">WhatsApp</a>{% endif %}
+                        <a class="contact-action contact-action-call" href="tel:{{ site_content.contact_phone | replace(' ', '') }}" aria-label="Call {{ site_content.contact_phone }}">Call</a>
+                    </div>
                 </section>
                 {% endif %}
                 <section class="contact-detail">

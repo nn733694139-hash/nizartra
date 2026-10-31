@@ -180,11 +180,11 @@ SITE_CONTENT_DEFAULTS = {
     'contact_email_label': 'Email',
     'contact_hours_label': 'Response Hours',
     'contact_note_title': 'Your Feedback Matters',
-    'contact_email': 'hello@example.com',
-    'contact_phone': '',
-    'facebook_url': '',
-    'instagram_url': '',
-    'tiktok_url': '',
+    'contact_email': 'nezarsharqi@hotmail.com',
+    'contact_phone': '+967 733694139',
+    'facebook_url': 'https://www.facebook.com/share/1BGXh2hsJN/',
+    'instagram_url': 'https://www.instagram.com/nizarsharqi?psln=MmpsMW5vanZoNXB5',
+    'tiktok_url': 'tiktok.com/@nizarsharqi',
     'contact_hours': 'Sunday to Thursday, 9:00 AM to 5:00 PM.',
     'contact_note': 'Share an idea or comment with the nizarphonetics team.',
     'contact_accent': '#d5ff3f',
@@ -736,6 +736,10 @@ def phonetics_page():
 @app.route('/phonology')
 def phonology_page():
     return render_template('phonology.html')
+
+@app.route('/morphology')
+def morphology_page():
+    return render_template('morphology.html')
 
 @app.route('/site-image/<filename>')
 def site_image(filename):
