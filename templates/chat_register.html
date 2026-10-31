@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Join Chat | {{ site_content.brand_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+<main class="chat-page chat-register-page">
+    <section class="chat-shell chat-register-shell" aria-labelledby="chatRegisterTitle">
+        <header class="chat-header">
+            <div class="chat-brand-mark" aria-hidden="true">BR</div>
+            <div class="chat-heading-copy">
+                <p class="chat-kicker">BLACK ROBE MAFIA / PRIVATE ROOM</p>
+                <h1 id="chatRegisterTitle">Join Community Chat</h1>
+                <p>Choose your display name to enter the room.</p>
+            </div>
+        </header>
+        <form class="chat-register-form" method="post" action="{{ url_for('chat_register') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {% if error %}<p class="chat-error" role="alert">{{ error }}</p>{% endif %}
+            <label for="chatRegisterName">Display name<input id="chatRegisterName" name="chat_name" minlength="2" maxlength="60" autocomplete="nickname" placeholder="Enter your name" required autofocus></label>
+            <p class="chat-register-note">Your chat session stays active for 80 hours. After that, enter your name again to continue.</p>
+            <button class="send-button" type="submit"><span>Register and enter</span><span aria-hidden="true">→</span></button>
+        </form>
+    </section>
+</main>
+{% endblock %}

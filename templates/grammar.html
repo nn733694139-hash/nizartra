@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site_content.brand_name }} | Grammar{% endblock %}
+
+{% block content %}
+<style>
+    .grammar-page { --grammar-accent: #d5ff3f; --grammar-cyan: #7ef6e8; width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 52px 0 84px; color: #e8e8e8; }
+    .grammar-page *, .grammar-page *::before, .grammar-page *::after { box-sizing: border-box; }
+    .grammar-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, .7fr); align-items: end; gap: 28px; padding: 8px 0 28px; border-bottom: 1px solid #343434; }
+    .grammar-hero .eyebrow { color: var(--grammar-accent); }
+    .grammar-hero h1 { margin: 0; color: var(--grammar-accent); font-size: 46px; line-height: 1.12; }
+    .grammar-hero p:last-child { max-width: 720px; margin: 12px 0 0; color: #b7b7b7; font-size: 14px; line-height: 1.8; }
+    .grammar-formula { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; border: 1px solid #343434; background: #343434; }
+    .grammar-formula div { display: grid; min-height: 78px; align-content: center; gap: 5px; padding: 10px; background: #0c0f0d; text-align: center; }
+    .grammar-formula strong { color: var(--grammar-cyan); font-family: monospace; font-size: 15px; }
+    .grammar-formula span { color: #999; font-size: 9px; }
+    .grammar-subnav { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 34px; padding: 0 0 14px; border-bottom: 1px solid #303030; }
+    .grammar-subnav a { display: inline-flex; min-height: 36px; align-items: center; padding: 7px 11px; border: 1px solid #454545; color: #d2d2d2; font-size: 11px; font-weight: 700; text-decoration: none; transition: border-color .16s ease, color .16s ease, background .16s ease; }
+    .grammar-subnav a:hover, .grammar-subnav a:focus-visible { border-color: var(--grammar-accent); background: rgba(213,255,63,.06); color: var(--grammar-accent); outline: none; }
+    .grammar-section { margin: 0; padding: 30px 0 34px; border-bottom: 1px solid #303030; scroll-margin-top: 20px; }
+    .grammar-section-head { display: grid; grid-template-columns: 35px minmax(0, 1fr); gap: 10px; align-items: start; margin-bottom: 20px; }
+    .grammar-index { padding-top: 4px; color: var(--grammar-accent); font-family: monospace; font-size: 11px; }
+    .grammar-section-head h2 { margin: 0; color: var(--grammar-accent); font-size: 24px; line-height: 1.3; }
+    .grammar-section-head p { max-width: 780px; margin: 7px 0 0; color: #a9a9a9; font-size: 12px; line-height: 1.7; }
+    .grammar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grammar-grid.three-up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tense-group { margin-top: 22px; }
+    .tense-group h3 { margin: 0 0 10px; color: var(--grammar-cyan); font-size: 15px; }
+    .tense-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 9px; }
+    .tense-card { min-width: 0; padding: 14px; border: 1px solid #39412d; background: #0c0f0d; }
+    .tense-card h4 { margin: 0 0 9px; color: var(--grammar-accent); font-size: 13px; }
+    .tense-form { display: block; margin-bottom: 8px; color: var(--grammar-cyan); font-family: monospace; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+    .tense-card p { margin: 0; color: #bdbdbd; font-size: 11px; line-height: 1.65; }
+    .tense-card p + p { margin-top: 7px; }
+    .tense-card strong { color: #eee; }
+    .tense-example { color: #dce8c3 !important; }
+    .grammar-rule-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .grammar-rule-card { border-top: 2px solid #647c27; }
+    .grammar-rule-form { display: block; margin: 0 0 8px; color: var(--grammar-cyan); font-family: monospace; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; }
+    .grammar-rule-example { display: block; margin-top: 9px; color: #dce8c3; font-size: 11px; line-height: 1.6; }
+    .transformation-flow { display: grid; grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr); align-items: center; gap: 8px; margin-top: 10px; }
+    .transformation-flow span { color: #ddd; font-size: 11px; line-height: 1.6; }
+    .transformation-flow b { color: var(--grammar-accent); text-align: center; }
+    .grammar-card { min-width: 0; padding: 16px; border: 1px solid #333; background: #0c0f0d; }
+    .grammar-card h3 { margin: 0 0 8px; color: var(--grammar-cyan); font-size: 14px; line-height: 1.4; }
+    .grammar-card p { margin: 0; color: #bdbdbd; font-size: 12px; line-height: 1.75; }
+    .grammar-card p + p { margin-top: 9px; }
+    .grammar-card strong { color: #f0f0f0; }
+    .grammar-card em { color: var(--grammar-accent); }
+    .grammar-detail { border: 1px solid #333; background: #0c0f0d; }
+    .grammar-detail summary { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; color: var(--grammar-cyan); font-size: 12px; font-weight: 700; cursor: pointer; list-style: none; }
+    .grammar-detail summary::-webkit-details-marker { display: none; }
+    .grammar-detail summary::after { color: var(--grammar-accent); content: "+"; font-size: 17px; }
+    .grammar-detail[open] summary::after { content: "-"; }
+    .grammar-detail > div { padding: 0 14px 14px; color: #bdbdbd; font-size: 12px; line-height: 1.75; }
+    .grammar-detail > div p { margin: 0; }
+    .grammar-detail > div p + p { margin-top: 8px; }
+    .grammar-table-wrap { width: 100%; margin-top: 14px; overflow-x: auto; border: 1px solid #333; }
+    .grammar-table { width: 100%; min-width: 650px; border-collapse: collapse; text-align: left; }
+    .grammar-table caption { padding: 12px; border-bottom: 1px solid #333; color: #aaa; font-size: 10px; text-align: left; }
+    .grammar-table th, .grammar-table td { padding: 11px 12px; border-bottom: 1px solid #292929; vertical-align: top; }
+    .grammar-table th { background: #111510; color: var(--grammar-accent); font-size: 10px; text-transform: uppercase; }
+    .grammar-table td { color: #c1c1c1; font-size: 11px; line-height: 1.65; }
+    .grammar-table td strong { color: #eee; }
+    .grammar-table details summary { color: var(--grammar-cyan); font-size: 10px; cursor: pointer; }
+    .grammar-table details p { min-width: 150px; margin: 6px 0 0; color: #999; font-size: 10px; }
+    .grammar-example { margin-top: 14px; padding: 14px 16px; border-inline-start: 2px solid var(--grammar-accent); background: #101310; color: #ddd; font-size: 12px; line-height: 1.8; }
+    .grammar-example strong { color: var(--grammar-accent); }
+    .grammar-structure { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 7px; margin-top: 15px; padding: 16px; border: 1px solid #333; background: #0b0e0c; }
+    .grammar-structure span { padding: 7px 10px; border: 1px solid #485829; color: var(--grammar-accent); font-family: monospace; font-size: 11px; }
+    .grammar-structure b { color: var(--grammar-cyan); font-size: 13px; }
+    .grammar-note { margin: 14px 0 0; color: #898989; font-size: 10px; line-height: 1.7; }
+    .grammar-references { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: reference; }
+    .grammar-references li { position: relative; padding: 12px 12px 12px 36px; border-bottom: 1px solid #292929; color: #c8c8c8; font-size: 11px; line-height: 1.7; counter-increment: reference; }
+    .grammar-references li::before { position: absolute; left: 10px; color: var(--grammar-accent); font-family: monospace; content: counter(reference, decimal-leading-zero); }
+    .grammar-references cite { color: #eee; }
+    @media (max-width: 760px) {
+        .grammar-hero { grid-template-columns: 1fr; gap: 18px; }
+        .grammar-formula { max-width: 480px; }
+        .grammar-grid.three-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tense-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+        .grammar-page { padding-top: 36px; }
+        .grammar-hero h1 { font-size: 34px; }
+        .grammar-subnav { gap: 5px; }
+        .grammar-subnav a { min-height: 34px; padding: 6px 8px; font-size: 10px; }
+        .grammar-section { padding: 24px 0; }
+        .grammar-section-head h2 { font-size: 21px; }
+        .grammar-grid, .grammar-grid.three-up { grid-template-columns: 1fr; }
+        .grammar-rule-grid, .tense-grid { grid-template-columns: 1fr; }
+        .transformation-flow { grid-template-columns: 1fr; }
+        .transformation-flow b { transform: rotate(90deg); }
+        .grammar-formula div { min-height: 68px; padding: 7px 4px; }
+        .grammar-formula strong { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .grammar-subnav a { transition: none; } }
+</style>
+
+<main class="grammar-page">
+    <header class="grammar-hero">
+        <div>
+            <p class="eyebrow">LANGUAGE LAB / 07</p>
+            <h1>Grammar</h1>
+            <p>Grammar describes how words form phrases and clauses, how grammatical categories express meaning, and how speakers combine structures for different purposes. Explore patterns as systems rather than isolated rules.</p>
+        </div>
+        <div class="grammar-formula" role="img" aria-label="Words combine into phrases, phrases combine into clauses, and clauses form sentences">
+            <div><strong>WORDS</strong><span>categories and forms</span></div>
+            <div><strong>PHRASES</strong><span>heads and dependents</span></div>
+            <div><strong>CLAUSES</strong><span>predication and structure</span></div>
+        </div>
+    </header>
+
+    <nav class="grammar-subnav" aria-label="Grammar sections">
+        <a href="#parts-of-speech">Parts of Speech</a>
+        <a href="#tenses-aspects">Tenses &amp; Aspects</a>
+        <a href="#phrases-clauses">Phrases &amp; Clauses</a>
+        <a href="#sentence-structures">Sentence Structures</a>
+        <a href="#core-rules">Core Rules</a>
+        <a href="#transformations">Transformations</a>
+        <a href="#grammar-references">References</a>
+    </nav>
+
+    <section class="grammar-section" id="parts-of-speech" aria-labelledby="partsTitle">
+        <div class="grammar-section-head"><span class="grammar-index">01</span><div><h2 id="partsTitle">Parts of speech and syntactic categories</h2><p>Word classes describe how words behave in structure. Form, meaning, and distribution all provide evidence; a word's role in one sentence does not always determine its class in every use.</p></div></div>
+        <div class="grammar-grid three-up">
+            <article class="grammar-card"><h3>Open lexical classes</h3><p><strong>Nouns</strong> head noun phrases; <strong>verbs</strong> head verb phrases; <strong>adjectives</strong> modify nouns or function as complements; <strong>adverbs</strong> modify or qualify phrases and clauses. These classes readily admit new members.</p></article>
+            <article class="grammar-card"><h3>Closed and functional classes</h3><p><strong>Determiners</strong> specify noun phrases; <strong>pronouns</strong> can function as noun phrases; <strong>prepositions</strong> head preposition phrases; <strong>auxiliaries</strong> support tense, aspect, voice, and modality. Conjunctions connect units.</p></article>
+            <article class="grammar-card"><h3>Category depends on use</h3><p>Compare <em>They record the result</em> (verb) with <em>Keep a record</em> (noun). Distribution is a useful diagnostic: ask what positions a word can occupy and what elements it combines with.</p></article>
+        </div>
+        <div class="grammar-table-wrap">
+            <table class="grammar-table">
+                <caption>Common English word classes: typical functions and diagnostics</caption>
+                <thead><tr><th scope="col">Class</th><th scope="col">Typical function</th><th scope="col">Example</th><th scope="col">Explore</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">Noun</th><td>Heads a noun phrase; may take determiners and modifiers.</td><td><em>the careful analyst</em></td><td><details><summary>More</summary><p>Nouns can be common or proper, count or non-count, and may serve as subjects, objects, or complements.</p></details></td></tr>
+                    <tr><th scope="row">Verb</th><td>Heads a verb phrase and licenses complements.</td><td><em>analyzed the sample</em></td><td><details><summary>More</summary><p>Verb forms include finite forms and non-finite forms such as infinitives and participles.</p></details></td></tr>
+                    <tr><th scope="row">Adjective</th><td>Modifies a noun or occurs as a predicative complement.</td><td><em>a precise account; the account is precise</em></td><td><details><summary>More</summary><p>Many adjectives allow degree modification, as in <em>very precise</em>, though not all behave alike.</p></details></td></tr>
+                    <tr><th scope="row">Adverb</th><td>Modifies a verb, adjective, adverb, or clause.</td><td><em>carefully; remarkably clear</em></td><td><details><summary>More</summary><p>Adverbs have diverse functions and do not all end in -ly.</p></details></td></tr>
+                    <tr><th scope="row">Determiner</th><td>Specifies a noun phrase, often for definiteness or quantity.</td><td><em>the, this, several</em></td><td><details><summary>More</summary><p>Determiners typically precede descriptive modifiers and a noun in English noun phrases.</p></details></td></tr>
+                    <tr><th scope="row">Preposition</th><td>Heads a phrase that can express relation, location, time, or other links.</td><td><em>in the archive; after lunch</em></td><td><details><summary>More</summary><p>Prepositions can take noun phrases and, in many cases, clauses as complements.</p></details></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="grammar-note">Traditional school grammars and contemporary reference grammars sometimes classify words differently. Use explicit distributional evidence and state the framework you are following.</p>
+    </section>
+
+    <section class="grammar-section" id="tenses-aspects" aria-labelledby="tenseTitle">
+        <div class="grammar-section-head"><span class="grammar-index">02</span><div><h2 id="tenseTitle">Tenses and aspects</h2><p>Study each form separately by time reference and aspect. These 12 teaching patterns combine present, past, and future reference with simple, progressive, perfect, and perfect progressive forms.</p></div></div>
+        <p class="grammar-note">English marks present and past tense inflectionally; future time is expressed through constructions such as <em>will</em> and <em>be going to</em>. The 12-form chart is a learner framework, not a claim that English has 12 inflectional tenses.</p>
+        <div class="tense-group">
+            <h3>Present-time forms</h3>
+            <div class="tense-grid">
+                <article class="tense-card"><h4>Present simple</h4><span class="tense-form">base verb; he/she/it + -s</span><p><strong>Use:</strong> habits, facts, and regular states.</p><p class="tense-example">Maya teaches linguistics.</p></article>
+                <article class="tense-card"><h4>Present progressive</h4><span class="tense-form">am/is/are + verb-ing</span><p><strong>Use:</strong> actions in progress or temporary situations.</p><p class="tense-example">Maya is teaching a seminar this week.</p></article>
+                <article class="tense-card"><h4>Present perfect</h4><span class="tense-form">have/has + past participle</span><p><strong>Use:</strong> past events linked to the present; experience or result.</p><p class="tense-example">Maya has taught three seminars this term.</p></article>
+                <article class="tense-card"><h4>Present perfect progressive</h4><span class="tense-form">have/has been + verb-ing</span><p><strong>Use:</strong> activity continuing to now or recently completed with duration in focus.</p><p class="tense-example">Maya has been teaching since noon.</p></article>
+            </div>
+        </div>
+        <div class="tense-group">
+            <h3>Past-time forms</h3>
+            <div class="tense-grid">
+                <article class="tense-card"><h4>Past simple</h4><span class="tense-form">past form of the verb</span><p><strong>Use:</strong> completed situations located in past time.</p><p class="tense-example">Maya taught the class yesterday.</p></article>
+                <article class="tense-card"><h4>Past progressive</h4><span class="tense-form">was/were + verb-ing</span><p><strong>Use:</strong> an activity in progress at a past reference time.</p><p class="tense-example">Maya was teaching when the alarm rang.</p></article>
+                <article class="tense-card"><h4>Past perfect</h4><span class="tense-form">had + past participle</span><p><strong>Use:</strong> a situation earlier than another past point.</p><p class="tense-example">Maya had left before the lecture began.</p></article>
+                <article class="tense-card"><h4>Past perfect progressive</h4><span class="tense-form">had been + verb-ing</span><p><strong>Use:</strong> duration or ongoing activity leading up to a past point.</p><p class="tense-example">Maya had been teaching for an hour when I arrived.</p></article>
+            </div>
+        </div>
+        <div class="tense-group">
+            <h3>Future-time forms</h3>
+            <div class="tense-grid">
+                <article class="tense-card"><h4>Future simple</h4><span class="tense-form">will + base; am/is/are going to + base</span><p><strong>Use:</strong> predictions, decisions, intentions, or plans; context helps distinguish them.</p><p class="tense-example">I will email you. / We are going to revise the draft.</p></article>
+                <article class="tense-card"><h4>Future progressive</h4><span class="tense-form">will be + verb-ing</span><p><strong>Use:</strong> an activity in progress at a future reference time.</p><p class="tense-example">At ten tomorrow, Maya will be teaching.</p></article>
+                <article class="tense-card"><h4>Future perfect</h4><span class="tense-form">will have + past participle</span><p><strong>Use:</strong> a situation completed before a future deadline or point.</p><p class="tense-example">By Friday, Maya will have finished the unit.</p></article>
+                <article class="tense-card"><h4>Future perfect progressive</h4><span class="tense-form">will have been + verb-ing</span><p><strong>Use:</strong> duration continuing up to a future point.</p><p class="tense-example">By June, Maya will have been teaching here for a year.</p></article>
+            </div>
+        </div>
+        <div class="grammar-example"><strong>Auxiliary order:</strong> modal + perfect <em>have</em> + progressive <em>be</em> + main verb: <em>may have been waiting</em>. Each auxiliary contributes a distinct grammatical meaning.</div>
+    </section>
+
+    <section class="grammar-section" id="phrases-clauses" aria-labelledby="phraseTitle">
+        <div class="grammar-section-head"><span class="grammar-index">03</span><div><h2 id="phraseTitle">Phrases and clauses</h2><p>A phrase is organized around a head. A clause typically contains a predicate and its dependents; clauses may be finite or non-finite, independent or subordinate.</p></div></div>
+        <div class="grammar-grid three-up">
+            <details class="grammar-detail" open><summary>Noun phrase (NP)</summary><div><p>Built around a noun or pronoun. In <em>those two detailed reports</em>, <em>reports</em> is the head, with a determiner and modifiers.</p></div></details>
+            <details class="grammar-detail"><summary>Verb phrase (VP)</summary><div><p>Built around a verb, with auxiliaries and complements as required: <em>might have completed the survey</em>.</p></div></details>
+            <details class="grammar-detail"><summary>Preposition phrase (PP)</summary><div><p>Built around a preposition and commonly followed by a complement: <em>under the bridge</em>, <em>after the meeting</em>.</p></div></details>
+            <details class="grammar-detail"><summary>Adjective and adverb phrases</summary><div><p>An adjective or adverb heads its phrase and may be modified or complemented: <em>very proud of the result</em>; <em>quite slowly</em>.</p></div></details>
+        </div>
+        <div class="grammar-structure" role="img" aria-label="A clause consists of a subject noun phrase and a predicate verb phrase">
+            <span>CLAUSE</span><b>contains</b><span>SUBJECT: NP</span><b>+</b><span>PREDICATE: VP</span>
+        </div>
+        <div class="grammar-grid" style="margin-top:12px">
+            <article class="grammar-card"><h3>Finite clauses</h3><p>A finite verb phrase is marked for tense or modality and can anchor a clause: <em>The committee approved the plan.</em> A main clause can stand independently, while a subordinate clause depends on a larger structure.</p></article>
+            <article class="grammar-card"><h3>Non-finite clauses</h3><p>Non-finite clauses use infinitive, gerund-participial, or past-participial forms: <em>To finish on time matters</em>; <em>After reading the report, Maya replied</em>.</p></article>
+        </div>
+    </section>
+
+    <section class="grammar-section" id="sentence-structures" aria-labelledby="sentenceTitle">
+        <div class="grammar-section-head"><span class="grammar-index">04</span><div><h2 id="sentenceTitle">Sentence structures</h2><p>Clause patterns describe how a verb combines with subjects, objects, and complements. These are structural patterns, not universal templates for every language.</p></div></div>
+        <div class="grammar-table-wrap">
+            <table class="grammar-table">
+                <caption>Frequent English clause patterns with illustrative examples</caption>
+                <thead><tr><th scope="col">Pattern</th><th scope="col">Example</th><th scope="col">Structure</th><th scope="col">Explore</th></tr></thead>
+                <tbody>
+                    <tr><th scope="row">SV</th><td><em>The audience laughed.</em></td><td>Subject + intransitive verb</td><td><details><summary>Note</summary><p>The verb does not require a direct object in this use.</p></details></td></tr>
+                    <tr><th scope="row">SVO</th><td><em>The editor revised the draft.</em></td><td>Subject + verb + object</td><td><details><summary>Note</summary><p>The object is a selected complement of the transitive verb.</p></details></td></tr>
+                    <tr><th scope="row">SVC</th><td><em>The result seems reliable.</em></td><td>Subject + linking verb + subject complement</td><td><details><summary>Note</summary><p>The complement characterizes or identifies the subject.</p></details></td></tr>
+                    <tr><th scope="row">SVOO</th><td><em>They sent the class a notice.</em></td><td>Subject + verb + indirect object + direct object</td><td><details><summary>Note</summary><p>Some verbs allow an alternative prepositional construction: <em>sent a notice to the class</em>.</p></details></td></tr>
+                    <tr><th scope="row">SVOC</th><td><em>They elected Mina chair.</em></td><td>Subject + verb + object + object complement</td><td><details><summary>Note</summary><p>The complement assigns a role or property to the object.</p></details></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="grammar-grid three-up" style="margin-top:12px">
+            <article class="grammar-card"><h3>Statements</h3><p>Declarative clauses commonly present information. Their form does not guarantee that the utterance functions only as an assertion.</p></article>
+            <article class="grammar-card"><h3>Questions</h3><p>English yes/no questions commonly use subject-auxiliary inversion: <em>Has the team arrived?</em> Wh-questions place a questioned phrase at the front: <em>Where did they meet?</em></p></article>
+            <article class="grammar-card"><h3>Commands</h3><p>Imperative clauses commonly have an unexpressed subject understood as <em>you</em>: <em>Please review the final section.</em></p></article>
+        </div>
+    </section>
+
+    <section class="grammar-section" id="core-rules" aria-labelledby="rulesTitle">
+        <div class="grammar-section-head"><span class="grammar-index">05</span><div><h2 id="rulesTitle">Core grammar rules</h2><p>A practical rule collection for common English patterns. Each rule has its own box with a form or diagnostic and a new example.</p></div></div>
+        <div class="grammar-rule-grid">
+            <article class="grammar-card grammar-rule-card"><h3>Basic clause order</h3><span class="grammar-rule-form">Subject + Verb + (Object / Complement)</span><p>English statements commonly place the subject before the verb. Objects and complements follow according to the verb pattern.</p><span class="grammar-rule-example">The tutor explained the rule.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Subject-verb agreement</h3><span class="grammar-rule-form">he/she/it + present lexical verb -s</span><p>In the present simple, a third-person singular subject usually takes an -s form. Match the verb to the grammatical subject, not a nearby noun.</p><span class="grammar-rule-example">The list of examples is on the page.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Articles and countability</h3><span class="grammar-rule-form">a/an + singular count noun; the + identifiable noun</span><p>Use a/an when introducing one non-specific singular count noun. Use the when the referent is identifiable; many non-count nouns do not take a/an.</p><span class="grammar-rule-example">She found a source and cited the source.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Negation and do-support</h3><span class="grammar-rule-form">do/does/did + not + base verb</span><p>When a simple present or past clause has no other auxiliary, English normally uses do-support for negation. Keep the main verb in its base form after do.</p><span class="grammar-rule-example">He does not submit late work.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Questions and inversion</h3><span class="grammar-rule-form">Auxiliary + Subject + Main verb?</span><p>Yes/no questions commonly place an auxiliary before the subject. If there is no auxiliary in a simple present or past, use do, does, or did.</p><span class="grammar-rule-example">Did the students understand?</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Modal verbs</h3><span class="grammar-rule-form">modal + base verb</span><p>Core modal auxiliaries do not take -s and are followed by a base-form verb. They express meanings such as possibility, obligation, ability, or prediction.</p><span class="grammar-rule-example">The result may indicate a pattern.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Adjective position</h3><span class="grammar-rule-form">Determiner + Adjective + Noun</span><p>Attributive adjectives commonly precede a noun in English. Some adjectives also occur after linking verbs as subject complements.</p><span class="grammar-rule-example">A careful analysis; the analysis is careful.</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Pronoun reference</h3><span class="grammar-rule-form">Pronoun reference should be recoverable</span><p>A pronoun should have a clear antecedent and normally agree with it in person and number. Revise when two possible antecedents make the reference unclear.</p><span class="grammar-rule-example">Lina gave Noor her notes. (Whose notes?)</span></article>
+            <article class="grammar-card grammar-rule-card"><h3>Prepositions and complements</h3><span class="grammar-rule-form">Preposition + Noun Phrase / Clause</span><p>A preposition heads a phrase and can take a complement. The choice of preposition is often conventional and may depend on the head word.</p><span class="grammar-rule-example">They relied on the evidence.</span></article>
+        </div>
+        <p class="grammar-note">These are useful generalizations, not exception-free formulas. Check verb pattern, meaning, register, and the variety of English being described.</p>
+    </section>
+
+    <section class="grammar-section" id="transformations" aria-labelledby="transformationsTitle">
+        <div class="grammar-section-head"><span class="grammar-index">06</span><div><h2 id="transformationsTitle">Structural transformations</h2><p>Related clause patterns can reorganize information while preserving important parts of an event or proposition. The transformations below are common English constructions.</p></div></div>
+        <div class="grammar-grid">
+            <article class="grammar-card"><h3>Active to passive</h3><p>The passive places the active object in subject position and uses <em>be + past participle</em>. The agent phrase may be omitted when unknown, obvious, or less important.</p><div class="transformation-flow"><span>The editor revised the article.</span><b aria-hidden="true">&rarr;</b><span>The article was revised by the editor.</span></div></article>
+            <article class="grammar-card"><h3>Statement to yes/no question</h3><p>Move an existing auxiliary before the subject. If a simple present or past statement has no auxiliary, add do-support.</p><div class="transformation-flow"><span>The class has finished.</span><b aria-hidden="true">&rarr;</b><span>Has the class finished?</span></div></article>
+            <article class="grammar-card"><h3>Wh-question formation</h3><p>Place the questioned phrase at the front. In many questions, an auxiliary precedes the subject; subject questions have a different pattern.</p><div class="transformation-flow"><span>They met after class.</span><b aria-hidden="true">&rarr;</b><span>When did they meet?</span></div></article>
+            <article class="grammar-card"><h3>Relative-clause embedding</h3><p>A relative clause modifies a noun phrase and can identify or add information about its referent.</p><div class="transformation-flow"><span>I read the article. It won the award.</span><b aria-hidden="true">&rarr;</b><span>I read the article that won the award.</span></div></article>
+        </div>
+        <p class="grammar-note">Analyses of movement and clause structure differ across grammatical frameworks. These examples illustrate forms and functions without assuming one theoretical account.</p>
+    </section>
+
+    <section class="grammar-section" id="grammar-references" aria-labelledby="referencesTitle">
+        <div class="grammar-section-head"><span class="grammar-index">07</span><div><h2 id="referencesTitle">Academic references</h2><p>Foundational descriptive grammars and university-level reference works.</p></div></div>
+        <ol class="grammar-references">
+            <li>Azar, B. S., &amp; Hagen, S. A. (2017). <cite>Understanding and Using English Grammar</cite> (5th ed.). Pearson.</li>
+            <li>Biber, D., Johansson, S., Leech, G., Conrad, S., &amp; Finegan, E. (1999). <cite>Longman Grammar of Spoken and Written English</cite>. Longman.</li>
+            <li>Celce-Murcia, M., &amp; Larsen-Freeman, D. (1999). <cite>The Grammar Book: An ESL/EFL Teacher's Course</cite> (2nd ed.). Heinle &amp; Heinle.</li>
+            <li>Greenbaum, S., &amp; Nelson, G. (2002). <cite>An Introduction to English Grammar</cite> (2nd ed.). Longman.</li>
+            <li>Huddleston, R., &amp; Pullum, G. K. (2002). <cite>The Cambridge Grammar of the English Language</cite>. Cambridge University Press.</li>
+            <li>Quirk, R., Greenbaum, S., Leech, G., &amp; Svartvik, J. (1985). <cite>A Comprehensive Grammar of the English Language</cite>. Longman.</li>
+            <li>Brinton, L. J. (2000). <cite>The Structure of Modern English: A Linguistic Introduction</cite>. John Benjamins.</li>
+        </ol>
+        <p class="grammar-note">Descriptions differ across grammatical frameworks. The examples on this page use broadly familiar English categories and note where terminology or analysis may vary.</p>
+    </section>
+</main>
+{% endblock %}

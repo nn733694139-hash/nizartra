@@ -17,7 +17,15 @@
         <p data-i18n="phonology.intro">Trace the airstream from the diaphragm to the articulators. Select a region to explore its role in speech production.</p>
     </header>
 
-    <section class="phonology-workspace" aria-labelledby="diagramTitle">
+    <nav class="module-subnav phonology-subnav" aria-label="Phonology submodules">
+        <a href="#speech-system">Speech System</a>
+        <a href="#sound-demo">Sound Demo</a>
+        <a href="#phonotactics">Phonotactics</a>
+        <a href="#syllable-structure">Syllable Structure</a>
+        <a href="#distinctive-features">Distinctive Features</a>
+    </nav>
+
+    <section class="phonology-workspace" id="speech-system" aria-labelledby="diagramTitle">
         <div class="phonology-diagram-column">
             <div class="phonology-section-heading">
                 <span class="tool-index">01</span>
@@ -140,7 +148,7 @@
         </aside>
     </section>
 
-    <section class="sound-demo" aria-labelledby="soundDemoTitle">
+    <section class="sound-demo" id="sound-demo" aria-labelledby="soundDemoTitle">
         <div class="phonology-section-heading">
             <span class="tool-index">02</span>
             <h2 id="soundDemoTitle" data-i18n="phonology.soundDemoTitle">How organs work together to make a sound</h2>
@@ -174,7 +182,7 @@
         </div>
     </section>
 
-    <section class="phoneme-inventory" aria-labelledby="inventoryTitle">
+    <section class="phoneme-inventory" id="sound-inventory" aria-labelledby="inventoryTitle">
         <div class="phonology-section-heading">
             <span class="tool-index">03</span>
             <h2 id="inventoryTitle" data-i18n="phonology.inventoryTitle">English sound inventory</h2>
@@ -239,15 +247,15 @@
         </div>
         <p class="concepts-intro" data-i18n="phonology.conceptsIntro">Phonology studies how a language organizes sounds into meaningful patterns.</p>
         <div class="concept-list">
-            <details class="concept-item" open>
+            <details class="concept-item" id="phonotactics" open>
                 <summary data-i18n="phonology.conceptPhoneme">Phoneme and contrast</summary>
                 <p data-i18n="phonology.conceptPhonemeText">A phoneme is a sound category that can distinguish words. In English, /p/ and /b/ contrast in pat and bat. A minimal pair differs in one sound and demonstrates that contrast.</p>
             </details>
-            <details class="concept-item">
+            <details class="concept-item" id="distinctive-features">
                 <summary data-i18n="phonology.conceptAllophone">Allophones and distribution</summary>
                 <p data-i18n="phonology.conceptAllophoneText">Allophones are context-dependent pronunciations of one phoneme that do not change word meaning. Their distribution may be predictable from neighboring sounds, or vary across speakers.</p>
             </details>
-            <details class="concept-item">
+            <details class="concept-item" id="syllable-structure">
                 <summary data-i18n="phonology.conceptSyllable">Syllables and sound patterns</summary>
                 <p data-i18n="phonology.conceptSyllableText">A syllable is commonly described as an onset, a nucleus and an optional coda. Languages differ in which consonant sequences they allow at syllable edges.</p>
             </details>

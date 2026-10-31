@@ -15,9 +15,16 @@
         <h1 data-i18n="phonetics.heading">English, sound by sound.</h1>
         <p data-i18n="phonetics.intro">Explore phonemes, compare accents, and listen to each sound in context.</p>
     </header>
-    <section class="phonetics-tool" aria-labelledby="phoneticsTitle">
+    <nav class="module-subnav phonetics-subnav" aria-label="Phonetics submodules">
+        <a href="#phoneticsTitle">Phonemes</a>
+        <a href="#allophones">Allophones</a>
+        <a href="#place-manner">Place &amp; Manner</a>
+        <a href="#intonation">Intonation</a>
+        <a href="#dictionary">Dictionary</a>
+    </nav>
+    <section class="phonetics-tool" id="phoneticsTitle" aria-labelledby="phoneticsTitleHeading">
         <div class="phonetics-tool-head">
-            <div><span class="tool-index">01</span><h2 id="phoneticsTitle" data-i18n="phonetics.transcription">IPA transcription</h2></div>
+            <div><span class="tool-index">01</span><h2 id="phoneticsTitleHeading" data-i18n="phonetics.transcription">IPA transcription</h2></div>
             <div class="accent-tabs" role="group" aria-label="Choose pronunciation accent" data-i18n-aria="phonetics.accent">
                 <button type="button" class="accent-tab is-active" data-accent="en-GB" aria-pressed="true" data-i18n="phonetics.british">British</button>
                 <button type="button" class="accent-tab" data-accent="en-US" aria-pressed="false" data-i18n="phonetics.american">American</button>
@@ -36,7 +43,7 @@
         <p class="phonetics-caption" data-i18n="phonetics.caption">The accent setting changes transcription and speech. Audio downloads are generated as MP3.</p>
     </section>
 
-    <section class="sound-library" aria-labelledby="soundLibraryTitle">
+    <section class="sound-library" id="place-manner" aria-labelledby="soundLibraryTitle">
         <header class="library-heading">
             <div><p class="eyebrow" data-i18n="phonetics.labTwo">SPEECH LAB / 02</p><h2 id="soundLibraryTitle">Vowel sound map</h2><p id="accentDescription">British English · Standard Southern British reference</p></div>
             <div class="sound-legend" id="soundLegend" aria-label="Sound categories" data-i18n-aria="phonetics.vowelCategories">
@@ -82,6 +89,48 @@
                 <p class="diagram-key"><span></span> <span data-i18n="phonetics.diagramKey">Tongue body · side view</span></p>
                 <p class="diagram-disclaimer" data-i18n="phonetics.diagramDisclaimer">Simplified teaching diagram; positions vary slightly between speakers.</p>
             </aside>
+        </div>
+    </section>
+
+    <section class="phonetics-submodule" id="allophones" aria-labelledby="allophonesTitle">
+        <div class="module-head"><span class="tool-index">02</span><h2 id="allophonesTitle">Allophones</h2></div>
+        <div class="module-grid">
+            <article>
+                <h3>Context-sensitive sound variation</h3>
+                <p>Allophones are variants of the same phoneme that appear in different phonological environments. For example, the English /p/ is aspirated at the beginning of stressed syllables, but less strongly in clusters or after a preceding consonant.</p>
+            </article>
+            <article>
+                <h3>Important contrast</h3>
+                <p>Speakers usually treat these variants as the same sound category, even when articulation changes slightly. The phonological rule explains the systematic pattern rather than random variation.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="phonetics-submodule" id="intonation" aria-labelledby="intonationTitle">
+        <div class="module-head"><span class="tool-index">03</span><h2 id="intonationTitle">Intonation</h2></div>
+        <div class="module-grid">
+            <article>
+                <h3>Pitch and meaning</h3>
+                <p>Intonation uses pitch movement across an utterance to signal attitude, focus, and sentence type. Rising intonation often suggests uncertainty or a question, while falling intonation commonly signals assertion or completion.</p>
+            </article>
+            <article>
+                <h3>Speech rhythm</h3>
+                <p>In connected speech, stress and pitch patterns help listeners identify key information. These patterns are central to naturalness, clarity, and emotional nuance in English.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="phonetics-submodule" id="dictionary" aria-labelledby="dictionaryTitle">
+        <div class="module-head"><span class="tool-index">04</span><h2 id="dictionaryTitle">Phonetics Dictionary</h2></div>
+        <div class="dictionary-grid">
+            <span><strong>/i:/</strong> close front long vowel</span>
+            <span><strong>/ɪ/</strong> near-close front lax vowel</span>
+            <span><strong>/æ/</strong> open front unrounded vowel</span>
+            <span><strong>/θ/</strong> voiceless dental fricative</span>
+            <span><strong>/ð/</strong> voiced dental fricative</span>
+            <span><strong>/ʃ/</strong> voiceless postalveolar fricative</span>
+            <span><strong>/tʃ/</strong> affricate</span>
+            <span><strong>/ə/</strong> schwa</span>
         </div>
     </section>
 </main>

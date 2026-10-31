@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Storage | {{ site_content.brand_name }}</title>
+    <style>
+        :root { color-scheme: dark; --bg: #050605; --panel: #0c100d; --line: #26332a; --text: #e7f0e9; --muted: #829288; --accent: #00ff66; --cyan: #10b981; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: "Segoe UI", sans-serif; }
+        a { color: var(--accent); }
+        .admin-chat { width: min(1000px, calc(100% - 32px)); margin: 28px auto 60px; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+        h1, h2, p { margin-top: 0; }
+        h1 { margin-bottom: 5px; font-size: 24px; }
+        h2 { margin-bottom: 5px; font-size: 17px; }
+        .muted, small { color: var(--muted); }
+        .layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+        .panel { min-width: 0; padding: 17px; border: 1px solid var(--line); background: var(--panel); box-shadow: 0 0 18px rgba(0,255,102,.04); }
+        .panel.full { grid-column: 1 / -1; }
+        label { display: grid; gap: 6px; margin-top: 12px; color: #cad7cc; font-size: 11px; }
+        input, select { width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid #35453a; border-radius: 0; background: #060806; color: var(--text); font: inherit; font-size: 12px; }
+        input:focus, select:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+        button, .button-link { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: 7px 11px; border: 1px solid var(--accent); background: var(--accent); color: #031006; font: inherit; font-size: 11px; font-weight: 800; text-decoration: none; cursor: pointer; }
+        button.danger { border-color: #9d5a5a; background: transparent; color: #ffb6b6; }
+        form { margin: 0; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .usage { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; color: var(--muted); font-size: 11px; }
+        .usage strong { color: var(--accent); }
+        .flash { margin: 14px 0 0; padding: 10px 12px; border: 1px solid var(--line); background: #101510; color: var(--text); font-size: 12px; }
+        .chat-records { display: grid; gap: 8px; margin-top: 14px; }
+        .chat-record { min-width: 0; padding: 11px; border: 1px solid #29342c; background: #080a08; }
+        .record-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; }
+        .record-meta strong { color: var(--cyan); }
+        .chat-record p { margin: 8px 0 0; color: #d6e0d8; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .record-media { display: inline-block; margin-top: 8px; font-size: 10px; }
+        .empty { padding: 18px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; text-align: center; }
+        @media (max-width: 650px) { .admin-header { align-items: flex-start; flex-direction: column; } .layout { grid-template-columns: 1fr; } .panel.full { grid-column: auto; } }
+    </style>
+</head>
+<body>
+<main class="admin-chat">
+    <header class="admin-header">
+        <div><h1>Chat Storage</h1><p class="muted">Review recent messages and remove old history with its uploaded media.</p></div>
+        <div class="actions"><a class="button-link" href="{{ url_for('admin_page') }}">Admin Dashboard</a><a class="button-link" href="{{ url_for('chat_page') }}">Open Chat</a></div>
+    </header>
+    {% for message in get_flashed_messages() %}<p class="flash" role="status">{{ message }}</p>{% endfor %}
+    <div class="usage"><span>Stored media: <strong>{{ storage_usage.files }} files</strong></span><span>Disk use: <strong>{{ (storage_usage.bytes / 1024 / 1024) | round(2) }} MB</strong></span></div>
+    <div class="layout">
+        <section class="panel full" aria-labelledby="client-badge-title">
+            <h2 id="client-badge-title">Client message badge</h2>
+            <p class="muted">Choose the small label shown beside each client's name in chat. The default is HOST.</p>
+            <form method="post" action="{{ url_for('admin_chat_settings_save') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <label for="badgeLabel">Badge label</label>
+                <input id="badgeLabel" name="badge_label" maxlength="16" value="{{ chat_settings.badge_label }}" required>
+                <div class="actions"><button type="submit">Save badge label</button></div>
+            </form>
+        </section>
+        <section class="panel" aria-labelledby="date-cleanup-title">
+            <h2 id="date-cleanup-title">Clean storage by date</h2>
+            <p class="muted">Delete messages before the selected UTC date and remove their attached media.</p>
+            <form method="post" action="{{ url_for('admin_chat_cleanup') }}" onsubmit="return confirm('Delete all chat messages and media older than this date?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="cleanup_mode" value="date">
+                <label for="beforeDate">Delete messages before</label>
+                <input id="beforeDate" type="date" name="before_date" required>
+                <div class="actions"><button type="submit">Clean by date</button></div>
+            </form>
+        </section>
+        <section class="panel" aria-labelledby="age-cleanup-title">
+            <h2 id="age-cleanup-title">Clean by age</h2>
+            <p class="muted">Choose a short retention window for messages and associated uploads.</p>
+            <form method="post" action="{{ url_for('admin_chat_cleanup') }}" onsubmit="return confirm('Delete all chat messages and media older than the selected period?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="cleanup_mode" value="hours">
+                <label for="cleanupHours">Remove content older than</label>
+                <select id="cleanupHours" name="hours"><option value="24">24 hours</option><option value="48">48 hours</option></select>
+                <div class="actions"><button type="submit">Clean by age</button></div>
+            </form>
+        </section>
+        <section class="panel full" aria-labelledby="clear-history-title">
+            <h2 id="clear-history-title">Delete all chat history</h2>
+            <p class="muted">This permanently removes every stored chat message and associated media file.</p>
+            <form method="post" action="{{ url_for('admin_chat_clear') }}" onsubmit="return confirm('Permanently delete all chat messages and uploaded media?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="danger" type="submit">Delete all messages and media</button>
+            </form>
+        </section>
+        <section class="panel full" aria-labelledby="recent-chat-title">
+            <h2 id="recent-chat-title">Recent messages</h2>
+            <div class="chat-records">
+                {% for item in chat_messages %}
+                    <article class="chat-record">
+                        <div class="record-meta"><strong>{{ item.username or 'Guest' }}</strong><time>{{ item.submitted_at or 'Unknown date' }}</time></div>
+                        {% if item.message %}<p>{{ item.message }}</p>{% endif %}
+                        {% for attachment in item.attachments or ([item.attachment] if item.attachment else []) %}
+                            <a class="record-media" href="{{ url_for('chat_media', filename=attachment.filename) }}">{{ attachment.original_name or attachment.filename }}</a>
+                        {% endfor %}
+                    </article>
+                {% else %}<p class="empty">No chat messages are stored.</p>{% endfor %}
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

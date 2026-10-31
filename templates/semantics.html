@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site_content.brand_name }} | Semantics{% endblock %}
+
+{% block content %}
+<main class="semantics-page">
+    <header class="semantics-hero">
+        <p class="eyebrow">LANGUAGE LAB / 05</p>
+        <h1>Semantics: meaning in language</h1>
+        <p>Semantics studies how words, phrases, and sentences carry meaning, how those meanings connect, and how context shapes interpretation in real communication.</p>
+    </header>
+
+    <nav class="module-subnav semantics-subnav" aria-label="Semantics topics">
+        <a href="#sense-reference">Sense &amp; Reference</a>
+        <a href="#semiotic-triangle">Semiotic Triangle</a>
+        <a href="#semantic-relations">Relations</a>
+        <a href="#semantic-roles">Roles</a>
+        <a href="#utterance">Utterance</a>
+        <a href="#semantic-sandbox">Sandbox</a>
+        <a href="#references">References</a>
+    </nav>
+
+    <section class="semantics-section" id="sense-reference" aria-labelledby="senseReferenceTitle">
+        <div class="section-head">
+            <span class="tool-index">01</span>
+            <div>
+                <h2 id="senseReferenceTitle">Sense and reference</h2>
+                <p>Meaning is not only a dictionary idea; it is also shaped by use, context, and speaker intention.</p>
+            </div>
+        </div>
+
+        <div class="semantics-grid two-column">
+            <article class="info-card">
+                <h3>Sense</h3>
+                <p>Sense is the mental or conceptual meaning of an expression. It explains how a word fits into a system of relations with other words and how speakers understand its content.</p>
+                <ul class="bullet-list">
+                    <li>Conceptual structure</li>
+                    <li>Associations and contrasts</li>
+                    <li>Word-internal meaning relations</li>
+                </ul>
+            </article>
+            <article class="info-card">
+                <h3>Reference</h3>
+                <p>Reference is the connection between a linguistic form and the actual entity, event, or concept it points to in the real world. A proper noun may refer to a single person, place, or institution.</p>
+                <ul class="bullet-list">
+                    <li>Direct pointing</li>
+                    <li>Actual world connection</li>
+                    <li>Context-dependent identification</li>
+                </ul>
+            </article>
+        </div>
+
+        <div class="concept-box">
+            <p><strong>Example:</strong> The expression <em>the morning star</em> and <em>the evening star</em> may refer to the same object in the sky, but the sense is differently highlighted through context and cultural association.</p>
+        </div>
+
+        <div class="mini-compare">
+            <div class="compare-item"><strong>Sense</strong><span>What it means in concept</span></div>
+            <div class="compare-item"><strong>Reference</strong><span>What it points to in reality</span></div>
+            <div class="compare-item"><strong>Use</strong><span>How context shapes interpretation</span></div>
+        </div>
+    </section>
+
+    <section class="semantics-section" id="semiotic-triangle" aria-labelledby="semioticTriangleTitle">
+        <div class="section-head">
+            <span class="tool-index">02</span>
+            <div>
+                <h2 id="semioticTriangleTitle">The semiotic triangle</h2>
+                <p>The sign does not connect directly to the world without an interpretive layer of thought and convention.</p>
+            </div>
+        </div>
+
+        <div class="triangle-layout">
+            <svg class="semiotic-svg" viewBox="0 0 540 320" role="img" aria-label="Semiotic triangle diagram showing symbol, thought, and referent relationship">
+                <defs>
+                    <linearGradient id="triangleLine" x1="0%" x2="100%" y1="0%" y2="100%">
+                        <stop offset="0%" stop-color="#d5ff3f"/>
+                        <stop offset="100%" stop-color="#7ef6e8"/>
+                    </linearGradient>
+                </defs>
+                <line x1="270" y1="70" x2="120" y2="230" stroke="url(#triangleLine)" stroke-width="2.5"/>
+                <line x1="270" y1="70" x2="420" y2="230" stroke="url(#triangleLine)" stroke-width="2.5"/>
+                <line x1="120" y1="230" x2="420" y2="230" stroke="url(#triangleLine)" stroke-width="2.5"/>
+                <circle cx="270" cy="70" r="46" fill="#111915" stroke="#d5ff3f" stroke-width="2"/>
+                <circle cx="120" cy="230" r="46" fill="#111915" stroke="#7ef6e8" stroke-width="2"/>
+                <circle cx="420" cy="230" r="46" fill="#111915" stroke="#7ef6e8" stroke-width="2"/>
+                <text x="270" y="70" text-anchor="middle" dominant-baseline="middle" class="triangle-node">Symbol</text>
+                <text x="120" y="230" text-anchor="middle" dominant-baseline="middle" class="triangle-node">Thought</text>
+                <text x="420" y="230" text-anchor="middle" dominant-baseline="middle" class="triangle-node">Referent</text>
+                <text x="270" y="145" text-anchor="middle" class="triangle-label">Interpretation</text>
+                <text x="195" y="210" text-anchor="middle" class="triangle-label">Conceptual link</text>
+                <text x="345" y="210" text-anchor="middle" class="triangle-label">World reference</text>
+            </svg>
+
+            <div class="triangle-notes">
+                <article class="info-card">
+                    <h3>Symbol</h3>
+                    <p>The word form or linguistic sign: <em>dog</em>, <em>tree</em>, <em>water</em>.</p>
+                </article>
+                <article class="info-card">
+                    <h3>Thought / reference</h3>
+                    <p>The mental representation created by the speaker or listener; it is the conceptual understanding activated by the symbol.</p>
+                </article>
+                <article class="info-card">
+                    <h3>Referent</h3>
+                    <p>The actual object, action, or entity in the real world that the symbol points to.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="semantics-section" id="semantic-relations" aria-labelledby="semanticRelationsTitle">
+        <div class="section-head">
+            <span class="tool-index">03</span>
+            <div>
+                <h2 id="semanticRelationsTitle">Semantic relations</h2>
+                <p>Words are organized through networks of similarity, contrast, inclusion, and ambiguity.</p>
+            </div>
+        </div>
+
+        <div class="semantic-relation-cards">
+            <article class="relation-card">
+                <h3>Synonymy</h3>
+                <p>Words with closely related meanings in a given context; they may be near-equivalents rather than perfect replacements.</p>
+                <div class="relation-pairs">
+                    <span>big</span>
+                    <span>large</span>
+                    <span>quick</span>
+                    <span>fast</span>
+                </div>
+            </article>
+
+            <article class="relation-card">
+                <h3>Antonymy</h3>
+                <p>Opposites can be complementary, gradable, or directional.</p>
+                <div class="relation-pairs antonyms">
+                    <span>dead</span>
+                    <span>alive</span>
+                    <span>hot</span>
+                    <span>cold</span>
+                    <span>up</span>
+                    <span>down</span>
+                </div>
+                <ul class="mini-list">
+                    <li><strong>Complementary:</strong> on/off, single/married</li>
+                    <li><strong>Gradable:</strong> rich/poor, hot/cold</li>
+                    <li><strong>Directional:</strong> come/go, buy/sell</li>
+                </ul>
+            </article>
+
+            <article class="relation-card">
+                <h3>Hyponymy</h3>
+                <p>A more specific item is a hyponym of a broader category.</p>
+                <div class="hyponymy-tree" aria-label="Animal hierarchy syntax tree">
+                    <div class="tree-node root">Animal</div>
+                    <div class="tree-branch">
+                        <div class="tree-node branch">Mammal</div>
+                        <div class="tree-branch nested">
+                            <div class="tree-node leaf">Dog</div>
+                            <div class="tree-node leaf">Cat</div>
+                        </div>
+                    </div>
+                    <div class="tree-branch">
+                        <div class="tree-node branch">Bird</div>
+                        <div class="tree-branch nested">
+                            <div class="tree-node leaf">Eagle</div>
+                            <div class="tree-node leaf">Sparrow</div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="relation-card">
+                <h3>Polysemy</h3>
+                <p>One word has several related senses within a common conceptual field.</p>
+                <div class="relation-example">
+                    <strong>head</strong>
+                    <span>of a person</span>
+                    <span>of a company</span>
+                    <span>of a river</span>
+                </div>
+            </article>
+
+            <article class="relation-card">
+                <h3>Homonymy</h3>
+                <p>Different words share the same form but are unrelated semantically.</p>
+                <div class="relation-example">
+                    <strong>bat</strong>
+                    <span>animal</span>
+                    <span>sports implement</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="semantics-section" id="semantic-roles" aria-labelledby="semanticRolesTitle">
+        <div class="section-head">
+            <span class="tool-index">04</span>
+            <div>
+                <h2 id="semanticRolesTitle">Semantic roles</h2>
+                <p>Participants in events are interpreted according to the role they play in an action or state.</p>
+            </div>
+        </div>
+
+        <div class="roles-grid">
+            <article class="role-card">
+                <h3>Agent</h3>
+                <p>The initiator of the action.</p>
+                <span class="role-example">The <strong>student</strong> opened the book.</span>
+            </article>
+            <article class="role-card">
+                <h3>Theme</h3>
+                <p>The entity that is affected, moved, or experienced.</p>
+                <span class="role-example">The student opened <strong>the book</strong>.</span>
+            </article>
+            <article class="role-card">
+                <h3>Instrument</h3>
+                <p>The means used to carry out the action.</p>
+                <span class="role-example">She cut the paper with <strong>a knife</strong>.</span>
+            </article>
+            <article class="role-card">
+                <h3>Experiencer</h3>
+                <p>The entity that feels, perceives, or experiences a state.</p>
+                <span class="role-example"><strong>Mariam</strong> felt nervous during the lecture.</span>
+            </article>
+            <article class="role-card">
+                <h3>Location</h3>
+                <p>The place in which the event happens.</p>
+                <span class="role-example">They met <strong>at the library</strong>.</span>
+            </article>
+            <article class="role-card">
+                <h3>Source</h3>
+                <p>The starting point of motion or transfer.</p>
+                <span class="role-example">The letter came <strong>from London</strong>.</span>
+            </article>
+            <article class="role-card">
+                <h3>Goal</h3>
+                <p>The endpoint of motion or transfer.</p>
+                <span class="role-example">The package moved <strong>to the office</strong>.</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="semantics-section" id="semantic-sandbox" aria-labelledby="semanticSandboxTitle">
+        <div class="section-head">
+                <span class="tool-index">05</span>
+            <div>
+                <h2 id="semanticSandboxTitle">Semantic analysis sandbox</h2>
+                <p>Use these sentence patterns to observe how meaning and roles interact in context.</p>
+            </div>
+        </div>
+
+        <div class="sandbox-layout">
+            <div class="sandbox-box">
+                <h3>Sentence samples</h3>
+                <div class="sentence-samples">
+                    <button type="button" class="sample-button is-active">The boy broke the window with a stone.</button>
+                    <button type="button" class="sample-button">The teacher explained the lesson to the students.</button>
+                    <button type="button" class="sample-button">The package moved from the station to the office.</button>
+                    <button type="button" class="sample-button">Ali felt tired after the long trip.</button>
+                </div>
+            </div>
+            <div class="sandbox-box analysis-box">
+                <h3>Analysis</h3>
+                <div class="analysis-output">
+                    <p><strong>Sentence:</strong> The boy broke the window with a stone.</p>
+                    <p><strong>Agent:</strong> The boy</p>
+                    <p><strong>Theme:</strong> the window</p>
+                    <p><strong>Instrument:</strong> a stone</p>
+                    <p><strong>Meaning pattern:</strong> agent + action + affected object + tool</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="semantics-section" id="utterance" aria-labelledby="utteranceTitle">
+        <div class="section-head">
+            <span class="tool-index">06</span>
+            <div>
+                <h2 id="utteranceTitle">Utterance: meaning in a real situation</h2>
+                <p>An utterance is a concrete use of language by a speaker or writer at a particular time and place, addressed to an audience for a purpose.</p>
+            </div>
+        </div>
+
+        <div class="semantics-grid two-column">
+            <article class="info-card">
+                <h3>Sentence vs. utterance</h3>
+                <p>A <strong>sentence</strong> is an abstract grammatical construction. An <strong>utterance</strong> is a particular occurrence of language in a communicative event. The same sentence can be uttered repeatedly by different people, at different times, with different referents or intentions.</p>
+                <div class="utterance-example">
+                    <span class="example-label">Same sentence, different utterances</span>
+                    <p><q>I am ready now.</q> The speaker, the time of <em>now</em>, and what they are ready for depend on each occasion of use.</p>
+                </div>
+            </article>
+            <article class="info-card">
+                <h3>Utterance vs. proposition</h3>
+                <p>A proposition is the content that can be evaluated as true or false. An utterance is the situated act through which a speaker expresses that content. Different utterances can express the same proposition, while one sentence form can express different propositions in different contexts.</p>
+                <div class="utterance-example">
+                    <span class="example-label">Context fixes the proposition</span>
+                    <p><q>She is here.</q> To identify the proposition, a listener needs to know who <em>she</em> is and which place counts as <em>here</em>.</p>
+                </div>
+            </article>
+        </div>
+
+        <div class="utterance-context" aria-label="Elements of an utterance context">
+            <div><strong>Speaker</strong><span>Who produces the expression?</span></div>
+            <div><strong>Addressee</strong><span>Who is being addressed?</span></div>
+            <div><strong>Time</strong><span>When does the utterance occur?</span></div>
+            <div><strong>Place</strong><span>Where is the speech event located?</span></div>
+            <div><strong>Discourse</strong><span>What has already been said or assumed?</span></div>
+            <div><strong>Purpose</strong><span>What is the speaker trying to do?</span></div>
+        </div>
+
+        <div class="semantics-grid two-column utterance-topics">
+            <article class="info-card">
+                <h3>How context contributes to meaning</h3>
+                <ul class="bullet-list">
+                    <li><strong>Deixis:</strong> expressions such as <em>I</em>, <em>you</em>, <em>here</em>, and <em>tomorrow</em> are interpreted relative to the speech event.</li>
+                    <li><strong>Reference:</strong> listeners identify which person or thing a phrase picks out using shared knowledge and the situation.</li>
+                    <li><strong>Ellipsis:</strong> omitted material can be recovered from context, as in <em>Want some?</em></li>
+                    <li><strong>Ambiguity:</strong> context can help select among multiple readings, though it does not always remove every ambiguity.</li>
+                    <li><strong>Prosody and gesture:</strong> stress, intonation, facial expression, and pointing can guide interpretation.</li>
+                </ul>
+            </article>
+            <article class="info-card">
+                <h3>Utterance meaning and speaker meaning</h3>
+                <p><strong>Sentence meaning</strong> comes from conventional linguistic forms and composition. <strong>Utterance meaning</strong> combines that conventional content with the context of use. <strong>Speaker meaning</strong> is what the speaker intends the audience to understand or recognize.</p>
+                <div class="utterance-example">
+                    <span class="example-label">A contextual inference</span>
+                    <p>At an open window, <q>It is cold in here</q> can describe the temperature and, in an appropriate context, indirectly suggest closing the window.</p>
+                </div>
+            </article>
+        </div>
+
+        <h3 class="utterance-subheading">Utterances as speech acts</h3>
+        <p class="utterance-intro">In saying something, speakers can also perform an action. A useful introductory distinction separates the words said, the act performed in saying them, and the possible effect on a listener.</p>
+        <div class="speech-act-grid">
+            <article class="role-card">
+                <h3>Locutionary act</h3>
+                <p>The production of a meaningful linguistic expression with a conventional sense and reference.</p>
+                <span class="role-example">The words: <q>Can you pass the salt?</q></span>
+            </article>
+            <article class="role-card">
+                <h3>Illocutionary act</h3>
+                <p>The communicative force or act performed, such as requesting, promising, warning, or asserting.</p>
+                <span class="role-example">The intended act: a polite request.</span>
+            </article>
+            <article class="role-card">
+                <h3>Perlocutionary effect</h3>
+                <p>The effect the utterance actually has on a listener, which may or may not match the speaker's intention.</p>
+                <span class="role-example">Possible effect: the listener passes the salt.</span>
+            </article>
+        </div>
+
+        <div class="concept-box utterance-caveat">
+            <p><strong>Direct and indirect acts:</strong> <em>Pass the salt, please</em> is a direct request. <em>Could you pass the salt?</em> has interrogative form but can function as an indirect request. Whether it succeeds depends on context, shared conventions, and how the addressee understands it.</p>
+        </div>
+    </section>
+
+    <section class="semantics-section references-section" id="references" aria-labelledby="semanticsReferencesTitle">
+        <div class="section-head">
+            <span class="tool-index">07</span>
+            <div>
+                <h2 id="semanticsReferencesTitle">Academic references</h2>
+                <p>Foundational publications in linguistics, semantics, pragmatics, and speech-act theory.</p>
+            </div>
+        </div>
+
+        <ol class="reference-list">
+            <li>Palmer, F. R. (1981). <cite>Semantics</cite>. Cambridge University Press.</li>
+            <li>Lyons, J. (1977). <cite>Semantics</cite>. Cambridge University Press.</li>
+            <li>Yule, G. (2010). <cite>The Study of Language</cite> (4th ed.). Cambridge University Press.</li>
+            <li>Cruse, D. A. (2004). <cite>Meaning in Language: An Introduction to Semantics and Pragmatics</cite>. Oxford University Press.</li>
+            <li>Austin, J. L. (1962). <cite>How to Do Things with Words</cite>. Clarendon Press.</li>
+            <li>Searle, J. R. (1969). <cite>Speech Acts: An Essay in the Philosophy of Language</cite>. Cambridge University Press.</li>
+            <li>Levinson, S. C. (1983). <cite>Pragmatics</cite>. Cambridge University Press.</li>
+            <li>Fromkin, V., Rodman, R., &amp; Hyams, N. (2018). <cite>An Introduction to Language</cite> (11th ed.). Cengage.</li>
+            <li>Chomsky, N. (1965). <cite>Aspects of the Theory of Syntax</cite>. MIT Press.</li>
+            <li>Radford, A. (2009). <cite>Analysing English Sentences: A Minimalist Approach</cite>. Cambridge University Press.</li>
+        </ol>
+        <p class="attribution-note">Damodar reference: the project files and bibliographic lookup did not provide a verifiable title or publication record by Thakur Damodar for semantics or utterance. No work is attributed to him here without its original title, course handout, publication details, or institutional source.</p>
+    </section>
+</main>
+{% endblock %}

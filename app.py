@@ -1,20 +1,29 @@
 import asyncio
 from datetime import datetime, timezone
+from datetime import timedelta
 from functools import wraps
 import hashlib
 from io import BytesIO
+import html
 import json
+import logging
+import mimetypes
 import os
 import re
 import secrets
+import shutil
+import sqlite3
+import subprocess
+import unicodedata
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, abort, send_file, send_from_directory
 import eng_to_ipa
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 app = Flask(__name__)
@@ -43,10 +52,211 @@ def load_session_secret():
     return secret
 
 app.secret_key = load_session_secret()
-app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax', MAX_CONTENT_LENGTH=12 * 1024 * 1024)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=80),
+    MAX_CONTENT_LENGTH=12 * 1024 * 1024,
+)
 
 CHAT_HISTORY_PATH = Path(app.instance_path) / 'chat_history.jsonl'
+CHAT_MEDIA_DIR = Path(app.instance_path) / 'uploads' / 'chat'
+CHAT_USERS_DB_PATH = Path(app.instance_path) / 'chat_users.sqlite3'
+CHAT_SETTINGS_PATH = Path(app.instance_path) / 'chat_settings.json'
+CHAT_SESSION_LIFETIME = timedelta(hours=80)
+CHAT_PRESENCE_TIMEOUT = timedelta(seconds=90)
+CHAT_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+CHAT_ALLOWED_EXTENSIONS = {
+    '.jpg', '.jpeg', '.png', '.webp', '.gif',
+    '.mp3', '.wav', '.ogg', '.m4a', '.aac',
+    '.mp4', '.webm', '.mov', '.m4v',
+    '.pdf', '.txt', '.doc', '.docx', '.ppt', '.pptx',
+}
+CHAT_VIDEO_EXTENSIONS = {'.mp4', '.webm', '.mov', '.m4v'}
+VIDEO_MAX_SECONDS = 60
 STUDENT_ID_PATH = Path(app.instance_path) / 'student_ids.json'
+SECURITY_LOGGER = logging.getLogger('nizarphonetics.security')
+if not SECURITY_LOGGER.handlers:
+    security_handler = logging.StreamHandler()
+    security_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+    SECURITY_LOGGER.addHandler(security_handler)
+SECURITY_LOGGER.setLevel(logging.INFO)
+SECURITY_LOGGER.propagate = False
+
+DANGEROUS_INPUT_PATTERNS = (
+    re.compile(r'(?is)<\s*(script|iframe|object|embed|svg|math|style)\b'),
+    re.compile(r'(?is)javascript\s*:'),
+    re.compile(r'(?is)on\w+\s*='),
+    re.compile(r'(?is)data\s*:\s*(?:text/html|image/svg\+xml|application/javascript|text/javascript)'),
+    re.compile(r'(?is)\b(?:union\s+select|select\s+\*|drop\s+table|insert\s+into|delete\s+from|update\s+.*\s+set)\b'),
+    re.compile(r'(?is)(?:;\s*(?:curl|wget|bash|sh|chmod|nc|powershell|cmd)|\$\([^)]*\)|`[^`]+`|\|\|\s*(?:curl|wget|bash|sh))'),
+)
+
+
+class SecurityValidationError(ValueError):
+    """Raised when a file or input fails the security validation layer."""
+
+
+def log_security_event(event_name, detail, **extra):
+    summary = detail
+    if extra:
+        summary += ' ' + ' '.join(f'{key}={value}' for key, value in sorted(extra.items()))
+    SECURITY_LOGGER.warning('SECURITY %s: %s', event_name, summary)
+
+
+def sanitize_file_name(filename):
+    raw_name = str(filename or '').replace('\\', '/')
+    raw_name = os.path.basename(raw_name)
+    raw_name = raw_name.replace('\x00', '')
+    raw_name = unicodedata.normalize('NFKC', raw_name)
+    raw_name = ''.join(ch for ch in raw_name if ch.isprintable() and ch not in {'/', '\\', ':', '*', '?', '"', '<', '>', '|'} )
+    cleaned_name = secure_filename(raw_name) or 'upload'
+    cleaned_name = re.sub(r'\s+', ' ', cleaned_name).strip().strip('.')
+    return cleaned_name[:160] or 'upload'
+
+
+def sanitize_user_text(value, field_name='message', max_length=2000):
+    if value is None:
+        return ''
+    text = unicodedata.normalize('NFKC', str(value))
+    text = text.replace('\x00', '')
+    text = ''.join(ch for ch in text if ch.isprintable() or ch in '\n\r\t')
+    text = text.strip()
+    text = re.sub(r'[\u202a-\u202e\u2066-\u2069]', '', text)
+    if not text:
+        return ''
+    for pattern in DANGEROUS_INPUT_PATTERNS:
+        if pattern.search(text):
+            raise SecurityValidationError(f'{field_name} contains dangerous content.')
+    if len(text) > max_length:
+        raise SecurityValidationError(f'{field_name} exceeds the allowed length.')
+    return text
+
+
+def sanitize_display_name(value, max_length=60):
+    if value is None:
+        raise SecurityValidationError('Display name is required.')
+    name = sanitize_user_text(value, field_name='display name', max_length=max_length)
+    name = re.sub(r'\s+', ' ', name).strip()
+    if len(name) < 2:
+        raise SecurityValidationError('Display name is too short.')
+    if not re.fullmatch(r'[\w\s\-\.]+', name, flags=re.UNICODE):
+        raise SecurityValidationError('Display name contains unsupported characters.')
+    return name[:max_length]
+
+
+def is_dangerous_binary_payload(payload):
+    sample = payload[:4096].lower()
+    if not sample:
+        return True
+    if b'<' in sample and any(token in sample for token in (b'<script', b'javascript:', b'vbscript:', b'onerror=', b'onload=', b'<!doctype html', b'<html', b'<?php')):
+        return True
+    if b'#!/bin/' in sample or b'#!/usr/bin/env' in sample:
+        return True
+    if b'cmd.exe' in sample or b'/bin/sh' in sample or b'powershell' in sample:
+        return True
+    if sample.startswith((b'<?php', b'<?', b'<!doctype html', b'<html', b'<script')):
+        return True
+    return False
+
+
+def is_valid_file_signature(extension, header):
+    normalized = extension.lower()
+    if normalized in {'.jpg', '.jpeg'}:
+        return header.startswith(b'\xff\xd8\xff')
+    if normalized == '.png':
+        return header.startswith(b'\x89PNG\r\n\x1a\n')
+    if normalized == '.gif':
+        return header.startswith((b'GIF87a', b'GIF89a'))
+    if normalized == '.webp':
+        return header.startswith(b'RIFF') and header[8:12] == b'WEBP'
+    if normalized in {'.mp3', '.wav'}:
+        return (header.startswith(b'ID3') or header.startswith((b'\xff\xfb', b'\xff\xf3', b'\xff\xf2')) or (header.startswith(b'RIFF') and header[8:12] == b'WAVE'))
+    if normalized in {'.ogg', '.oga'}:
+        return header.startswith(b'OggS')
+    if normalized in {'.m4a', '.mp4', '.m4v', '.mov'}:
+        return header.startswith(b'\x00\x00\x00') and b'ftyp' in header[4:12] or header.startswith(b'ftyp') or b'ftyp' in header[:32]
+    if normalized == '.aac':
+        return header.startswith((b'\xff\xf1', b'\xff\xf9', b'\xff\xfa'))
+    if normalized == '.pdf':
+        return header.startswith(b'%PDF')
+    if normalized in {'.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx'}:
+        return header.startswith(b'PK') or header.startswith(b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1')
+    if normalized == '.txt':
+        return not is_dangerous_binary_payload(header)
+    return True
+
+
+def detect_video_duration(path):
+    ffprobe_path = shutil.which('ffprobe')
+    if not ffprobe_path:
+        return None
+    try:
+        result = subprocess.run(
+            [ffprobe_path, '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', str(path)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    try:
+        duration = float(result.stdout.strip().splitlines()[0])
+    except ValueError:
+        return None
+    return duration if duration > 0 else None
+
+
+def validate_uploaded_media(uploaded, allowed_extensions, max_bytes, *, video_max_seconds=None, mime_map=None):
+    if uploaded is None or not getattr(uploaded, 'filename', None):
+        raise SecurityValidationError('No file was selected.')
+
+    original_name = sanitize_file_name(uploaded.filename)
+    extension = Path(original_name).suffix.lower()
+    if extension not in allowed_extensions:
+        raise SecurityValidationError('This file type is not allowed.')
+
+    try:
+        uploaded.stream.seek(0, os.SEEK_END)
+        file_size = uploaded.stream.tell()
+        uploaded.stream.seek(0)
+    except (AttributeError, OSError):
+        raise SecurityValidationError('The file could not be read securely.')
+    if file_size <= 0 or file_size > max_bytes:
+        raise SecurityValidationError('The file is empty or exceeds the maximum upload size.')
+
+    header = uploaded.stream.read(4096)
+    uploaded.stream.seek(0)
+    if not header:
+        raise SecurityValidationError('The file does not contain any readable data.')
+    if is_dangerous_binary_payload(header):
+        raise SecurityValidationError('The file content matches a dangerous or executable payload.')
+    if not is_valid_file_signature(extension, header):
+        raise SecurityValidationError('The file signature does not match the expected format.')
+
+    guessed_mimetype = (uploaded.mimetype or mimetypes.guess_type(original_name)[0] or 'application/octet-stream').lower()
+    expected_mimetypes = mime_map.get(extension, {guessed_mimetype}) if mime_map else {guessed_mimetype}
+    if guessed_mimetype not in expected_mimetypes:
+        raise SecurityValidationError('The file MIME type does not match the allowed list.')
+
+    if extension in CHAT_VIDEO_EXTENSIONS and video_max_seconds is not None:
+        temporary_path = Path(app.instance_path) / 'uploads' / 'tmp' / f'{secrets.token_hex(8)}{extension}'
+        temporary_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            uploaded.save(temporary_path)
+            duration = detect_video_duration(temporary_path)
+            if duration is not None and duration > video_max_seconds:
+                raise SecurityValidationError('Video files must be 60 seconds or shorter.')
+        finally:
+            try:
+                if temporary_path.exists():
+                    temporary_path.unlink()
+            except OSError:
+                pass
+
+    return {'original_name': original_name, 'extension': extension, 'size': file_size, 'mimetype': guessed_mimetype}
 
 
 def ensure_data_file(path, default_content='[]'):
@@ -119,8 +329,19 @@ def verify_student_in_registry(student_id):
 
 
 def append_chat_message(message):
-    ensure_data_file(CHAT_HISTORY_PATH, '[]')
-    with CHAT_HISTORY_PATH.open('a', encoding='utf-8') as chat_file:
+    ensure_data_file(CHAT_HISTORY_PATH, '')
+    try:
+        if CHAT_HISTORY_PATH.stat().st_size == 2 and CHAT_HISTORY_PATH.read_bytes() == b'[]':
+            CHAT_HISTORY_PATH.write_text('', encoding='utf-8')
+    except OSError:
+        pass
+    with CHAT_HISTORY_PATH.open('a+', encoding='utf-8') as chat_file:
+        chat_file.seek(0, os.SEEK_END)
+        if chat_file.tell():
+            chat_file.seek(chat_file.tell() - 1)
+            if chat_file.read(1) != '\n':
+                chat_file.seek(0, os.SEEK_END)
+                chat_file.write('\n')
         chat_file.write(json.dumps(message, ensure_ascii=False) + '\n')
 
 
@@ -138,6 +359,7 @@ def load_chat_messages(limit=None, search_term=''):
             continue
         if not isinstance(entry, dict):
             continue
+        entry['_id'] = str(entry.get('id') or hashlib.sha256(line.encode('utf-8')).hexdigest()[:24])
         if search_term:
             haystack = ' '.join([
                 str(entry.get('student_id', '')),
@@ -152,9 +374,218 @@ def load_chat_messages(limit=None, search_term=''):
     return list(reversed(entries))
 
 
+def chat_media_path(filename):
+    if not isinstance(filename, str) or not re.fullmatch(r'[a-f0-9]{32}\.[a-z0-9]{1,10}', filename):
+        return None
+    media_dir = CHAT_MEDIA_DIR.resolve()
+    media_path = (media_dir / filename).resolve()
+    return media_path if media_path.parent == media_dir else None
+
+
+def chat_attachments(message):
+    attachment = message.get('attachment')
+    if isinstance(attachment, dict):
+        return [attachment]
+    attachments = message.get('attachments')
+    return [item for item in attachments if isinstance(item, dict)] if isinstance(attachments, list) else []
+
+
+def delete_chat_message_media(message):
+    deleted_files = 0
+    deleted_bytes = 0
+    for attachment in chat_attachments(message):
+        media_path = chat_media_path(attachment.get('filename'))
+        if media_path is None:
+            continue
+        try:
+            if media_path.is_file():
+                deleted_bytes += media_path.stat().st_size
+                media_path.unlink()
+                deleted_files += 1
+        except OSError:
+            app.logger.exception('Could not remove chat media file %s.', media_path.name)
+    return deleted_files, deleted_bytes
+
+
+def parse_chat_timestamp(value):
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
+
+
+def connect_chat_database():
+    CHAT_USERS_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    connection = sqlite3.connect(CHAT_USERS_DB_PATH, timeout=10)
+    connection.row_factory = sqlite3.Row
+    connection.execute('''
+        CREATE TABLE IF NOT EXISTS chat_users (
+            user_id TEXT PRIMARY KEY,
+            name_key TEXT NOT NULL UNIQUE,
+            display_name TEXT NOT NULL,
+            registered_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            last_seen_at TEXT NOT NULL,
+            typing_until TEXT
+        )
+    ''')
+    user_columns = {row['name'] for row in connection.execute('PRAGMA table_info(chat_users)')}
+    if 'typing_until' not in user_columns:
+        connection.execute('ALTER TABLE chat_users ADD COLUMN typing_until TEXT')
+    connection.commit()
+    return connection
+
+
+def register_chat_user(display_name):
+    now = datetime.now(timezone.utc)
+    user_id = secrets.token_hex(16)
+    name_key = unicodedata.normalize('NFKC', display_name).strip().casefold()
+    connection = connect_chat_database()
+    try:
+        connection.execute('BEGIN IMMEDIATE')
+        connection.execute('DELETE FROM chat_users WHERE expires_at <= ?', (now.isoformat(),))
+        connection.execute(
+            'INSERT INTO chat_users (user_id, name_key, display_name, registered_at, expires_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?)',
+            (user_id, name_key, display_name, now.isoformat(), (now + CHAT_SESSION_LIFETIME).isoformat(), now.isoformat()),
+        )
+        connection.commit()
+    except sqlite3.IntegrityError:
+        connection.rollback()
+        return None
+    finally:
+        connection.close()
+    return {'user_id': user_id, 'name_key': name_key, 'registered_at': now.isoformat()}
+
+
+def validate_chat_user_session():
+    user_id = session.get('chat_user_id')
+    name_key = session.get('chat_name_key')
+    if not user_id or not name_key:
+        return False
+    connection = connect_chat_database()
+    try:
+        row = connection.execute(
+            'SELECT expires_at FROM chat_users WHERE user_id = ? AND name_key = ?',
+            (user_id, name_key),
+        ).fetchone()
+    finally:
+        connection.close()
+    expires_at = parse_chat_timestamp(row['expires_at']) if row else None
+    return bool(expires_at and expires_at > datetime.now(timezone.utc))
+
+
+def touch_chat_user():
+    if not validate_chat_user_session():
+        return False
+    connection = connect_chat_database()
+    try:
+        cursor = connection.execute(
+            'UPDATE chat_users SET last_seen_at = ? WHERE user_id = ? AND name_key = ?',
+            (datetime.now(timezone.utc).isoformat(), session['chat_user_id'], session['chat_name_key']),
+        )
+        connection.commit()
+        return cursor.rowcount == 1
+    finally:
+        connection.close()
+
+
+def online_chat_presence(exclude_user_id=None):
+    now = datetime.now(timezone.utc)
+    cutoff = now - CHAT_PRESENCE_TIMEOUT
+    connection = connect_chat_database()
+    try:
+        rows = connection.execute(
+            'SELECT user_id, display_name, last_seen_at, expires_at, typing_until FROM chat_users'
+        ).fetchall()
+    finally:
+        connection.close()
+    online_users = [
+        row for row in rows
+        if (parse_chat_timestamp(row['last_seen_at']) or datetime.min.replace(tzinfo=timezone.utc)) >= cutoff
+        and (parse_chat_timestamp(row['expires_at']) or now) > now
+    ]
+    typing_users = sorted(
+        (
+            row['display_name'] for row in online_users
+            if row['user_id'] != exclude_user_id
+            and (parse_chat_timestamp(row['typing_until']) or now) > now
+        ),
+        key=str.casefold,
+    )
+    return {
+        'online_user_ids': {row['user_id'] for row in online_users},
+        'online_count': len(online_users),
+        'typing_users': typing_users,
+    }
+
+
+def online_chat_user_ids():
+    return online_chat_presence()['online_user_ids']
+
+
+def load_chat_settings():
+    try:
+        settings = json.loads(CHAT_SETTINGS_PATH.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        settings = {}
+    badge_label = settings.get('badge_label', 'HOST') if isinstance(settings, dict) else 'HOST'
+    badge_label = ''.join(character for character in str(badge_label) if character.isprintable()).strip()[:16]
+    return {'badge_label': badge_label or 'HOST'}
+
+
+def save_chat_settings(settings):
+    CHAT_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = CHAT_SETTINGS_PATH.with_suffix('.tmp')
+    temporary_path.write_text(json.dumps(settings, ensure_ascii=False, indent=2), encoding='utf-8')
+    temporary_path.replace(CHAT_SETTINGS_PATH)
+
+
+def clean_chat_history_before(cutoff):
+    ensure_data_file(CHAT_HISTORY_PATH, '')
+    try:
+        lines = CHAT_HISTORY_PATH.read_text(encoding='utf-8').splitlines()
+    except OSError:
+        return {'messages': 0, 'files': 0, 'bytes': 0}
+
+    retained_lines = []
+    removed_messages = 0
+    removed_files = 0
+    removed_bytes = 0
+    for line in lines:
+        try:
+            entry = json.loads(line)
+        except (TypeError, ValueError):
+            retained_lines.append(line)
+            continue
+        timestamp = parse_chat_timestamp(entry.get('submitted_at')) if isinstance(entry, dict) else None
+        if isinstance(entry, dict) and timestamp and timestamp < cutoff:
+            files, size = delete_chat_message_media(entry)
+            removed_messages += 1
+            removed_files += files
+            removed_bytes += size
+        else:
+            retained_lines.append(line)
+
+    temporary_path = CHAT_HISTORY_PATH.with_suffix('.tmp')
+    temporary_path.write_text('\n'.join(retained_lines) + ('\n' if retained_lines else ''), encoding='utf-8')
+    temporary_path.replace(CHAT_HISTORY_PATH)
+    return {'messages': removed_messages, 'files': removed_files, 'bytes': removed_bytes}
+
+
 def clear_chat_history():
-    ensure_data_file(CHAT_HISTORY_PATH, '[]')
+    messages = load_chat_messages()
+    deleted_files = 0
+    deleted_bytes = 0
+    for message in messages:
+        files, size = delete_chat_message_media(message)
+        deleted_files += files
+        deleted_bytes += size
+    ensure_data_file(CHAT_HISTORY_PATH, '')
     CHAT_HISTORY_PATH.write_text('', encoding='utf-8')
+    return {'messages': len(messages), 'files': deleted_files, 'bytes': deleted_bytes}
 
 
 SITE_CONTENT_DEFAULTS = {
@@ -173,7 +604,7 @@ SITE_CONTENT_DEFAULTS = {
     'vision_text': 'Help learners build a lasting connection between written English and natural spoken language.',
     'values_title': 'Practice, Clarity, Progress',
     'values_text': 'We value accessible practice, careful listening, and steady progress at every level.',
-    'founder_name': 'Nizar Sharqi',
+    'founder_name': 'نزار احمد شرقي',
     'founder_bio': 'Founder of nizarphonetics, building thoughtful tools for English pronunciation and phonetic learning.',
     'contact_title': 'Contact nizarphonetics',
     'contact_intro': 'Send a question, suggestion, or note to the nizarphonetics team.',
@@ -274,6 +705,31 @@ def admin_required(view):
         return view(*args, **kwargs)
     return wrapped
 
+
+def chat_user_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if session.get('is_admin'):
+            return view(*args, **kwargs)
+        if not active_chat_name():
+            if request.endpoint in {'chat_messages_api', 'chat_send_message', 'chat_upload', 'chat_typing'}:
+                return jsonify({'error': 'Register your name to enter chat.'}), 401
+            return redirect(url_for('chat_page'))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+def active_chat_name():
+    chat_name = session.get('chat_name')
+    registered_at = parse_chat_timestamp(session.get('chat_registered_at'))
+    if not chat_name or not registered_at or datetime.now(timezone.utc) - registered_at >= CHAT_SESSION_LIFETIME or not touch_chat_user():
+        session.pop('chat_name', None)
+        session.pop('chat_registered_at', None)
+        session.pop('chat_user_id', None)
+        session.pop('chat_name_key', None)
+        return None
+    return chat_name
+
 @app.context_processor
 def inject_site_content():
     return {'site_content': load_site_content()}
@@ -303,6 +759,8 @@ def load_message_file(filename, limit=40):
             except (AttributeError, TypeError, ValueError):
                 entry['_display_date'] = submitted_at or 'Unknown'
             messages.append(entry)
+    if filename == 'feedback_submissions.jsonl':
+        messages = sort_entries_by_date(messages)
     return messages
 
 
@@ -323,6 +781,284 @@ def save_feedback_lines(path, lines):
     temporary_path.replace(path)
 
 
+def sort_entries_by_date(entries):
+    def parse_sort_value(entry):
+        submitted_at = str(entry.get('submitted_at') or '')
+        if not submitted_at:
+            return datetime.min.replace(tzinfo=timezone.utc)
+        try:
+            return datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).astimezone(timezone.utc)
+        except (AttributeError, TypeError, ValueError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+    return sorted(entries, key=lambda entry: parse_sort_value(entry), reverse=True)
+
+
+def serialize_chat_message(entry, online_user_ids=None, badge_label=None):
+    is_admin_message = bool(entry.get('is_admin'))
+    attachments = []
+    for attachment in chat_attachments(entry):
+        filename = attachment.get('filename', '')
+        if chat_media_path(filename) is None:
+            continue
+        attachments.append({
+            'filename': filename,
+            'name': html.escape(str(attachment.get('original_name') or filename), quote=False),
+            'kind': str(attachment.get('kind') or 'file'),
+            'mimetype': str(attachment.get('mimetype') or 'application/octet-stream'),
+            'size': int(attachment.get('size') or 0),
+            'url': url_for('chat_media', filename=filename),
+            'download_url': url_for('chat_media', filename=filename, download='1'),
+        })
+    return {
+        'id': str(entry.get('_id') or entry.get('id') or ''),
+        'name': 'BOSS' if is_admin_message else html.escape(str(entry.get('username') or 'Guest')[:60], quote=False),
+        'text': html.escape(str(entry.get('message') or '')[:2000], quote=False),
+        'submitted_at': str(entry.get('submitted_at') or ''),
+        'reply_to': html.escape(str(entry.get('reply_to') or ''), quote=False),
+        'online': bool(not is_admin_message and entry.get('user_id') and entry.get('user_id') in (online_user_ids or set())),
+        'is_admin': is_admin_message,
+        'badge_label': 'BOSS' if is_admin_message else badge_label or load_chat_settings()['badge_label'],
+        'attachments': attachments,
+    }
+
+
+def chat_storage_usage():
+    total_bytes = 0
+    file_count = 0
+    if CHAT_MEDIA_DIR.exists():
+        for media_path in CHAT_MEDIA_DIR.iterdir():
+            try:
+                if media_path.is_file():
+                    total_bytes += media_path.stat().st_size
+                    file_count += 1
+            except OSError:
+                continue
+    return {'files': file_count, 'bytes': total_bytes}
+
+
+@app.route('/chat', methods=['GET'])
+def chat_page():
+    if session.get('is_admin'):
+        return render_template('chat.html', csrf_token=csrf_token(), chat_name='BOSS', is_admin=True)
+    chat_name = active_chat_name()
+    if not chat_name:
+        return render_template('chat_register.html', csrf_token=csrf_token(), error='')
+    return render_template('chat.html', csrf_token=csrf_token(), chat_name=chat_name, is_admin=False)
+
+
+@app.route('/chat/register', methods=['POST'])
+def chat_register():
+    if not valid_csrf(request.form):
+        abort(400)
+    if active_chat_name():
+        return redirect(url_for('chat_page'))
+    try:
+        chat_name = sanitize_display_name(request.form.get('chat_name', ''))
+    except SecurityValidationError as exc:
+        log_security_event('chat_name_blocked', str(exc), remote_addr=request.remote_addr)
+        return render_template(
+            'chat_register.html', csrf_token=csrf_token(),
+            error='Choose a printable display name between 2 and 60 characters.',
+        ), 400
+    registration = register_chat_user(chat_name)
+    if registration is None:
+        return render_template(
+            'chat_register.html', csrf_token=csrf_token(),
+            error='That name is already in use. Choose another or return after its 80-hour session expires.',
+        ), 409
+    session['chat_name'] = chat_name
+    session['chat_name_key'] = registration['name_key']
+    session['chat_user_id'] = registration['user_id']
+    session['chat_registered_at'] = registration['registered_at']
+    session.permanent = True
+    return redirect(url_for('chat_page'))
+
+
+@app.route('/chat/messages', methods=['GET'])
+@chat_user_required
+def chat_messages_api():
+    presence = online_chat_presence(exclude_user_id=session.get('chat_user_id'))
+    badge_label = load_chat_settings()['badge_label']
+    messages = [
+        serialize_chat_message(entry, online_user_ids=presence['online_user_ids'], badge_label=badge_label)
+        for entry in load_chat_messages(limit=200)
+    ]
+    return jsonify({
+        'messages': messages,
+        'online_count': presence['online_count'],
+        'typing_users': presence['typing_users'],
+    })
+
+
+@app.route('/chat/typing', methods=['POST'])
+@chat_user_required
+def chat_typing():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or type(data.get('typing')) is not bool:
+        return jsonify({'error': 'Send a valid typing status.'}), 400
+    if not valid_csrf(data):
+        return jsonify({'error': 'Refresh the page and try again.'}), 400
+    if session.get('is_admin'):
+        return jsonify({'ok': True})
+
+    now = datetime.now(timezone.utc)
+    typing_until = (now + timedelta(seconds=6)).isoformat() if data['typing'] else None
+    connection = connect_chat_database()
+    try:
+        cursor = connection.execute(
+            'UPDATE chat_users SET last_seen_at = ?, typing_until = ? WHERE user_id = ? AND name_key = ? AND expires_at > ?',
+            (now.isoformat(), typing_until, session['chat_user_id'], session['chat_name_key'], now.isoformat()),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    if cursor.rowcount != 1:
+        return jsonify({'error': 'Your chat session has expired.'}), 401
+    return jsonify({'ok': True})
+
+
+@app.route('/chat/message', methods=['POST'])
+@chat_user_required
+def chat_send_message():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'Send a valid chat message.'}), 400
+    if not valid_csrf(data):
+        return jsonify({'error': 'Refresh the page and try again.'}), 400
+    is_admin_message = bool(session.get('is_admin'))
+    username = 'BOSS' if is_admin_message else session['chat_name']
+    try:
+        message_text = sanitize_user_text(data.get('message', ''), field_name='message', max_length=2000)
+        reply_to = sanitize_user_text(data.get('reply_to', ''), field_name='reply', max_length=40)
+    except SecurityValidationError as exc:
+        log_security_event('chat_message_blocked', str(exc), remote_addr=request.remote_addr, user=username)
+        return jsonify({'error': 'Your message contains blocked content.'}), 400
+    if not message_text:
+        return jsonify({'error': 'Write a message before sending.'}), 400
+    entry = {
+        'id': secrets.token_hex(12),
+        'user_id': None if is_admin_message else session['chat_user_id'],
+        'is_admin': is_admin_message,
+        'submitted_at': datetime.now(timezone.utc).isoformat(),
+        'username': username,
+        'message': message_text,
+        'reply_to': reply_to,
+    }
+    append_chat_message(entry)
+    entry['_id'] = entry['id']
+    return jsonify({'message': serialize_chat_message(entry, online_user_ids=online_chat_user_ids())}), 201
+
+
+@app.route('/chat/upload', methods=['POST'])
+@chat_user_required
+def chat_upload():
+    if not valid_csrf(request.form):
+        return jsonify({'error': 'Refresh the page and try again.'}), 400
+    is_admin_message = bool(session.get('is_admin'))
+    username = 'BOSS' if is_admin_message else session['chat_name']
+    try:
+        message_text = sanitize_user_text(request.form.get('message', ''), field_name='message', max_length=1000)
+        reply_to = sanitize_user_text(request.form.get('reply_to', ''), field_name='reply', max_length=40)
+    except SecurityValidationError as exc:
+        log_security_event('chat_upload_blocked', str(exc), remote_addr=request.remote_addr, user=username)
+        return jsonify({'error': 'Your message contains blocked content.'}), 400
+
+    uploaded = request.files.get('file')
+    if not uploaded or not uploaded.filename:
+        return jsonify({'error': 'Choose a file to share.'}), 400
+
+    mime_map = {
+        '.jpg': {'image/jpeg'},
+        '.jpeg': {'image/jpeg'},
+        '.png': {'image/png'},
+        '.webp': {'image/webp'},
+        '.gif': {'image/gif'},
+        '.mp3': {'audio/mpeg', 'audio/mp3', 'audio/x-mpeg-3'},
+        '.wav': {'audio/wav', 'audio/x-wav'},
+        '.ogg': {'audio/ogg', 'audio/x-ogg'},
+        '.m4a': {'audio/mp4', 'audio/x-m4a'},
+        '.aac': {'audio/aac', 'audio/mp4'},
+        '.mp4': {'video/mp4', 'application/mp4'},
+        '.webm': {'video/webm'},
+        '.mov': {'video/quicktime', 'video/mp4'},
+        '.m4v': {'video/mp4', 'video/x-m4v'},
+        '.pdf': {'application/pdf'},
+        '.txt': {'text/plain'},
+        '.doc': {'application/msword'},
+        '.docx': {'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},
+        '.ppt': {'application/vnd.ms-powerpoint'},
+        '.pptx': {'application/vnd.openxmlformats-officedocument.presentationml.presentation'},
+    }
+    try:
+        safe_file = validate_uploaded_media(
+            uploaded,
+            CHAT_ALLOWED_EXTENSIONS,
+            CHAT_UPLOAD_MAX_BYTES,
+            video_max_seconds=VIDEO_MAX_SECONDS,
+            mime_map=mime_map,
+        )
+    except SecurityValidationError as exc:
+        log_security_event('chat_upload_rejected', str(exc), remote_addr=request.remote_addr, user=username)
+        return jsonify({'error': 'Security check failed. This file was rejected.'}), 400
+
+    extension = safe_file['extension']
+    if extension in CHAT_VIDEO_EXTENSIONS:
+        kind = 'video'
+    elif extension in {'.mp3', '.wav', '.ogg', '.m4a', '.aac'}:
+        kind = 'audio'
+    elif extension in {'.jpg', '.jpeg', '.png', '.webp', '.gif'}:
+        kind = 'image'
+    else:
+        kind = 'file'
+
+    stored_name = secrets.token_hex(16) + extension
+    CHAT_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+    media_path = chat_media_path(stored_name)
+    if media_path is None:
+        abort(400)
+    uploaded.save(media_path)
+    attachment = {
+        'filename': stored_name,
+        'original_name': safe_file['original_name'] or f'shared-file{extension}',
+        'kind': kind,
+        'mimetype': safe_file['mimetype'],
+        'size': safe_file['size'],
+    }
+    entry = {
+        'id': secrets.token_hex(12),
+        'user_id': None if is_admin_message else session['chat_user_id'],
+        'is_admin': is_admin_message,
+        'submitted_at': datetime.now(timezone.utc).isoformat(),
+        'username': username,
+        'message': message_text,
+        'reply_to': reply_to,
+        'attachment': attachment,
+    }
+    append_chat_message(entry)
+    entry['_id'] = entry['id']
+    return jsonify({'message': serialize_chat_message(entry, online_user_ids=online_chat_user_ids())}), 201
+
+
+@app.route('/chat/media/<filename>', methods=['GET'])
+@chat_user_required
+def chat_media(filename):
+    media_path = chat_media_path(filename)
+    if media_path is None or not media_path.is_file():
+        abort(404)
+    download = request.args.get('download') == '1'
+    download_name = filename
+    if download:
+        for entry in load_chat_messages():
+            for attachment in chat_attachments(entry):
+                if attachment.get('filename') == filename:
+                    download_name = secure_filename(str(attachment.get('original_name') or filename)) or filename
+                    break
+    return send_from_directory(
+        CHAT_MEDIA_DIR, filename, as_attachment=download,
+        download_name=download_name, conditional=True,
+    )
+
+
 @app.route('/admin', methods=['GET'])
 def admin_page():
     auth = load_admin_auth()
@@ -339,6 +1075,73 @@ def admin_page():
         contact_messages=load_message_file('contact_messages.jsonl'),
         feedback_messages=load_message_file('feedback_submissions.jsonl')
     )
+
+
+@app.route('/admin/chat', methods=['GET'])
+@admin_required
+def admin_chat_page():
+    return render_template(
+        'admin_chat.html', csrf_token=csrf_token(),
+        chat_messages=load_chat_messages(limit=200),
+        storage_usage=chat_storage_usage(),
+        chat_settings=load_chat_settings(),
+    )
+
+
+@app.route('/admin/chat/settings', methods=['POST'])
+@admin_required
+def admin_chat_settings_save():
+    if not valid_csrf(request.form):
+        abort(400)
+    badge_label = ''.join(
+        character for character in request.form.get('badge_label', '').strip()
+        if character.isprintable()
+    )[:16]
+    if not badge_label:
+        flash('Enter a badge label between 1 and 16 characters.')
+        return redirect(url_for('admin_chat_page'))
+    save_chat_settings({'badge_label': badge_label})
+    flash('Client badge label saved.')
+    return redirect(url_for('admin_chat_page'))
+
+
+@app.route('/admin/chat/cleanup', methods=['POST'])
+@admin_required
+def admin_chat_cleanup():
+    if not valid_csrf(request.form):
+        abort(400)
+    cleanup_mode = request.form.get('cleanup_mode')
+    if cleanup_mode == 'hours':
+        try:
+            hours = int(request.form.get('hours', ''))
+        except ValueError:
+            hours = 0
+        if hours not in {24, 48}:
+            flash('Choose a cleanup window of 24 or 48 hours.')
+            return redirect(url_for('admin_chat_page'))
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+    elif cleanup_mode == 'date':
+        try:
+            selected_date = datetime.strptime(request.form.get('before_date', ''), '%Y-%m-%d')
+        except ValueError:
+            flash('Choose a valid date for cleanup.')
+            return redirect(url_for('admin_chat_page'))
+        cutoff = selected_date.replace(tzinfo=timezone.utc)
+    else:
+        abort(400)
+    result = clean_chat_history_before(cutoff)
+    flash(f"Removed {result['messages']} messages and {result['files']} media files ({result['bytes']:,} bytes).")
+    return redirect(url_for('admin_chat_page'))
+
+
+@app.route('/admin/chat/clear', methods=['POST'])
+@admin_required
+def admin_chat_clear():
+    if not valid_csrf(request.form):
+        abort(400)
+    result = clear_chat_history()
+    flash(f"Removed {result['messages']} messages and {result['files']} media files ({result['bytes']:,} bytes).")
+    return redirect(url_for('admin_chat_page'))
 
 @app.route('/admin/setup', methods=['POST'])
 def admin_setup():
@@ -510,6 +1313,49 @@ def admin_delete_student(student_index):
     flash('Name deleted.')
     return redirect(url_for('admin_page') + '#students')
 
+@app.route('/admin/feedback/bulk-delete', methods=['POST'])
+@admin_required
+def admin_bulk_delete_feedback():
+    if not valid_csrf(request.form):
+        abort(400)
+
+    feedback_ids = request.form.getlist('feedback_ids')
+    delete_all = request.form.get('delete_all') == '1'
+
+    feedback_path = Path(app.instance_path) / 'feedback_submissions.jsonl'
+    try:
+        lines = feedback_path.read_text(encoding='utf-8').splitlines()
+    except OSError:
+        abort(404)
+
+    if delete_all:
+        feedback_path.write_text('', encoding='utf-8')
+        flash('All suggestions were deleted successfully.')
+        return redirect(url_for('admin_page') + '#feedback')
+
+    if not feedback_ids:
+        flash('Select at least one suggestion to delete.')
+        return redirect(url_for('admin_page') + '#feedback')
+
+    remaining_lines = []
+    removed_count = 0
+    for index, line in enumerate(lines):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(entry, dict):
+            entry_id = hashlib.sha256(f'{index}:{line}'.encode('utf-8')).hexdigest()
+            if entry_id in feedback_ids:
+                removed_count += 1
+                continue
+        remaining_lines.append(line)
+
+    save_feedback_lines(feedback_path, remaining_lines)
+    flash(f'{removed_count} suggestion(s) deleted successfully.')
+    return redirect(url_for('admin_page') + '#feedback')
+
+
 @app.route('/admin/feedback/<feedback_id>/delete', methods=['POST'])
 @admin_required
 def admin_delete_feedback(feedback_id):
@@ -564,13 +1410,24 @@ def admin_upload():
     if slot not in destinations or not uploaded or not uploaded.filename:
         flash('Choose an image and the image slot to replace.')
         return redirect(url_for('admin_page'))
-    if Path(uploaded.filename).suffix.lower() not in {'.jpg', '.jpeg', '.png', '.webp'}:
-        flash('Supported image formats are JPG, PNG, and WEBP.')
+
+    try:
+        allowed_exts = {'.jpg', '.jpeg', '.png', '.webp'}
+        safe_file = validate_uploaded_media(
+            uploaded,
+            allowed_exts,
+            5 * 1024 * 1024,
+            mime_map={'.jpg': {'image/jpeg'}, '.jpeg': {'image/jpeg'}, '.png': {'image/png'}, '.webp': {'image/webp'}},
+        )
+    except SecurityValidationError as exc:
+        log_security_event('admin_upload_rejected', str(exc), remote_addr=request.remote_addr, slot=slot)
+        flash('Security check failed. This upload was rejected.')
         return redirect(url_for('admin_page'))
 
     try:
         from PIL import Image
 
+        uploaded.stream.seek(0)
         image = Image.open(uploaded.stream)
         image.verify()
         uploaded.stream.seek(0)
@@ -581,6 +1438,7 @@ def admin_upload():
         image.save(temporary_path, format='JPEG', quality=92, optimize=True)
         temporary_path.replace(destination)
     except (ImportError, OSError, ValueError):
+        log_security_event('admin_upload_deserialization_failed', 'Image decoding failed', remote_addr=request.remote_addr, slot=slot)
         flash('Unable to read the image. Try a valid JPG, PNG, or WEBP file.')
         return redirect(url_for('admin_page'))
 
@@ -729,21 +1587,35 @@ HTML_INDEX = """
 </html>
 """
 
+# The linguistic modules use a consistent dark-mode layout with modular section navigation
+# so each area stays readable, focused, and easy to scan without turning into a single wall of text.
 @app.route('/phonetics')
 def phonetics_page():
-    return render_template('phonetics.html')
+    return render_template('phonetics.html', active_module='phonetics')
 
 @app.route('/phonology')
 def phonology_page():
-    return render_template('phonology.html')
+    return render_template('phonology.html', active_module='phonology')
 
 @app.route('/morphology')
 def morphology_page():
-    return render_template('morphology.html')
+    return render_template('morphology.html', active_module='morphology')
 
 @app.route('/syntax')
 def syntax_page():
-    return render_template('syntax.html')
+    return render_template('syntax.html', active_module='syntax')
+
+@app.route('/semantics')
+def semantics_page():
+    return render_template('semantics.html', active_module='semantics')
+
+@app.route('/discourse')
+def discourse_page():
+    return render_template('discourse.html', active_module='discourse')
+
+@app.route('/grammar')
+def grammar_page():
+    return render_template('grammar.html', active_module='grammar')
 
 @app.route('/site-image/<filename>')
 def site_image(filename):
@@ -906,6 +1778,13 @@ def submit_contact():
     with contact_path.open('a', encoding='utf-8') as contact_file:
         contact_file.write(json.dumps(entry, ensure_ascii=False) + '\n')
     return jsonify({'result': 'Your message has been submitted. Thank you for contacting us.'})
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_request(error):
+    if request.path.startswith('/chat'):
+        return jsonify({'error': 'Files must be 10 MB or smaller.'}), 413
+    return error.get_response()
+
 
 @app.errorhandler(HTTPException)
 def handle_http_error(error):

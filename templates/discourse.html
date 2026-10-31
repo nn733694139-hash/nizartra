@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site_content.brand_name }} | Discourse Analysis{% endblock %}
+
+{% block content %}
+<style>
+    .discourse-page { --discourse-accent: #d5ff3f; --discourse-cyan: #7ef6e8; width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 52px 0 84px; color: #e8e8e8; }
+    .discourse-page *, .discourse-page *::before, .discourse-page *::after { box-sizing: border-box; }
+    .discourse-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, .7fr); align-items: end; gap: 28px; padding: 8px 0 28px; border-bottom: 1px solid #343434; }
+    .discourse-hero .eyebrow { color: var(--discourse-accent); }
+    .discourse-hero h1 { margin: 0; color: var(--discourse-accent); font-size: 46px; line-height: 1.12; }
+    .discourse-hero p:last-child { max-width: 700px; margin: 12px 0 0; color: #b7b7b7; font-size: 14px; line-height: 1.8; }
+    .discourse-map { display: block; width: 100%; max-height: 150px; border-bottom: 1px solid #303030; }
+    .discourse-map text { fill: #d5d5d5; font: 11px sans-serif; text-anchor: middle; }
+    .discourse-map .map-node { fill: #101510; stroke: var(--discourse-accent); stroke-width: 1.5; }
+    .discourse-map .map-link { fill: none; stroke: var(--discourse-cyan); stroke-width: 1.5; }
+    .discourse-subnav { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 34px; padding: 0 0 14px; border-bottom: 1px solid #303030; }
+    .discourse-subnav a { display: inline-flex; min-height: 36px; align-items: center; padding: 7px 11px; border: 1px solid #454545; color: #d2d2d2; font-size: 11px; font-weight: 700; text-decoration: none; transition: border-color .16s ease, color .16s ease, background .16s ease; }
+    .discourse-subnav a:hover, .discourse-subnav a:focus-visible { border-color: var(--discourse-accent); background: rgba(213,255,63,.06); color: var(--discourse-accent); outline: none; }
+    .discourse-section { margin: 0; padding: 30px 0 34px; border-bottom: 1px solid #303030; scroll-margin-top: 20px; }
+    .discourse-section-head { display: grid; grid-template-columns: 35px minmax(0, 1fr); gap: 10px; align-items: start; margin-bottom: 20px; }
+    .discourse-index { padding-top: 4px; color: var(--discourse-accent); font-family: monospace; font-size: 11px; }
+    .discourse-section-head h2 { margin: 0; color: var(--discourse-accent); font-size: 24px; line-height: 1.3; }
+    .discourse-section-head p { max-width: 760px; margin: 7px 0 0; color: #a9a9a9; font-size: 12px; line-height: 1.7; }
+    .discourse-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .discourse-grid.three-up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .discourse-card { min-width: 0; padding: 16px; border: 1px solid #333; background: #0c0f0d; }
+    .discourse-card h3 { margin: 0 0 8px; color: var(--discourse-cyan); font-size: 14px; line-height: 1.4; }
+    .discourse-card p { margin: 0; color: #bdbdbd; font-size: 12px; line-height: 1.75; }
+    .discourse-card p + p { margin-top: 9px; }
+    .discourse-card strong { color: #f0f0f0; }
+    .discourse-card em { color: var(--discourse-accent); }
+    .discourse-detail { border: 1px solid #333; background: #0c0f0d; }
+    .discourse-detail summary { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; color: var(--discourse-cyan); font-size: 12px; font-weight: 700; cursor: pointer; list-style: none; }
+    .discourse-detail summary::-webkit-details-marker { display: none; }
+    .discourse-detail summary::after { color: var(--discourse-accent); content: "+"; font-size: 17px; }
+    .discourse-detail[open] summary::after { content: "-"; }
+    .discourse-detail > div { padding: 0 14px 14px; color: #bdbdbd; font-size: 12px; line-height: 1.75; }
+    .discourse-detail > div p { margin: 0; }
+    .discourse-detail > div p + p { margin-top: 8px; }
+    .sample-text { margin-top: 16px; padding: 14px 16px; border-inline-start: 2px solid var(--discourse-accent); background: #101310; color: #ddd; font-size: 13px; line-height: 1.8; }
+    .sample-text strong { color: var(--discourse-accent); }
+    .marker-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .marker-list span { padding: 5px 8px; border: 1px solid #414a32; color: #d8e6bd; font-size: 10px; }
+    .maxim-card { border-top: 2px solid var(--discourse-accent); }
+    .maxim-card h3 { color: var(--discourse-accent); }
+    .maxim-example { display: block; margin-top: 10px; color: #9c9c9c; font-size: 11px; line-height: 1.65; }
+    .speech-act-chain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 14px; border: 1px solid #343434; background: #343434; }
+    .speech-act-chain div { padding: 14px; background: #0d100e; }
+    .speech-act-chain strong { display: block; margin-bottom: 5px; color: var(--discourse-accent); font-size: 12px; }
+    .speech-act-chain span { color: #aaa; font-size: 11px; line-height: 1.6; }
+    .pair-sequence { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 1px; margin-top: 14px; border: 1px solid #303030; background: #303030; }
+    .pair-sequence span { padding: 11px 12px; background: #0d100e; color: #c9c9c9; font-size: 12px; line-height: 1.6; }
+    .pair-sequence strong { color: var(--discourse-accent); }
+    .context-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 14px; border: 1px solid #343434; background: #343434; }
+    .context-map div { min-width: 0; padding: 13px; background: #0d100e; }
+    .context-map strong { display: block; margin-bottom: 5px; color: var(--discourse-cyan); font-size: 11px; }
+    .context-map span { color: #aaa; font-size: 10px; line-height: 1.6; }
+    .analysis-prompts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+    .analysis-prompts div { padding: 10px 12px; border-inline-start: 2px solid #647c27; background: #101310; color: #c6c6c6; font-size: 11px; line-height: 1.6; }
+    .analysis-prompts strong { color: var(--discourse-accent); }
+    .fairclough-visual { display: grid; gap: 6px; max-width: 700px; margin: 16px auto 0; }
+    .fairclough-visual div { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid #3b4430; background: #0d100e; }
+    .fairclough-visual strong { color: var(--discourse-accent); font-size: 12px; }
+    .fairclough-visual span { color: #b7b7b7; font-size: 11px; line-height: 1.6; }
+    .reference-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; counter-reset: reference; }
+    .reference-list li { position: relative; padding: 12px 12px 12px 36px; border-bottom: 1px solid #292929; color: #c8c8c8; font-size: 11px; line-height: 1.7; counter-increment: reference; }
+    .reference-list li::before { position: absolute; left: 10px; color: var(--discourse-accent); font-family: monospace; content: counter(reference, decimal-leading-zero); }
+    .reference-list cite { color: #eee; }
+    .discourse-note { margin: 15px 0 0; color: #858585; font-size: 10px; line-height: 1.65; }
+    @media (max-width: 760px) {
+        .discourse-hero { grid-template-columns: 1fr; gap: 18px; }
+        .discourse-map { max-width: 420px; }
+        .discourse-grid.three-up { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .context-map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+        .discourse-page { padding-top: 36px; }
+        .discourse-hero h1 { font-size: 34px; }
+        .discourse-subnav { gap: 5px; }
+        .discourse-subnav a { min-height: 34px; padding: 6px 8px; font-size: 10px; }
+        .discourse-section { padding: 24px 0; }
+        .discourse-section-head h2 { font-size: 21px; }
+        .discourse-grid, .discourse-grid.three-up, .speech-act-chain, .analysis-prompts { grid-template-columns: 1fr; }
+        .pair-sequence { grid-template-columns: 76px minmax(0, 1fr); }
+        .fairclough-visual div { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .discourse-subnav a { transition: none; } }
+</style>
+
+<main class="discourse-page">
+    <header class="discourse-hero">
+        <div>
+            <p class="eyebrow">LANGUAGE LAB / 06</p>
+            <h1>Discourse Analysis</h1>
+            <p>Discourse analysis studies language beyond the sentence: how speakers and writers create connected texts, accomplish social actions, manage interaction, and shape meaning in context.</p>
+        </div>
+        <svg class="discourse-map" viewBox="0 0 440 150" role="img" aria-labelledby="discourseMapTitle discourseMapDescription">
+            <title id="discourseMapTitle">From language to social meaning</title>
+            <desc id="discourseMapDescription">A connected sequence shows text, interaction, context, and interpretation shaping discourse.</desc>
+            <path class="map-link" d="M65 76H370M160 76H185M255 76H280" />
+            <rect class="map-node" x="12" y="51" width="90" height="50" rx="2" />
+            <rect class="map-node" x="122" y="51" width="90" height="50" rx="2" />
+            <rect class="map-node" x="232" y="51" width="90" height="50" rx="2" />
+            <rect class="map-node" x="338" y="51" width="90" height="50" rx="2" />
+            <text x="57" y="80">Text</text><text x="167" y="80">Interaction</text><text x="277" y="80">Context</text><text x="383" y="80">Meaning</text>
+        </svg>
+    </header>
+
+    <nav class="discourse-subnav" aria-label="Discourse Analysis sections">
+        <a href="#cohesion-coherence">Cohesion &amp; Coherence</a>
+        <a href="#speech-acts">Speech Acts &amp; Grice</a>
+        <a href="#conversation-analysis">Conversation Analysis</a>
+        <a href="#context-analysis">Context Analysis</a>
+        <a href="#critical-discourse">Critical Discourse Analysis</a>
+        <a href="#discourse-references">References</a>
+    </nav>
+
+    <section class="discourse-section" id="cohesion-coherence" aria-labelledby="cohesionTitle">
+        <div class="discourse-section-head"><span class="discourse-index">01</span><div><h2 id="cohesionTitle">Cohesion and coherence</h2><p>Cohesion describes the linguistic ties that connect clauses and sentences. Coherence is the meaningful relationship readers or listeners construct across a text.</p></div></div>
+        <div class="discourse-grid three-up">
+            <details class="discourse-detail" open><summary>Reference and substitution</summary><div><p><strong>Reference</strong> points to an entity in the text or situation: <em>Maya arrived. She sat down.</em> Substitution replaces a repeated item: <em>I need a pen. Do you have one?</em></p></div></details>
+            <details class="discourse-detail"><summary>Ellipsis</summary><div><p>Ellipsis leaves recoverable material unspoken: <em>Want some tea?</em> The omitted subject and auxiliary are understood from the exchange.</p></div></details>
+            <details class="discourse-detail"><summary>Conjunction and lexical cohesion</summary><div><p>Conjunction signals relations such as addition, contrast, cause, or sequence. Lexical cohesion links words through repetition, synonymy, hyponymy, or related vocabulary.</p></div></details>
+        </div>
+        <div class="sample-text"><strong>Example:</strong> The team reviewed the proposal. <strong>However</strong>, <strong>they</strong> postponed <strong>it</strong> because the cost was unclear. The pronouns create reference ties; <em>however</em> signals contrast; <em>because</em> introduces a reason. Coherence depends on how the reader connects the review, cost, and decision.</div>
+        <h3 style="margin:20px 0 0;color:var(--discourse-cyan);font-size:14px">Discourse markers</h3>
+        <p style="margin:7px 0 0;color:#bdbdbd;font-size:12px;line-height:1.75">Discourse markers help signal how an utterance relates to the surrounding talk or text. They guide interpretation and interaction, but do not by themselves guarantee that a text is coherent.</p>
+        <div class="marker-list" aria-label="Examples of discourse markers"><span>Addition: moreover</span><span>Contrast: however</span><span>Consequence: therefore</span><span>Stance: frankly</span><span>Sequence: first</span><span>Response: well</span></div>
+    </section>
+
+    <section class="discourse-section" id="speech-acts" aria-labelledby="speechActsTitle">
+        <div class="discourse-section-head"><span class="discourse-index">02</span><div><h2 id="speechActsTitle">Speech Act Theory and Grice's Cooperative Principle</h2><p>Utterances do things as well as say things. Their force depends on conventions, intentions, and the circumstances in which they are used.</p></div></div>
+        <div class="discourse-grid three-up">
+            <article class="discourse-card"><h3>Locutionary act</h3><p>The act of producing a meaningful linguistic expression with a conventional sense and reference.</p></article>
+            <article class="discourse-card"><h3>Illocutionary act</h3><p>The communicative force performed in saying something: asserting, requesting, promising, apologizing, or naming.</p></article>
+            <article class="discourse-card"><h3>Perlocutionary effect</h3><p>The effect an utterance has on a hearer, such as persuading, reassuring, surprising, or prompting action.</p></article>
+        </div>
+        <div class="speech-act-chain" aria-label="Speech act layers illustrated with a warning">
+            <div><strong>Words</strong><span>"The floor is wet."</span></div>
+            <div><strong>Possible force</strong><span>A warning, depending on speaker intention and the situation.</span></div>
+            <div><strong>Possible effect</strong><span>The listener avoids the area. Effects are possible, not guaranteed.</span></div>
+        </div>
+        <h3 style="margin:23px 0 10px;color:var(--discourse-cyan);font-size:15px">Grice's four conversational maxims</h3>
+        <div class="discourse-grid">
+            <article class="discourse-card maxim-card"><h3>Quantity</h3><p>Give as much information as the exchange requires: neither too little nor needlessly more.</p><span class="maxim-example">A route question normally calls for the directions needed, not an unrelated history of the street.</span></article>
+            <article class="discourse-card maxim-card"><h3>Quality</h3><p>Try to contribute what you believe to be true and have adequate grounds to support.</p><span class="maxim-example">Do not present a guess as a verified fact.</span></article>
+            <article class="discourse-card maxim-card"><h3>Relation</h3><p>Make contributions relevant to the purposes and current direction of the conversation.</p><span class="maxim-example">A reply about the weather may be relevant if it explains why a meeting moved indoors.</span></article>
+            <article class="discourse-card maxim-card"><h3>Manner</h3><p>Be clear and orderly; avoid unnecessary obscurity and ambiguity.</p><span class="maxim-example">Give the steps in the order someone needs to follow them.</span></article>
+        </div>
+        <details class="discourse-detail" style="margin-top:12px"><summary>How implicature works</summary><div><p>When a contribution appears to depart from a maxim, listeners often infer an additional meaning while assuming the exchange remains interpretable. In <em>Some of the reviewers agreed</em>, a hearer may infer that not all agreed, depending on context. This is a cancellable conversational implicature, not a literal entailment.</p></div></details>
+        <p class="discourse-note">Maxims are analytic expectations, not rules that every speaker always follows. A maxim may be observed, quietly violated, openly flouted, or overridden by a stronger consideration.</p>
+    </section>
+
+    <section class="discourse-section" id="conversation-analysis" aria-labelledby="conversationTitle">
+        <div class="discourse-section-head"><span class="discourse-index">03</span><div><h2 id="conversationTitle">Conversation Analysis</h2><p>Conversation Analysis (CA) studies the organization of naturally occurring interaction, including turn-taking, sequence, and repair.</p></div></div>
+        <div class="discourse-grid">
+            <article class="discourse-card"><h3>Adjacency pairs</h3><p>An adjacency pair is a coordinated sequence of two turns: a first pair-part makes a relevant second pair-part conditionally expected. Common types include greeting-greeting, question-answer, offer-acceptance, and request-granting or refusal.</p><p>Pairs can include an insertion sequence, and their parts need not be immediately adjacent when clarification or other interaction intervenes.</p></article>
+            <article class="discourse-card"><h3>Preferred and dispreferred responses</h3><p>In CA, preference describes a structural tendency, not a speaker's personal liking. Acceptances are often brief and direct; refusals may be delayed, softened, or accompanied by accounts.</p><p>These are patterns to investigate in recordings, not universal formulas for every language or community.</p></article>
+        </div>
+        <div class="pair-sequence" aria-label="Example adjacency pair">
+            <span><strong>Question</strong></span><span>A: "Could you send me the notes?"</span>
+            <span><strong>Answer</strong></span><span>B: "Sure, I'll send them after class."</span>
+            <span><strong>Structure</strong></span><span>The request makes granting or refusal relevant; the response grants and adds a time commitment.</span>
+        </div>
+        <div class="discourse-grid three-up" style="margin-top:12px">
+            <article class="discourse-card"><h3>Turn-taking</h3><p>Participants project possible completion points and negotiate who speaks next. Overlap and silence are analyzed in their sequential setting.</p></article>
+            <article class="discourse-card"><h3>Repair</h3><p>Repair practices address problems in speaking, hearing, or understanding. Speakers may self-correct, or another participant may initiate clarification.</p></article>
+            <article class="discourse-card"><h3>Sequence organization</h3><p>Openings, closings, pre-sequences, and insert expansions shape what actions become relevant next.</p></article>
+        </div>
+    </section>
+
+    <section class="discourse-section" id="context-analysis" aria-labelledby="contextTitle">
+        <div class="discourse-section-head"><span class="discourse-index">04</span><div><h2 id="contextTitle">Context analysis</h2><p>Interpretation depends on more than sentence meaning. Analyze who is speaking, to whom, where, for what purpose, through which medium, and against what shared knowledge.</p></div></div>
+        <div class="context-map" aria-label="Context dimensions for discourse analysis">
+            <div><strong>Participants</strong><span>Speaker, audience, roles, relationships, and relative authority.</span></div>
+            <div><strong>Setting</strong><span>Time, place, activity, and the material circumstances of the exchange.</span></div>
+            <div><strong>Purpose</strong><span>What participants are trying to accomplish and what outcomes are relevant.</span></div>
+            <div><strong>Channel and genre</strong><span>Spoken or written mode, platform, audience expectations, and genre conventions.</span></div>
+        </div>
+        <div class="sample-text"><strong>Context-sensitive example:</strong> "It's cold in here" can be a report about temperature, a complaint, or an indirect request to close a window. The wording alone does not determine which action is intended.</div>
+        <div class="analysis-prompts" aria-label="Context analysis checklist">
+            <div><strong>Deixis:</strong> What do words such as <em>here</em>, <em>now</em>, and <em>you</em> refer to in this situation?</div>
+            <div><strong>Common ground:</strong> What knowledge do participants treat as shared?</div>
+            <div><strong>Register:</strong> How do field, tenor, and mode shape vocabulary and style?</div>
+            <div><strong>Inference:</strong> Which interpretations are supported, and what evidence would distinguish them?</div>
+        </div>
+    </section>
+
+    <section class="discourse-section" id="critical-discourse" aria-labelledby="criticalDiscourseTitle">
+        <div class="discourse-section-head"><span class="discourse-index">05</span><div><h2 id="criticalDiscourseTitle">Critical Discourse Analysis (CDA)</h2><p>CDA examines how discourse participates in representing social life, sustaining or challenging power relations, and making some perspectives more visible than others.</p></div></div>
+        <div class="fairclough-visual" role="img" aria-label="Fairclough's three dimensions: text, discursive practice, and social practice">
+            <div><strong>Text</strong><span>Vocabulary, grammar, agency, evaluation, metaphor, and the organization of a text.</span></div>
+            <div><strong>Discursive practice</strong><span>How texts are produced, circulated, interpreted, quoted, and connected to other texts.</span></div>
+            <div><strong>Social practice</strong><span>The institutions, histories, ideologies, and power relations in which discourse is situated.</span></div>
+        </div>
+        <div class="discourse-grid three-up" style="margin-top:12px">
+            <article class="discourse-card"><h3>Representation</h3><p>Who is named, categorized, foregrounded, or left unspecified?</p></article>
+            <article class="discourse-card"><h3>Agency</h3><p>Who is represented as acting, and who appears only as affected by events?</p></article>
+            <article class="discourse-card"><h3>Evaluation</h3><p>Which words express certainty, obligation, approval, blame, or distance?</p></article>
+        </div>
+        <details class="discourse-detail" style="margin-top:12px"><summary>Use CDA carefully</summary><div><p>Make claims traceable to linguistic evidence, identify the social context being analyzed, and consider plausible alternative readings. CDA is an approach with varied methods; no single grammatical feature proves an author's intention or a text's social effect.</p></div></details>
+    </section>
+
+    <section class="discourse-section" id="discourse-references" aria-labelledby="discourseReferencesTitle">
+        <div class="discourse-section-head"><span class="discourse-index">06</span><div><h2 id="discourseReferencesTitle">Academic references</h2><p>Selected foundational sources for discourse, pragmatics, interaction, and critical analysis.</p></div></div>
+        <ol class="reference-list">
+            <li>Austin, J. L. (1962). <cite>How to Do Things with Words</cite>. Oxford University Press.</li>
+            <li>Brown, G., &amp; Yule, G. (1983). <cite>Discourse Analysis</cite>. Cambridge University Press.</li>
+            <li>Fairclough, N. (1992). <cite>Discourse and Social Change</cite>. Polity Press.</li>
+            <li>Grice, H. P. (1975). Logic and conversation. In P. Cole &amp; J. L. Morgan (Eds.), <cite>Syntax and Semantics, Vol. 3: Speech Acts</cite> (pp. 41-58). Academic Press.</li>
+            <li>Schiffrin, D. (1987). <cite>Discourse Markers</cite>. Cambridge University Press.</li>
+            <li>Schegloff, E. A., Jefferson, G., &amp; Sacks, H. (1977). The preference for self-correction in the organization of repair in conversation. <cite>Language, 53</cite>(2), 361-382.</li>
+            <li>Searle, J. R. (1969). <cite>Speech Acts: An Essay in the Philosophy of Language</cite>. Cambridge University Press.</li>
+            <li>Yule, G. (1996). <cite>Pragmatics</cite>. Oxford University Press.</li>
+        </ol>
+        <p class="discourse-note">Use the references as entry points. Discourse analysis spans several traditions, so methods and terminology vary by research question and disciplinary context.</p>
+    </section>
+</main>
+{% endblock %}

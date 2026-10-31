@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat | {{ site_content.brand_name }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+<main class="chat-page" id="chatApp" data-chat-name="{{ chat_name }}" data-chat-is-admin="{{ 'true' if is_admin else 'false' }}" data-csrf-token="{{ csrf_token }}" data-messages-url="{{ url_for('chat_messages_api') }}" data-send-url="{{ url_for('chat_send_message') }}" data-upload-url="{{ url_for('chat_upload') }}" data-typing-url="{{ url_for('chat_typing') }}">
+    <section class="chat-shell" aria-label="Community chat">
+        <header class="chat-header">
+            <div class="chat-brand-mark" aria-hidden="true">BR</div>
+            <div class="chat-heading-copy">
+                <p class="chat-kicker">BLACK ROBE MAFIA / PRIVATE ROOM</p>
+                <h1>Community Chat</h1>
+                <p>Keep it focused. Keep it respectful.</p>
+            </div>
+            <div class="connection-status is-online" id="connectionStatus" role="status" aria-live="polite"><span></span><strong>Connecting</strong></div>
+        </header>
+
+        <div class="chat-toolbar">
+            <div class="chat-user-label"><span>Signed in as</span><strong>{{ chat_name }}</strong></div>
+            <div class="chat-room-presence" aria-live="polite">
+                <strong id="chatOnlineCount">0 online</strong>
+                <span class="chat-typing-indicator" id="chatTypingIndicator" hidden></span>
+            </div>
+            <p class="chat-limit-note">Videos: up to 60 seconds and 10 MB. All files: up to 10 MB.</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-relevant="additions text">
+            <p class="chat-empty" id="chatEmpty">No messages yet. Start the conversation.</p>
+        </div>
+
+        <div class="chat-error" id="chatError" role="alert" hidden></div>
+        <div class="reply-context" id="replyContext" hidden>
+            <span><strong>Replying to</strong><span id="replyName"></span></span>
+            <button type="button" class="icon-button" id="cancelReply" aria-label="Cancel reply">×</button>
+        </div>
+        <form class="chat-composer" id="chatComposer">
+            <input type="hidden" id="replyTo" value="">
+            <label class="upload-control" for="chatFile" title="Attach a file" aria-label="Attach a file">＋<input id="chatFile" type="file" accept="image/*,audio/*,video/mp4,video/webm,video/quicktime,video/x-m4v,.pdf,.txt,.doc,.docx,.ppt,.pptx"></label>
+            <label class="visually-hidden" for="chatText">Message</label>
+            <textarea id="chatText" rows="1" maxlength="2000" placeholder="Write a message..." required></textarea>
+            <button class="send-button" type="submit" id="sendButton"><span>Send</span><span aria-hidden="true">↑</span></button>
+        </form>
+        <p class="chat-footer-note">Messages are visible to everyone in this room.</p>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='chat.js') }}" defer></script>
+{% endblock %}

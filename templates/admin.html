@@ -101,6 +101,7 @@
             <div><h1>Admin Dashboard</h1><p class="muted">Manage {{ site_content.brand_name }} content, feedback, and names.</p></div>
             <div class="actions">
                 <a href="{{ url_for('home') }}">View Site</a>
+                <a href="{{ url_for('admin_chat_page') }}">Chat Storage</a>
                 <form class="logout-form" method="post" action="{{ url_for('admin_logout') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <button type="submit">Log Out</button>
@@ -198,34 +199,47 @@
             </section>
 
             <section class="panel" id="feedback" aria-labelledby="feedback-title">
-                <div class="section-head"><div><h2 id="feedback-title">Student Suggestions</h2><small>{{ feedback_messages|length }} most recent submissions</small></div></div>
-                <div class="suggestion-table-wrap">
-                    <table class="suggestion-table">
-                        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Suggestion</th><th>Date and time</th><th>Status</th><th>Actions</th></tr></thead>
-                        <tbody>
-                    {% for opinion in feedback_messages %}
-                        <tr>
-                            <td>{{ opinion.name or 'Anonymous' }}</td>
-                            <td>{{ opinion.email or '&mdash;'|safe }}</td>
-                            <td>{{ opinion.phone or '&mdash;'|safe }}</td>
-                            <td>{{ opinion.message }}</td>
-                            <td><time>{{ opinion._display_date }}</time></td>
-                            <td><span class="feedback-status {% if opinion.is_read %}is-read{% else %}is-unread{% endif %}">{{ 'Read' if opinion.is_read else 'Unread' }}</span></td>
-                            <td><div class="feedback-actions">
-                                {% if not opinion.is_read %}<form method="post" action="{{ url_for('admin_mark_feedback_read', feedback_id=opinion._id) }}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" aria-label="Mark suggestion from {{ opinion.name }} as read">Mark read</button>
-                                </form>{% endif %}
-                                <form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this suggestion?')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" aria-label="Delete suggestion from {{ opinion.name }}">Delete</button>
-                                </form>
-                            </div></td>
-                        </tr>
-                    {% else %}<tr><td colspan="7">No suggestions have been submitted yet.</td></tr>{% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <div class="section-head"><div><h2 id="feedback-title">Feedback Suggestions</h2><small>{{ feedback_messages|length }} submitted suggestions, ordered by latest date</small></div></div>
+                {% if feedback_messages %}
+                    <form method="post" action="{{ url_for('admin_bulk_delete_feedback') }}" onsubmit="return confirm('Delete the selected suggestion(s)?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="actions" style="margin-top:0; margin-bottom:12px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);"><input type="checkbox" id="select-all-feedback" aria-label="Select all suggestions"> Select all</label>
+                            <button type="submit">Delete selected</button>
+                            <button type="submit" name="delete_all" value="1" class="danger" formaction="{{ url_for('admin_bulk_delete_feedback') }}" onclick="return confirm('Delete all suggestions permanently?')">Delete all</button>
+                        </div>
+                        <div class="suggestion-table-wrap">
+                            <table class="suggestion-table">
+                                <thead><tr><th style="width:44px;"></th><th>Name</th><th>Email</th><th>Phone</th><th>Suggestion</th><th>Date and time</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                            {% for opinion in feedback_messages %}
+                                <tr>
+                                    <td><input type="checkbox" name="feedback_ids" value="{{ opinion._id }}" aria-label="Select suggestion from {{ opinion.name or 'Anonymous' }}"></td>
+                                    <td>{{ opinion.name or 'Anonymous' }}</td>
+                                    <td>{{ opinion.email or '&mdash;'|safe }}</td>
+                                    <td>{{ opinion.phone or '&mdash;'|safe }}</td>
+                                    <td>{{ opinion.message }}</td>
+                                    <td><time>{{ opinion._display_date }}</time></td>
+                                    <td><span class="feedback-status {% if opinion.is_read %}is-read{% else %}is-unread{% endif %}">{{ 'Read' if opinion.is_read else 'Unread' }}</span></td>
+                                    <td><div class="feedback-actions">
+                                        {% if not opinion.is_read %}<form method="post" action="{{ url_for('admin_mark_feedback_read', feedback_id=opinion._id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                            <button type="submit" aria-label="Mark suggestion from {{ opinion.name }} as read">Mark read</button>
+                                        </form>{% endif %}
+                                        <form method="post" action="{{ url_for('admin_delete_feedback', feedback_id=opinion._id) }}" onsubmit="return confirm('Delete this suggestion?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                            <button type="submit" aria-label="Delete suggestion from {{ opinion.name }}">Delete</button>
+                                        </form>
+                                    </div></td>
+                                </tr>
+                            {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="empty">No suggestions have been submitted yet.</p>
+                {% endif %}
             </section>
 
             <section class="panel" aria-labelledby="contact-title">

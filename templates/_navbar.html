@@ -1,39 +1,65 @@
 <header class="site-nav">
-    <a class="site-brand" href="/" aria-label="{{ site_content.brand_name }} home">
+    <a class="site-brand" href="/" aria-label="nizarlish home">
         <img class="brand-avatar" src="{{ url_for('site_image', filename='my_photo.jpg') }}" alt="{{ site_content.founder_name }}">
         <span class="brand-copy">
-            <strong>{{ site_content.brand_name }}</strong>
+            <strong>nizarlish</strong>
             <small>{{ site_content.brand_tagline }}</small>
         </span>
     </a>
     <button class="nav-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-navigation">☰</button>
     <nav class="site-nav-links" id="main-navigation">
         <a href="/" data-i18n="nav.home" {% if request.path == '/' %}aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('chat_page') }}" {% if request.path.startswith('/chat') %}aria-current="page"{% endif %}>Chat</a>
         <details class="nav-dropdown" {% if request.path == '/syntax' %}open{% endif %}>
             <summary data-i18n="nav.syntax">Syntax</summary>
             <div class="nav-dropdown-menu">
-                <a href="/syntax" {% if request.path == '/syntax' %}aria-current="page"{% endif %}>Syntax overview</a>
-                <a href="/syntax#workedSentenceTitle">Sentence parsing</a>
-                <a href="/syntax#treeTitle">Tree diagrams</a>
+                <a href="/syntax" {% if request.path == '/syntax' %}aria-current="page"{% endif %}>Overview</a>
+                <a href="/syntax#workedSentenceTitle">Parsing</a>
+                <a href="/syntax#treeTitle">Trees</a>
             </div>
         </details>
         <details class="nav-dropdown" {% if request.path == '/morphology' %}open{% endif %}>
             <summary data-i18n="nav.morphology">Morphology</summary>
             <div class="nav-dropdown-menu">
-                <a href="/morphology">Morphology overview</a>
-                <a href="/morphology#wordFormation">Word formation</a>
+                <a href="/morphology">Overview</a>
+                <a href="/morphology#wordFormation">Formation</a>
                 <a href="/morphology#coinedWords">Coined words</a>
-                <a href="/morphology#morphemeLabTitle">Morpheme diagrams</a>
+                <a href="/morphology#morphemeLabTitle">Morphemes</a>
             </div>
         </details>
+        <a href="/semantics" {% if request.path == '/semantics' %}aria-current="page"{% endif %}>Semantics</a>
         <a href="/phonology" data-i18n="nav.phonology" {% if request.path == '/phonology' %}aria-current="page"{% endif %}>Phonology</a>
         <a href="/phonetics" data-i18n="nav.phonetics" {% if request.path == '/phonetics' %}aria-current="page"{% endif %}>Phonetics</a>
-        <a href="/about" data-i18n="nav.about" {% if request.path == '/about' %}aria-current="page"{% endif %}>Who we are?</a>
-        <a href="/contact" data-i18n="nav.contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact us</a>
+        <a href="/about" data-i18n="nav.about" {% if request.path == '/about' %}aria-current="page"{% endif %}>About</a>
+        <a href="/contact" data-i18n="nav.contact" {% if request.path == '/contact' %}aria-current="page"{% endif %}>Contact</a>
         <a href="/feedback" data-i18n="nav.feedback" {% if request.path == '/feedback' %}aria-current="page"{% endif %}>Feedback</a>
-        <a href="/thanks" data-i18n="nav.thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Acknowledgements</a>
+        <a href="/thanks" data-i18n="nav.thanks" {% if request.path == '/thanks' %}aria-current="page"{% endif %}>Thanks</a>
     </nav>
 </header>
+<div class="site-floating-controls" id="siteFloatingControls">
+    <div class="site-route-menu" id="siteRouteMenu">
+        <button class="site-round-control site-route-toggle" id="siteRouteToggle" type="button" aria-label="Open all site options" aria-expanded="false" aria-controls="siteRoutePanel" title="Drag to move; open site options"><span aria-hidden="true">☰</span></button>
+        <nav class="site-route-panel" id="siteRoutePanel" aria-label="All site options" hidden>
+            <div class="site-route-panel-head"><strong>Go to</strong><button class="site-route-close" id="siteRouteClose" type="button" aria-label="Close options">×</button></div>
+            <div class="site-route-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('phonetics_page') }}">Phonetics</a>
+                <a href="{{ url_for('phonology_page') }}">Phonology</a>
+                <a href="{{ url_for('morphology_page') }}">Morphology</a>
+                <a href="{{ url_for('syntax_page') }}">Syntax</a>
+                <a href="{{ url_for('semantics_page') }}">Semantics</a>
+                <a href="{{ url_for('grammar_page') }}">Grammar</a>
+                <a href="{{ url_for('discourse_page') }}">Discourse</a>
+                <a href="{{ url_for('chat_page') }}">Chat</a>
+                <a href="{{ url_for('about_page') }}">About</a>
+                <a href="{{ url_for('contact_page') }}">Contact</a>
+                <a href="{{ url_for('feedback_page') }}">Feedback</a>
+                <a href="{{ url_for('thanks_page') }}">Acknowledgements</a>
+            </div>
+        </nav>
+    </div>
+</div>
+<button class="site-round-control site-back-button" id="siteBackButton" type="button" aria-label="Back" title="Drag to move; go back"><span aria-hidden="true">←</span></button>
 <style>:root { --site-background-image: url("{{ url_for('site_image', filename='my_photo2.jpg') }}"); }</style>
 <script>
     const navToggle = document.querySelector('.nav-toggle');
@@ -43,5 +69,125 @@
         navToggle.setAttribute('aria-expanded', String(!expanded));
         navLinks.classList.toggle('is-open', !expanded);
     });
+</script>
+<script>
+    (() => {
+        const menu = document.getElementById('siteRouteMenu');
+        const toggle = document.getElementById('siteRouteToggle');
+        const panel = document.getElementById('siteRoutePanel');
+        const closeButton = document.getElementById('siteRouteClose');
+        const backButton = document.getElementById('siteBackButton');
+        if (!menu || !toggle || !panel) return;
+
+        const setMenuOpen = open => {
+            panel.hidden = !open;
+            toggle.setAttribute('aria-expanded', String(open));
+        };
+
+        toggle.addEventListener('click', () => setMenuOpen(panel.hidden));
+        closeButton?.addEventListener('click', () => {
+            setMenuOpen(false);
+            toggle.focus();
+        });
+        document.addEventListener('click', event => {
+            if (!menu.contains(event.target)) setMenuOpen(false);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !panel.hidden) {
+                setMenuOpen(false);
+                toggle.focus();
+            }
+        });
+        backButton?.addEventListener('click', () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.assign('/');
+        });
+
+        const floatingControls = document.getElementById('siteFloatingControls');
+        const movableItems = [
+            {handle: toggle, element: floatingControls, key: 'site-floating-menu-position'},
+            {handle: backButton, element: backButton, key: 'site-back-button-position'},
+        ].filter(item => item.handle && item.element);
+
+        const positionElement = (element, left, top) => {
+            const rect = element.getBoundingClientRect();
+            const maxLeft = Math.max(8, window.innerWidth - rect.width - 8);
+            const maxTop = Math.max(8, window.innerHeight - rect.height - 8);
+            element.style.left = `${Math.min(Math.max(8, left), maxLeft)}px`;
+            element.style.top = `${Math.min(Math.max(8, top), maxTop)}px`;
+            element.style.right = 'auto';
+            element.style.bottom = 'auto';
+            element.style.insetInlineStart = 'auto';
+            element.style.insetInlineEnd = 'auto';
+        };
+
+        const savePosition = item => {
+            const rect = item.element.getBoundingClientRect();
+            try {
+                localStorage.setItem(item.key, JSON.stringify({left: rect.left, top: rect.top}));
+            } catch (error) {
+                return;
+            }
+        };
+
+        movableItems.forEach(item => {
+            try {
+                const saved = JSON.parse(localStorage.getItem(item.key) || 'null');
+                if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+                    positionElement(item.element, saved.left, saved.top);
+                }
+            } catch (error) {
+                // Ignore unavailable or invalid saved positions.
+            }
+
+            let drag = null;
+            let suppressClick = false;
+            item.handle.addEventListener('pointerdown', event => {
+                if (event.pointerType === 'mouse' && event.button !== 0) return;
+                const rect = item.element.getBoundingClientRect();
+                drag = {pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, left: rect.left, top: rect.top, moved: false};
+                item.handle.setPointerCapture(event.pointerId);
+            });
+            item.handle.addEventListener('pointermove', event => {
+                if (!drag || drag.pointerId !== event.pointerId) return;
+                const deltaX = event.clientX - drag.startX;
+                const deltaY = event.clientY - drag.startY;
+                if (!drag.moved && Math.hypot(deltaX, deltaY) > 6) {
+                    drag.moved = true;
+                    item.element.classList.add('is-dragging');
+                }
+                if (drag.moved) {
+                    event.preventDefault();
+                    positionElement(item.element, drag.left + deltaX, drag.top + deltaY);
+                }
+            });
+            const finishDrag = event => {
+                if (!drag || drag.pointerId !== event.pointerId) return;
+                if (drag.moved) {
+                    savePosition(item);
+                    suppressClick = true;
+                    window.setTimeout(() => { suppressClick = false; }, 0);
+                }
+                item.element.classList.remove('is-dragging');
+                drag = null;
+            };
+            item.handle.addEventListener('pointerup', finishDrag);
+            item.handle.addEventListener('pointercancel', finishDrag);
+            item.handle.addEventListener('click', event => {
+                if (!suppressClick) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                suppressClick = false;
+            }, true);
+        });
+
+        window.addEventListener('resize', () => {
+            movableItems.forEach(item => {
+                if (!item.element.style.left || !item.element.style.top) return;
+                positionElement(item.element, parseFloat(item.element.style.left), parseFloat(item.element.style.top));
+                savePosition(item);
+            });
+        });
+    })();
 </script>
 <script src="{{ url_for('static', filename='site-language.js') }}" defer></script>

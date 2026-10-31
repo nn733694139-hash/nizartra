@@ -20,19 +20,16 @@
                 <p class="eyebrow" {% if site_content.home_badge == 'A focused phonetics and pronunciation studio' %}data-i18n="home.badge"{% endif %}>{{ site_content.home_badge }}</p>
                 <h1 {% if site_content.home_heading == 'Hear English with clarity.' %}data-i18n="home.heading"{% endif %}>{{ site_content.home_heading }}</h1>
                 <p {% if site_content.home_intro == 'Explore English pronunciation, compare British and American speech, and build confidence one sound at a time.' %}data-i18n="home.intro"{% endif %}>{{ site_content.home_intro }}</p>
-                <p class="founder-signature"><span data-i18n="home.created">Created by</span><strong>{{ site_content.founder_name }}</strong><small class="founder-role">Developer</small></p>
+                <p class="founder-signature"><span data-i18n="home.created">Created by</span><strong>Nizar Sharqi</strong><small class="founder-role">Developer</small></p>
                 <div class="hero-actions">
-                    <a class="primary-link phonetics-entry" href="/phonetics">
-                        <span class="entry-label" data-i18n="home.startLabel">START HERE</span>
-                        <span data-i18n="home.enter">Open phonetics studio</span>
+                    <a class="primary-link welcome-card phonetics-entry" href="/phonetics" aria-label="Enjoy Your Journey">
+                        <span class="welcome-card-title">Enjoy Your Journey</span>
+                    </a>
+                    <a class="chat-hero-link" href="{{ url_for('chat_page') }}">
+                        <svg class="chat-entry-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H9l-5 4V5Z" /><path d="M8 10h8M8 13h5" /></svg>
+                        <span data-i18n="home.chatEntry">Open Community Chat</span>
                         <span class="entry-arrow" aria-hidden="true">➜</span>
                     </a>
-                    <label class="accent-picker"><span data-i18n="home.speechAccent">Speech accent</span>
-                        <select id="homeAccent" aria-label="Choose speech accent" data-i18n-aria="home.chooseAccent">
-                            <option value="en-GB" data-i18n="home.british">British English</option>
-                            <option value="en-US" data-i18n="home.american">American English</option>
-                        </select>
-                    </label>
                 </div>
             </div>
             <figure class="founder-portrait">
@@ -42,20 +39,35 @@
         </section>
 
         <nav class="tool-grid" aria-label="Pronunciation tools" data-i18n-aria="home.tools">
+            <a href="{{ url_for('chat_page') }}" class="service-card service-card--chat">
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M7 9h34v25H22l-11 8v-8H7z" /><path d="M15 18h18M15 25h12" /></svg>
+                <h2 class="home-module-title home-module-title--chat" data-i18n="home.chatTitle">Community Chat</h2>
+                <p data-i18n="home.chatText">Join the conversation with the community.</p>
+            </a>
             <a href="/phonetics" class="service-card">
-                <span class="icon" aria-hidden="true">IPA</span>
-                <h2 data-i18n="home.phoneticsTitle">Phonetics</h2>
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M4 25h5l5-10 8 20 7-26 7 30 5-14h3" /></svg>
+                <h2 class="home-module-title home-module-title--phonetics" data-i18n="home.phoneticsTitle">Phonetics</h2>
                 <p data-i18n="home.phoneticsText">Explore pronunciation with IPA transcription.</p>
             </a>
             <a href="/phonology" class="service-card">
-                <span class="icon" aria-hidden="true">PH</span>
-                <h2 data-i18n="home.phonologyTitle">Phonology</h2>
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M13 40c-5-7-6-18-2-26 4-8 15-10 23-5 5 3 7 8 7 12l-7 3-5-2-5 4-1 8-5 6" /><path d="M21 21h12m-5 5h8M8 44h14" /></svg>
+                <h2 class="home-module-title home-module-title--phonology" data-i18n="home.phonologyTitle">Phonology</h2>
                 <p data-i18n="home.phonologyText">Explore speech sounds and how the vocal tract produces them.</p>
             </a>
             <a href="/morphology" class="service-card">
-                <span class="icon" aria-hidden="true">MOR</span>
-                <h2 data-i18n="home.morphologyTitle">Morphology</h2>
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="16" width="12" height="16" rx="2" /><rect x="18" y="9" width="12" height="30" rx="2" /><rect x="32" y="16" width="12" height="16" rx="2" /><path d="M16 24h2m12 0h2" /></svg>
+                <h2 class="home-module-title home-module-title--morphology" data-i18n="home.morphologyTitle">Morphology</h2>
                 <p data-i18n="home.morphologyText">Explore morphemes, word structure and word formation.</p>
+            </a>
+            <a href="/syntax" class="service-card">
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="8" r="4" /><circle cx="11" cy="39" r="4" /><circle cx="24" cy="39" r="4" /><circle cx="37" cy="39" r="4" /><path d="M24 12v10M11 35V29h26v6M24 29v6" /></svg>
+                <h2 class="home-module-title home-module-title--syntax" data-i18n="home.syntaxTitle">Syntax</h2>
+                <p data-i18n="home.syntaxText">Understand how sentences are built and how grammar works together.</p>
+            </a>
+            <a href="/semantics" class="service-card">
+                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 7 7 38h34L24 7Z" /><circle cx="24" cy="9" r="4" /><circle cx="8" cy="38" r="4" /><circle cx="40" cy="38" r="4" /><path d="M24 13v10m-3 3-8 8m14-8 8 8" /></svg>
+                <h2 class="home-module-title home-module-title--semantics" data-i18n="home.semanticsTitle">Semantics</h2>
+                <p data-i18n="home.semanticsText">Explore meaning in words, sentences, and context.</p>
             </a>
             <a href="/thanks" class="service-card">
                 <span class="icon" aria-hidden="true">+</span>
@@ -73,12 +85,5 @@
 
     <footer>nizarphonetics · <span data-i18n="home.footer">English Phonetics Studio</span></footer>
 
-    <script>
-        const homeAccent = document.getElementById('homeAccent');
-        homeAccent.value = localStorage.getItem('nizarphonetics-accent') || 'en-GB';
-        homeAccent.addEventListener('change', () => {
-            localStorage.setItem('nizarphonetics-accent', homeAccent.value);
-        });
-    </script>
 </body>
 </html>
